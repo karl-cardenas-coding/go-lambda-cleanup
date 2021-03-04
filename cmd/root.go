@@ -9,10 +9,11 @@ import (
 )
 
 var (
-	VersionString string = "No version provided"
-	RegionFlag    string
-	Retain        int32
-	Debug         bool
+	VersionString   string = "No version provided"
+	CredentialsFile bool
+	RegionFlag      string
+	Retain          int32
+	Debug           bool
 )
 
 const (
@@ -40,7 +41,8 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&RegionFlag, "region", "r", "", "Specify the desired AWS region to target.")
-	rootCmd.PersistentFlags().BoolVar(&Debug, "debug", false, "Set to true to enable debugging")
+	rootCmd.PersistentFlags().BoolVarP(&Debug, "verbose", "v", false, "Set to true to enable debugging")
+	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "credentialsFile", "d", false, "Leverageds the default ~/.aws/crededentials file")
 	cleanCmd.Flags().Int32VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST - n-(x)")
 
 	// Establish logging default

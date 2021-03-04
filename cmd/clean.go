@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"sync"
@@ -14,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )
@@ -30,47 +32,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(cleanCmd)
-	ctx = context.Background()
-	// Initialize parameters
 
-	// Setup client header to use TLS 1.2
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		},
-	}
-	// Needed due to custom client being leveraged, otherwise HTTP2 will not be used.
-	tr.ForceAttemptHTTP2 = true
-
-	// Create the client
-	client := http.Client{Transport: tr}
-
-	if Debug {
-		logLevel = aws.LogDebugWithRequestErrors
-	} else {
-		logLevel = aws.LogOff
-	}
-
-	// Setup the AWS Session with our desired configurations
-	sess, err := session.NewSession(&aws.Config{
-		Region:                        aws.String(RegionFlag),
-		CredentialsChainVerboseErrors: aws.Bool(true),
-		LogLevel:                      aws.LogLevel(logLevel),
-		HTTPClient:                    &client,
-	})
-	if err != nil {
-		panic("ERROR SETTING UP SESSION")
-	}
-
-	_, err = sess.Config.Credentials.Get()
-	if err != nil {
-		log.Fatal("ERROR: Failed to valid aquire credentials.")
-	}
-
-	// The must() helps us ensure that the connection/session is leveraging all our specified client configurations.
-	sessVerified := session.Must(sess, err)
-
-	svc = lambda.New(sessVerified)
 }
 
 var cleanCmd = &cobra.Command{
@@ -78,8 +40,73 @@ var cleanCmd = &cobra.Command{
 	Short: "Removes all versions of lambda expect for the $LATEST version",
 	Long:  `Removes all versions of lambda expect for the $LATEST bersion. The user also has the ability specify n-? version to retain.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if RegionFlag != "" {
-			err := executeClean()
+
+		var (
+			awsEnvRegion     string
+			region           string
+			sharedFileConfig session.SharedConfigState
+		)
+
+		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
+
+		if awsEnvRegion == "" {
+			if RegionFlag != "" {
+				region = RegionFlag
+			}
+		} else {
+			region = awsEnvRegion
+		}
+
+		if region != "" {
+			ctx = context.Background()
+			// Initialize parameters
+
+			// Setup client header to use TLS 1.2
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{
+					MinVersion: tls.VersionTLS12,
+				},
+			}
+			// Needed due to custom client being leveraged, otherwise HTTP2 will not be used.
+			tr.ForceAttemptHTTP2 = true
+
+			// Create the client
+			client := http.Client{Transport: tr}
+
+			if Debug {
+				logLevel = aws.LogDebugWithRequestErrors
+			} else {
+				logLevel = aws.LogOff
+			}
+
+			if CredentialsFile {
+				sharedFileConfig = session.SharedConfigEnable
+
+			} else {
+				sharedFileConfig = session.SharedConfigDisable
+			}
+
+			// The must() helps us ensure that the connection/session is leveraging all our specified client configurations.
+			// sessVerified := session.Must(sess, err)
+			sessVerified := session.Must(session.NewSessionWithOptions(session.Options{
+				Config: aws.Config{
+					Region:                        aws.String(region),
+					CredentialsChainVerboseErrors: aws.Bool(true),
+					LogLevel:                      aws.LogLevel(logLevel),
+					HTTPClient:                    &client,
+					MaxRetries:                    aws.Int(1),
+				},
+				SharedConfigState: sharedFileConfig,
+			}))
+
+			sessVerified.Config.Credentials.Expire()
+			_, err := sessVerified.Config.Credentials.Get()
+			if err != nil {
+				log.Fatal("ERROR: Failed to valid aquire credentials.")
+			}
+
+			svc = lambda.New(sessVerified)
+			err = executeClean(region)
 			if err != nil {
 				log.Fatal("ERROR: ", err)
 			}
@@ -90,7 +117,7 @@ var cleanCmd = &cobra.Command{
 	},
 }
 
-func executeClean() error {
+func executeClean(region string) error {
 
 	var (
 		returnError error
@@ -101,7 +128,7 @@ func executeClean() error {
 	)
 
 	// g, ctx := errgroup.WithContext(ctx)
-	log.Println("Scanning AWS environment in " + RegionFlag + ".....")
+	log.Println("Scanning AWS environment in " + region + ".....")
 	lambdaList, err := getAlllambdas(ctx, svc)
 	checkError(err)
 	log.Println("............")
@@ -149,7 +176,7 @@ func executeClean() error {
 
 	// Recalculate storage size
 	updatedLambdaList, err := getAlllambdas(ctx, svc)
-	returnError = checkError(err)
+	checkError(err)
 	log.Println("............")
 
 	for _, lambda := range updatedLambdaList {
@@ -305,7 +332,9 @@ func getAlllambdas(ctx context.Context, svc *lambda.Lambda) ([]*lambda.FunctionC
 			lambdasLisOutput = append(lambdasLisOutput, page.Functions...)
 			return lastPage
 		})
-	returnError = checkError(err)
+	if err != nil {
+		returnError = err
+	}
 
 	return lambdasLisOutput, returnError
 
@@ -332,7 +361,9 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 			lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
 			return lastPage
 		})
-	returnError = checkError(err)
+	if err != nil {
+		returnError = err
+	}
 
 	// Sort list so that the fomer versions are listed firstm and $LATEST is listed last
 	sort.Sort(ByVersion(lambdasLisOutput))
@@ -366,10 +397,15 @@ func getLambdaStorage(list []*lambda.FunctionConfiguration) (int64, error) {
 	return sizeCounter, returnError
 }
 
-func checkError(err error) error {
+func checkError(err error) {
 	if err != nil {
-		return err
-	} else {
-		return nil
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case organizations.ErrCodeAccessDeniedException:
+				log.Fatal("ERROR: Access Denied - Please verify AWS credentials and permissions\n", aerr.Code())
+			default:
+				log.Fatal("ERROR: ", err.Error())
+			}
+		}
 	}
 }
