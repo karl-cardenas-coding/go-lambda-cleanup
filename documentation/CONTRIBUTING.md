@@ -2,4 +2,4 @@ Welcome and thank you for expressing interest in contributing. If you're unsure 
 
 Below are our expectations for contributors. Following these guidelines gives us the best opportunity to work with you, by making sure we have the things we need in order to make it happen.
 
-* [Development Environment](documentation/DEVELOPMENT.md)
+* [Development Environment](DEVELOPMENT.md)
