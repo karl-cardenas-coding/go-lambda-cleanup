@@ -10,7 +10,13 @@
 <p align="center">A  Golang based CLI for removing unused versions of AWS Lambdas. </p>
 
 ## Installation
-go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup by unzipping the zip file and and moving the included binary a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
+go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup by unzipping the zip file and and moving the included binary to a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
+
+```shell
+wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v1.0.0/go-lambda-cleanup_linux_amd64.zip
+unzip go-lambda-cleanup_linux_amd64.zip 
+sudo mv go-clean-lambda /usr/local/bin/
+```
 
 ## Usage
 
