@@ -19,7 +19,7 @@ Usage:
   gcl clean [flags]
 
 Flags:
-  -c, --count int32   The number of versions to retain from $LATEST - n-(x) (int) (default 1)
+  -c, --count int32   The number of versions to retain from $LATEST-(n) (default 1)
   -h, --help          help for clean
 
 Global Flags:
