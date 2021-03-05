@@ -45,7 +45,7 @@ go-lambda-clean utilizes the default AWS Go SDK credentials provider to find AWS
 4. If your application is running on an Amazon EC2 instance, IAM role for Amazon EC2.
 
 #### Shared File Example
-If `~/.aws/config` and `~/.aws/config` is setup for the AWS CLI then you may leverage the exisits profile confugrations.
+If `~/.aws/config` and `~/.aws/config` is setup for the AWS CLI then you may leverage the existing profile confugrations for authentication.
 ```shell
 export AWS_PROFILE=myProfile
 gcl clean -r us-west-2 -s true
