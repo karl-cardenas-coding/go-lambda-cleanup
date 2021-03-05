@@ -25,7 +25,7 @@ Available Commands:
   version     Print the current version number of disaster-cli
 
 Flags:
-  -s, --enableSharedCredentials   Leverages the default ~/.aws/crededentials file (bool)
+  -s, --enableSharedCredentials   Leverages the default ~/.aws/credentials file (bool)
   -h, --help                      help for gcl
   -r, --region string             Specify the desired AWS region to target.
   -v, --verbose                   Set to true to enable debugging (bool)

@@ -42,7 +42,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&RegionFlag, "region", "r", "", "Specify the desired AWS region to target.")
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "verbose", "v", false, "Set to true to enable debugging (bool)")
-	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "enableSharedCredentials", "s", false, "Leverages the default ~/.aws/crededentials file (bool)")
+	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "enableSharedCredentials", "s", false, "Leverages the default ~/.aws/credentials file (bool)")
 	cleanCmd.Flags().Int8VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST-(n)")
 
 	// Establish logging default
