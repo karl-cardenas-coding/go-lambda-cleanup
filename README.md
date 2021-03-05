@@ -70,11 +70,12 @@ $ gcl clean -r us-west-2 -s true
 
 ## Contributing to go-lambda-cleanup
 
-For a complete guide to contributing to disaster-cli , see the [Contribution Guide](CONTRIBUTING.md).
+For a complete guide to contributing to go-lambda-clean, see the [Contribution Guide](CONTRIBUTING.md).
 
 Contributions to go-lambda-cleanup of any kind including documentation, organization, tutorials, blog posts, bug reports, issues, feature requests, feature implementations, pull requests, answering questions on the forum, helping to manage issues, etc.
 
 
 ## Helpful Links
-
-Golang Cobra CLI Framework:https://github.com/spf13/cobra
+[AWS Credentials Configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
+[Golang Cobra CLI Framework](https://github.com/spf13/cobra)
+[AWS Go SDK Credentials](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html)
