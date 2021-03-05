@@ -76,7 +76,7 @@ $ gcl clean -r us-west-2 -s true
 
 ## Contributing to go-lambda-cleanup
 
-For a complete guide to contributing to go-lambda-clean, see the [Contribution Guide](CONTRIBUTING.md).
+For a complete guide to contributing to go-lambda-clean, see the [Contribution Guide](documentation/CONTRIBUTING.md).
 
 Contributions to go-lambda-cleanup of any kind including documentation, organization, tutorials, blog posts, bug reports, issues, feature requests, feature implementations, pull requests, answering questions on the forum, helping to manage issues, etc.
 
