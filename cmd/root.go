@@ -12,7 +12,7 @@ var (
 	VersionString   string = "No version provided"
 	CredentialsFile bool
 	RegionFlag      string
-	Retain          int32
+	Retain          int8
 	Debug           bool
 )
 
@@ -43,7 +43,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&RegionFlag, "region", "r", "", "Specify the desired AWS region to target.")
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "verbose", "v", false, "Set to true to enable debugging (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "enableSharedCredentials", "s", false, "Leverages the default ~/.aws/crededentials file (bool)")
-	cleanCmd.Flags().Int32VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST-(n)")
+	cleanCmd.Flags().Int8VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST-(n)")
 
 	// Establish logging default
 	log.SetFormatter(&log.TextFormatter{

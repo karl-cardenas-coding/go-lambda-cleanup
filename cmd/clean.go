@@ -46,7 +46,7 @@ var cleanCmd = &cobra.Command{
 			region           string
 			sharedFileConfig session.SharedConfigState
 		)
-
+		log.Println("Creds Flag-", CredentialsFile)
 		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
 
 		if awsEnvRegion == "" {
@@ -290,7 +290,7 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Lambda, deleteList ...
 }
 
 // Generate a list of Lambdas to remove based on the desired retain value
-func getLambdasToDelteList(list []*lambda.FunctionConfiguration, retainCount int32) []*lambda.FunctionConfiguration {
+func getLambdasToDelteList(list []*lambda.FunctionConfiguration, retainCount int8) []*lambda.FunctionConfiguration {
 
 	var retainNumber int
 	// Ensure the passed in parameter is greater than zero
@@ -366,17 +366,17 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 	}
 
 	// Sort list so that the fomer versions are listed firstm and $LATEST is listed last
-	sort.Sort(ByVersion(lambdasLisOutput))
+	sort.Sort(byVersion(lambdasLisOutput))
 
 	return lambdasLisOutput, returnError
 
 }
 
-type ByVersion []*lambda.FunctionConfiguration
+type byVersion []*lambda.FunctionConfiguration
 
-func (a ByVersion) Len() int      { return len(a) }
-func (a ByVersion) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a ByVersion) Less(i, j int) bool {
+func (a byVersion) Len() int      { return len(a) }
+func (a byVersion) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a byVersion) Less(i, j int) bool {
 	one, _ := strconv.ParseInt(*a[i].Version, 10, 32)
 	two, _ := strconv.ParseInt(*a[j].Version, 10, 32)
 	return one > two

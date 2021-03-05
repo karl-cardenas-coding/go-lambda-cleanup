@@ -16,18 +16,59 @@ go-lambda-cleanup is distributed as a single binary. [Download](https://github.c
 
 ```shell
 Usage:
-  gcl clean [flags]
+  gcl [flags]
+  gcl [command]
+
+Available Commands:
+  clean       Removes all versions of lambda except for the $LATEST version
+  help        Help about any command
+  version     Print the current version number of disaster-cli
 
 Flags:
-  -c, --count int32   The number of versions to retain from $LATEST-(n) (default 1)
-  -h, --help          help for clean
-
-Global Flags:
   -s, --enableSharedCredentials   Leverages the default ~/.aws/crededentials file (bool)
+  -h, --help                      help for gcl
   -r, --region string             Specify the desired AWS region to target.
   -v, --verbose                   Set to true to enable debugging (bool)
+
+Use "gcl [command] --help" for more information about a command.
 ```
 
+### Authentication
+go-lambda-clean utilizes the default AWS Go SDK credentials provider to find AWS credentials. The default provider chain looks for credentials in the following order:
+
+1. Environment variables.
+
+2. Shared credentials file.
+
+3. If your application uses an ECS task definition or RunTask API operation, IAM role for tasks.
+
+4. If your application is running on an Amazon EC2 instance, IAM role for Amazon EC2.
+
+#### Shared File Example
+If `~/.aws/config` and `~/.aws/config` is setup for the AWS CLI then you may leverage the exisits profile confugrations.
+```shell
+export AWS_PROFILE=myProfile
+gcl clean -r us-west-2 -s true
+2021/03/04 20:42:46 Creds Flag- true
+2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
+2021/03/04 20:42:46 ............
+```
+#### Environment Variables
+Static credentials may be utlized to authenticate into AWS.
+* AWS_ACCESS_KEY_ID
+
+* AWS_SECRET_ACCESS_KEY
+
+* AWS_SESSION_TOKEN (optional)
+```shell
+$ export AWS_ACCESS_KEY_ID=YOUR_AKID
+$ export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_KEY
+$ export AWS_SESSION_TOKEN=TOKEN
+$ gcl clean -r us-west-2 -s true
+2021/03/04 20:42:46 Creds Flag- true
+2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
+2021/03/04 20:42:46 ............
+```
 
 ## Contributing to go-lambda-cleanup
 
