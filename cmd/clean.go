@@ -46,7 +46,7 @@ var cleanCmd = &cobra.Command{
 			region           string
 			sharedFileConfig session.SharedConfigState
 		)
-		log.Println("Creds Flag-", CredentialsFile)
+
 		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
 
 		if awsEnvRegion == "" {

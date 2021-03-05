@@ -49,7 +49,6 @@ If `~/.aws/config` and `~/.aws/config` is setup for the AWS CLI then you may lev
 ```shell
 export AWS_PROFILE=myProfile
 gcl clean -r us-west-2 -s true
-2021/03/04 20:42:46 Creds Flag- true
 2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
 2021/03/04 20:42:46 ............
 ```
@@ -65,7 +64,6 @@ $ export AWS_ACCESS_KEY_ID=YOUR_AKID
 $ export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_KEY
 $ export AWS_SESSION_TOKEN=TOKEN
 $ gcl clean -r us-west-2 -s true
-2021/03/04 20:42:46 Creds Flag- true
 2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
 2021/03/04 20:42:46 ............
 ```
