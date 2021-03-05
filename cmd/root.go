@@ -21,9 +21,9 @@ const (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "go-lambda",
+	Use:   "gcl",
 	Short: "A CLI tool for cleaning up AWS Lambda Version",
-	Long:  `A Golang based CLI tool for determining natural catastrophe near you, or a location specified. Visit https://github.com/karl-cardenas-coding/go-clean-lambda for more information.`,
+	Long:  `A CLI tool for cleaning up AWS Lambda Version`,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := cmd.Help()
 		if err != nil {
@@ -41,9 +41,9 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&RegionFlag, "region", "r", "", "Specify the desired AWS region to target.")
-	rootCmd.PersistentFlags().BoolVarP(&Debug, "verbose", "v", false, "Set to true to enable debugging")
-	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "credentialsFile", "d", false, "Leverageds the default ~/.aws/crededentials file")
-	cleanCmd.Flags().Int32VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST - n-(x)")
+	rootCmd.PersistentFlags().BoolVarP(&Debug, "verbose", "v", false, "Set to true to enable debugging (bool)")
+	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "enableSharedCredentials", "s", false, "Leverages the default ~/.aws/crededentials file (bool)")
+	cleanCmd.Flags().Int32VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST - n-(x) (int)")
 
 	// Establish logging default
 	log.SetFormatter(&log.TextFormatter{

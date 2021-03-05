@@ -16,3 +16,5 @@ vendor/
 
 go-lambda-cleanup
 
+node_modules/
+
