@@ -48,7 +48,7 @@ jobs:
     - name: Generate AWS region file
       run: |
         aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-        ls -laxo cmd/
+        cat cmd/aws-regions.txt
 
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v2
@@ -68,7 +68,7 @@ jobs:
             source VERSION.env
         fi
         go test -coverprofile=go.txt -v ./...
-        go run main.go clean
+        go run main.go clean -r us-east-1
         go run main.go version
   
     - name: build & execute
