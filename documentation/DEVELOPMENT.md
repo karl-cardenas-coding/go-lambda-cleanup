@@ -26,3 +26,8 @@ The `clean` command expects the file `cmd/aws-regions.txt` to be present. Otherw
 ```
 
 ## Testing
+
+Add test cases to new functions and new commands. Invoke the Go tests from the root namespace. The pipeline will invoke the Go tests as well.
+```shell
+go test -v ./...
+```
