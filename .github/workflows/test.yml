@@ -45,7 +45,7 @@ jobs:
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
             dep ensure
         fi
-    -name: Generate AWS region file
+    - name: Generate AWS region file
       run: |
         aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output txt >> cmd/aws-regions.txt
         ls -laxo cmd/
