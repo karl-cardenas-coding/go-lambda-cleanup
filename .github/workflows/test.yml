@@ -7,6 +7,8 @@ on:
     branches: [ main ]
 env:
   GITHUB_TOKEN: ${{ github.token }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   LINT_VERSION: "1.25.1"
 
 jobs:
@@ -43,6 +45,10 @@ jobs:
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
             dep ensure
         fi
+    -name: Generate AWS region file
+      run: |
+        aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output txt >> cmd/aws-regions.txt
+        ls -laxo cmd/
 
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v2

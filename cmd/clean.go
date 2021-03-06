@@ -46,8 +46,6 @@ var cleanCmd = &cobra.Command{
 	Long:  `Removes all versions of lambda except for the $LATEST bersion. The user also has the ability specify n-? version to retain.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// aws ec2 describe-regions --profile sb-test --query "Regions[].RegionName" --output json
-
 		var (
 			awsEnvRegion     string
 			awsEnvProfile    string
