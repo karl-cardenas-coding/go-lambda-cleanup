@@ -48,7 +48,6 @@ jobs:
     - name: Generate AWS region file
       run: |
         aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-        cat cmd/aws-regions.txt
 
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v2
@@ -59,8 +58,6 @@ jobs:
 
     - name: test
       run: |
-        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
         FILE=./VERSION.env
         npm install @semantic-release/exec -D
         npm install @semantic-release/changelog -D
@@ -70,7 +67,7 @@ jobs:
             source VERSION.env
         fi
         go test -coverprofile=go.txt -v ./...
-        go run main.go clean -r us-east-1
+        go run main.go clean -r us-west-2
         go run main.go version
   
     - name: build & execute

@@ -77,7 +77,7 @@ Static credentials may be utlized to authenticate into AWS.
 $ export AWS_ACCESS_KEY_ID=YOUR_AKID
 $ export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_KEY
 $ export AWS_SESSION_TOKEN=TOKEN
-$ gcl clean -r us-west-2 -s true
+$ gcl clean -r us-west-2
 2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
 2021/03/04 20:42:46 ............
 ```

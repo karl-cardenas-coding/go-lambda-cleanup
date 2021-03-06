@@ -85,14 +85,14 @@ var cleanCmd = &cobra.Command{
 
 		if ProfileFlag == "" {
 			if awsEnvProfile != "" {
+				log.Infof("AWS_PROFILE set to \"%s\"", awsEnvProfile)
 				profile = awsEnvProfile
 			} else {
-				log.Warn("No AWS profile specified therefore using profile value of \"default\"")
-				profile = "default"
+				profile = ""
 			}
 
 		} else {
-
+			log.Infof("The AWS Profil flag \"%s\" was passed in.", ProfileFlag)
 			profile = ProfileFlag
 		}
 
@@ -109,9 +109,7 @@ var cleanCmd = &cobra.Command{
 			sharedFileConfig = session.SharedConfigDisable
 		}
 
-		// The must() helps us ensure that the connection/session is leveraging all our specified client configurations.
-		// sessVerified := session.Must(sess, err)
-		sessVerified := session.Must(session.NewSessionWithOptions(session.Options{
+		sess, err := session.NewSessionWithOptions(session.Options{
 			Config: aws.Config{
 				Region:                        aws.String(region),
 				CredentialsChainVerboseErrors: aws.Bool(true),
@@ -121,15 +119,21 @@ var cleanCmd = &cobra.Command{
 			},
 			SharedConfigState: sharedFileConfig,
 			Profile:           profile,
-		}))
+		})
+		if err != nil {
+			log.Fatal("ERROR ESTABLISHING AWS SESSION")
+		}
 
-		sessVerified.Config.Credentials.Expire()
-		_, err := sessVerified.Config.Credentials.Get()
+		sess.Config.Credentials.Expire()
+		_, err = sess.Config.Credentials.Get()
 		if err != nil {
 			log.Fatal("ERROR: Failed to aquire valid credentials.")
 		}
 
+		sessVerified := session.Must(sess, err)
+
 		svc = lambda.New(sessVerified)
+
 		err = executeClean(region)
 		if err != nil {
 			log.Fatal("ERROR: ", err)
