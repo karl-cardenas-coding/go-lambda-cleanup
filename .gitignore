@@ -15,6 +15,7 @@
 vendor/
 
 go-lambda-cleanup
+glc
 
 node_modules/
-
+*.txt

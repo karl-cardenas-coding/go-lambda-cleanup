@@ -3,12 +3,13 @@ package cmd
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
-	"log"
+	"embed"
+	_ "embed"
 	"net/http"
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/dustin/go-humanize"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +31,8 @@ var (
 	ctx      context.Context
 	logLevel aws.LogLevelType
 	svc      *lambda.Lambda
+	//go:embed aws-regions.txt
+	f embed.FS
 )
 
 func init() {
@@ -42,89 +46,95 @@ var cleanCmd = &cobra.Command{
 	Long:  `Removes all versions of lambda except for the $LATEST bersion. The user also has the ability specify n-? version to retain.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// aws ec2 describe-regions --profile sb-test --query "Regions[].RegionName" --output json
+
 		var (
 			awsEnvRegion     string
+			awsEnvProfile    string
 			profile          string
 			region           string
 			sharedFileConfig session.SharedConfigState
 		)
 
 		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
-		awsEnvProfile := os.Getenv("AWS_PROFILE")
+		awsEnvProfile = os.Getenv("AWS_PROFILE")
 
 		if awsEnvRegion == "" {
 			if RegionFlag != "" {
-				region = RegionFlag
+				region = validateRegion(f, RegionFlag)
+			} else {
+				log.Fatal("ERROR: Missing region flag. Please use -r and provide a valid AWS region.")
 			}
 		} else {
-			region = awsEnvRegion
+			region = validateRegion(f, awsEnvRegion)
 		}
 
-		if awsEnvProfile == "" {
-			if ProfileFlag != "" {
-				profile = ProfileFlag
+		// if region != "" {
+		ctx = context.Background()
+		// Initialize parameters
+
+		// Setup client header to use TLS 1.2
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			},
+		}
+		// Needed due to custom client being leveraged, otherwise HTTP2 will not be used.
+		tr.ForceAttemptHTTP2 = true
+
+		// Create the client
+		client := http.Client{Transport: tr}
+
+		if ProfileFlag == "" {
+			if awsEnvProfile != "" {
+				profile = awsEnvProfile
+			} else {
+				log.Warn("No AWS profile specified therefore using profile value of \"default\"")
+				profile = "default"
 			}
+
 		} else {
-			profile = awsEnvProfile
+
+			profile = ProfileFlag
 		}
 
-		if region != "" {
-			ctx = context.Background()
-			// Initialize parameters
+		if Debug {
+			logLevel = aws.LogDebugWithRequestErrors
+		} else {
+			logLevel = aws.LogOff
+		}
 
-			// Setup client header to use TLS 1.2
-			tr := &http.Transport{
-				TLSClientConfig: &tls.Config{
-					MinVersion: tls.VersionTLS12,
-				},
-			}
-			// Needed due to custom client being leveraged, otherwise HTTP2 will not be used.
-			tr.ForceAttemptHTTP2 = true
-
-			// Create the client
-			client := http.Client{Transport: tr}
-
-			if Debug {
-				logLevel = aws.LogDebugWithRequestErrors
-			} else {
-				logLevel = aws.LogOff
-			}
-
-			if CredentialsFile {
-				sharedFileConfig = session.SharedConfigEnable
-
-			} else {
-				sharedFileConfig = session.SharedConfigDisable
-			}
-
-			// The must() helps us ensure that the connection/session is leveraging all our specified client configurations.
-			// sessVerified := session.Must(sess, err)
-			sessVerified := session.Must(session.NewSessionWithOptions(session.Options{
-				Config: aws.Config{
-					Region:                        aws.String(region),
-					CredentialsChainVerboseErrors: aws.Bool(true),
-					LogLevel:                      aws.LogLevel(logLevel),
-					HTTPClient:                    &client,
-					MaxRetries:                    aws.Int(1),
-				},
-				Profile:           profile,
-				SharedConfigState: sharedFileConfig,
-			}))
-
-			sessVerified.Config.Credentials.Expire()
-			_, err := sessVerified.Config.Credentials.Get()
-			if err != nil {
-				log.Fatal("ERROR: Failed to valid aquire credentials.")
-			}
-
-			svc = lambda.New(sessVerified)
-			err = executeClean(region)
-			if err != nil {
-				log.Fatal("ERROR: ", err)
-			}
+		if CredentialsFile {
+			sharedFileConfig = session.SharedConfigEnable
 
 		} else {
-			log.Println("ERROR: Missing region flag. Please use -r and provide a valid AWS region.")
+			sharedFileConfig = session.SharedConfigDisable
+		}
+
+		// The must() helps us ensure that the connection/session is leveraging all our specified client configurations.
+		// sessVerified := session.Must(sess, err)
+		sessVerified := session.Must(session.NewSessionWithOptions(session.Options{
+			Config: aws.Config{
+				Region:                        aws.String(region),
+				CredentialsChainVerboseErrors: aws.Bool(true),
+				LogLevel:                      aws.LogLevel(logLevel),
+				HTTPClient:                    &client,
+				MaxRetries:                    aws.Int(1),
+			},
+			SharedConfigState: sharedFileConfig,
+			Profile:           profile,
+		}))
+
+		sessVerified.Config.Credentials.Expire()
+		_, err := sessVerified.Config.Credentials.Get()
+		if err != nil {
+			log.Fatal("ERROR: Failed to aquire valid credentials.")
+		}
+
+		svc = lambda.New(sessVerified)
+		err = executeClean(region)
+		if err != nil {
+			log.Fatal("ERROR: ", err)
 		}
 	},
 }
@@ -141,10 +151,10 @@ func executeClean(region string) error {
 		counter                    int64 = 0
 	)
 
-	log.Println("Scanning AWS environment in " + region + ".....")
+	log.Info("Scanning AWS environment in " + region)
 	lambdaList, err := getAlllambdas(ctx, svc)
 	checkError(err)
-	log.Println("............")
+	log.Info("............")
 
 	if len(lambdaList) > 0 {
 		tempCounter := 0
@@ -162,13 +172,13 @@ func executeClean(region string) error {
 			globalLambdaStorage = append(globalLambdaStorage, totalLambdaStorage)
 			tempCounter++
 		}
-		log.Println(tempCounter, " Lambdas identified")
+		log.Info(tempCounter, " Lambdas identified")
 		for _, v := range globalLambdaStorage {
 			counter = counter + v
 		}
-		log.Println("Current storage size: ", humanize.Bytes(uint64(counter)))
-		log.Println("**************************")
-		log.Println("Initiating clean-up process. This may take a few minutes....")
+		log.Info("Current storage size: ", humanize.Bytes(uint64(counter)))
+		log.Info("**************************")
+		log.Info("Initiating clean-up process. This may take a few minutes....")
 		// Begin delete process
 		globalLambdaDeleteList := [][]*lambda.FunctionConfiguration{}
 
@@ -177,18 +187,18 @@ func executeClean(region string) error {
 			globalLambdaDeleteList = append(globalLambdaDeleteList, lambdasDeleteList)
 
 		}
-		log.Println("............")
+		log.Info("............")
 		globalLambdaDeleteInputStructs, err := generateDeleteInputStructs(globalLambdaDeleteList)
 		checkError(err)
 
-		log.Println("............")
+		log.Info("............")
 		err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
 		checkError(err)
 
 		// Recalculate storage size
 		updatedLambdaList, err := getAlllambdas(ctx, svc)
 		checkError(err)
-		log.Println("............")
+		log.Info("............")
 
 		for _, lambda := range updatedLambdaList {
 			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
@@ -199,23 +209,23 @@ func executeClean(region string) error {
 
 			updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
 		}
-		log.Println("............")
+		log.Info("............")
 		var updatedCounter int64 = 0
 		for _, v := range updatedGlobalLambdaStorage {
 			updatedCounter = updatedCounter + v
 		}
-		log.Println("Total space freed up: ", (humanize.Bytes(uint64(counter - updatedCounter))))
-		log.Println("Post clean-up storage size: ", humanize.Bytes(uint64(updatedCounter)))
-		log.Println("*********************************************")
-
-		t := time.Now()
-		elapsedTime := time.Duration(t.Sub(startTime).Minutes())
-		log.Println("Job Duration Time: ", elapsedTime)
+		log.Info("Total space freed up: ", (humanize.Bytes(uint64(counter - updatedCounter))))
+		log.Info("Post clean-up storage size: ", humanize.Bytes(uint64(updatedCounter)))
+		log.Info("*********************************************")
 	}
 
 	if len(lambdaList) == 0 {
-		log.Println("No lambdas found in", region)
+		log.Info("No lambdas found in ", region)
 	}
+
+	t := time.Now()
+	elapsedTime := time.Duration(t.Sub(startTime).Minutes())
+	log.Info("Job Duration Time: ", elapsedTime)
 
 	return returnError
 
@@ -269,22 +279,22 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Lambda, deleteList ...
 					if aerr, ok := err.(awserr.Error); ok {
 						switch aerr.Code() {
 						case lambda.ErrCodeServiceException:
-							fmt.Println(lambda.ErrCodeServiceException, aerr.Error())
+							log.Info(lambda.ErrCodeServiceException, aerr.Error())
 							returnError = aerr
 						case lambda.ErrCodeResourceNotFoundException:
-							fmt.Println(lambda.ErrCodeResourceNotFoundException, aerr.Error())
+							log.Info(lambda.ErrCodeResourceNotFoundException, aerr.Error())
 							returnError = aerr
 						case lambda.ErrCodeTooManyRequestsException:
-							fmt.Println(lambda.ErrCodeTooManyRequestsException, aerr.Error())
+							log.Info(lambda.ErrCodeTooManyRequestsException, aerr.Error())
 							returnError = aerr
 						case lambda.ErrCodeInvalidParameterValueException:
-							fmt.Println(lambda.ErrCodeInvalidParameterValueException, aerr.Error())
+							log.Info(lambda.ErrCodeInvalidParameterValueException, aerr.Error())
 							returnError = aerr
 						case lambda.ErrCodeResourceConflictException:
-							fmt.Println(lambda.ErrCodeResourceConflictException, aerr.Error())
+							log.Info(lambda.ErrCodeResourceConflictException, aerr.Error())
 							returnError = aerr
 						default:
-							fmt.Println(aerr.Error())
+							log.Info(aerr.Error())
 							returnError = aerr
 						}
 					}
@@ -416,4 +426,25 @@ func checkError(err error) {
 			}
 		}
 	}
+}
+
+// Validates that the user passed in a valid AWS Region
+func validateRegion(f embed.FS, input string) string {
+
+	var output string
+
+	rawData, _ := f.ReadFile("aws-regions.txt")
+	regionsList := strings.Split(string(rawData), "	")
+
+	for _, region := range regionsList {
+		if strings.ToLower(input) == strings.TrimSpace(region) {
+			output = strings.TrimSpace(region)
+		}
+	}
+
+	if output == "" {
+		log.Fatal(input, " is an invalid AWS region. If this is an error please")
+	}
+
+	return output
 }

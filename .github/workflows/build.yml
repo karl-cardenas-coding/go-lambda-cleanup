@@ -1,0 +1,219 @@
+name: Release to Production
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
+jobs:
+
+  darwin-amd64:
+    name: darwin-amd64
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.go.outputs.version }}
+    env:
+          GOARCH: amd64
+          GOOS: darwin
+    steps:
+      -
+        id: go
+        name: "Set up Go 1.16"
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+      -
+        name: "Check out code into the Go module directory"
+        uses: actions/checkout@v2
+      -
+        name: "Get dependencies"
+        id: dependencies
+        run: |
+            go get -v -t -d ./...
+            if [ -f Gopkg.toml ]; then
+                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+                dep ensure
+            fi
+            npm install @semantic-release/exec -D
+            npx semantic-release --dry-run
+            cat VERSION.env
+            source VERSION.env
+            echo "::set-output name=version::$VERSION"
+      -
+        name: create
+        run: go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=disaster -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
+      - uses: actions/upload-artifact@v1
+        with:
+          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+
+  linux-386:
+    name: linux-386
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.go.outputs.version }}
+    env:
+      GOARCH: "386"
+      GOOS: linux
+    steps:
+      -
+        id: go
+        name: "Set up Go 1.16"
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+      -
+        name: "Check out code into the Go module directory"
+        uses: actions/checkout@v2
+      -
+        name: "Get dependencies"
+        id: dependencies
+        run: |
+            go get -v -t -d ./...
+            if [ -f Gopkg.toml ]; then
+                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+                dep ensure
+            fi
+            npm install @semantic-release/exec -D
+            npx semantic-release --dry-run
+            cat VERSION.env
+            source VERSION.env
+            echo "::set-output name=version::$VERSION"
+      -
+        name: create
+        run: go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=disaster -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
+      - uses: actions/upload-artifact@v1
+        with:
+          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+
+  linux-amd64:
+    name: linux-amd64
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.go.outputs.version }}
+    env:
+      GOARCH: amd64
+      GOOS: linux
+    steps:
+      -
+        id: go
+        name: "Set up Go"
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+      -
+        name: "Check out code into the Go module directory"
+        uses: actions/checkout@v2
+      -
+        name: "Get dependencies"
+        id: dependencies
+        run: |
+            go get -v -t -d ./...
+            if [ -f Gopkg.toml ]; then
+                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+                dep ensure
+            fi
+            npm install @semantic-release/exec -D
+            npx semantic-release --dry-run
+            cat VERSION.env
+            source VERSION.env
+            echo "::set-output name=version::$VERSION"
+      -
+        name: create
+        run: go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{steps.dependencies.outputs.VERSION}}'" -o=disaster -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
+      - uses: actions/upload-artifact@v1
+        with:
+          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+
+
+  windows-amd64:
+    name: windows-amd64
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.go.outputs.version }}
+    env:
+      GOARCH: amd64
+      GOOS: windows
+    steps:
+      -
+        id: go
+        name: "Set up Go 1.16"
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+      -
+        name: "Check out code into the Go module directory"
+        uses: actions/checkout@v2
+      -
+        name: "Get dependencies"
+        id: dependencies
+        run: |
+            go get -v -t -d ./...
+            if [ -f Gopkg.toml ]; then
+                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+                dep ensure
+            fi
+            npm install @semantic-release/exec -D
+            npx semantic-release --dry-run
+            cat VERSION.env
+            source VERSION.env
+            echo "::set-output name=version::$VERSION"
+      -
+        name: create
+        run: go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=disaster.exe -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster.exe
+      - uses: actions/upload-artifact@v1
+        with:
+          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+
+  release:
+    name: "Create a release"
+    needs: ["darwin-amd64", "linux-386", "linux-amd64", "windows-amd64"]
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+    
+      - uses: actions/download-artifact@v1
+        with:
+          name: VERSION.env
+          path: ./       
+
+      - name: Get Version
+        id: get-version
+        run: |
+             source VERSION.env
+             echo $VERSION
+             echo "::set-output name=version::$VERSION"
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-darwin-amd64.zip
+            path: ./
+
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-linux-386.zip
+            path: ./
+
+
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-linux-amd64.zip
+            path: ./
+
+            
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-windows-amd64.zip
+            path: ./
+
+      - name: "release"
+        run: |
+             npm install @semantic-release/exec -D
+             npx semantic-release

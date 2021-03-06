@@ -33,6 +33,7 @@ Available Commands:
 Flags:
   -s, --enableSharedCredentials   Leverages the default ~/.aws/credentials file (bool)
   -h, --help                      help for gcl
+  -p, --profile string            Specify the AWS profile to leverage for authentication.
   -r, --region string             Specify the desired AWS region to target.
   -v, --verbose                   Set to true to enable debugging (bool)
 
@@ -53,11 +54,18 @@ go-lambda-clean utilizes the default AWS Go SDK credentials provider to find AWS
 #### Shared File Example
 If `~/.aws/config` and `~/.aws/config` is setup for the AWS CLI then you may leverage the existing profile confugrations for authentication.
 ```shell
-export AWS_PROFILE=myProfile
-gcl clean -r us-west-2 -s true
-2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
-2021/03/04 20:42:46 ............
+$ export AWS_PROFILE=sb-test
+$ glc clean -r us-west-2 -s true
+INFO[03/05/21] Scanning AWS environment in us-west-2
+INFO[03/05/21] ............
 ```
+Alternatively, the `--profile` flag may be used.
+```shell
+$ glc clean -r us-west-2 -s true -p myProfile
+INFO[03/05/21] Scanning AWS environment in us-west-2
+INFO[03
+```
+
 #### Environment Variables
 Static credentials may be utlized to authenticate into AWS.
 * AWS_ACCESS_KEY_ID
