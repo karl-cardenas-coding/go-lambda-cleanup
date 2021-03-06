@@ -9,8 +9,9 @@
 
 <p align="center">A  Golang based CLI for removing unused versions of AWS Lambdas. </p>
 
-
-![](/static/demo.gif)
+<p align="center">
+<img src="/static/demo.gif" alt="drawing" width="400"/>
+</p>
 
 
 ## Installation
