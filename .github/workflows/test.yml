@@ -55,8 +55,11 @@ jobs:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
           version: v1.28
           args: -v
+    
+    - name: Execute Go tests
+      run: go test -v ./...
 
-    - name: test
+    - name: Test CLI
       run: |
         FILE=./VERSION.env
         npm install @semantic-release/exec -D
