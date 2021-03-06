@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -43,11 +44,13 @@ var cleanCmd = &cobra.Command{
 
 		var (
 			awsEnvRegion     string
+			profile          string
 			region           string
 			sharedFileConfig session.SharedConfigState
 		)
 
 		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
+		awsEnvProfile := os.Getenv("AWS_PROFILE")
 
 		if awsEnvRegion == "" {
 			if RegionFlag != "" {
@@ -55,6 +58,14 @@ var cleanCmd = &cobra.Command{
 			}
 		} else {
 			region = awsEnvRegion
+		}
+
+		if awsEnvProfile == "" {
+			if ProfileFlag != "" {
+				profile = ProfileFlag
+			}
+		} else {
+			profile = awsEnvProfile
 		}
 
 		if region != "" {
@@ -96,6 +107,7 @@ var cleanCmd = &cobra.Command{
 					HTTPClient:                    &client,
 					MaxRetries:                    aws.Int(1),
 				},
+				Profile:           profile,
 				SharedConfigState: sharedFileConfig,
 			}))
 
@@ -117,97 +129,93 @@ var cleanCmd = &cobra.Command{
 	},
 }
 
+// An action function that removes Lambda versions
 func executeClean(region string) error {
+	startTime := time.Now()
 
 	var (
-		returnError error
-		// errorList                []error
+		returnError                error
 		globalLambdaStorage        []int64
 		updatedGlobalLambdaStorage []int64
 		globalLambdaVersionsList   [][]*lambda.FunctionConfiguration
+		counter                    int64 = 0
 	)
 
-	// g, ctx := errgroup.WithContext(ctx)
 	log.Println("Scanning AWS environment in " + region + ".....")
 	lambdaList, err := getAlllambdas(ctx, svc)
 	checkError(err)
 	log.Println("............")
-	for _, lambda := range lambdaList {
-		// g.Go(func() error {
-		lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
+
+	if len(lambdaList) > 0 {
+		tempCounter := 0
+		for _, lambda := range lambdaList {
+			lambdaItem := lambda
+
+			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem)
+			checkError(err)
+
+			globalLambdaVersionsList = append(globalLambdaVersionsList, lambdaVersionsList)
+
+			totalLambdaStorage, err := getLambdaStorage(lambdaVersionsList)
+			checkError(err)
+
+			globalLambdaStorage = append(globalLambdaStorage, totalLambdaStorage)
+			tempCounter++
+		}
+		log.Println(tempCounter, " Lambdas identified")
+		for _, v := range globalLambdaStorage {
+			counter = counter + v
+		}
+		log.Println("Current storage size: ", humanize.Bytes(uint64(counter)))
+		log.Println("**************************")
+		log.Println("Initiating clean-up process. This may take a few minutes....")
+		// Begin delete process
+		globalLambdaDeleteList := [][]*lambda.FunctionConfiguration{}
+
+		for _, lambda := range globalLambdaVersionsList {
+			lambdasDeleteList := getLambdasToDelteList(lambda, Retain)
+			globalLambdaDeleteList = append(globalLambdaDeleteList, lambdasDeleteList)
+
+		}
+		log.Println("............")
+		globalLambdaDeleteInputStructs, err := generateDeleteInputStructs(globalLambdaDeleteList)
 		checkError(err)
 
-		// if err != nil {
-		// 	errorList = append(errorList, returnError)
-		// }
-		globalLambdaVersionsList = append(globalLambdaVersionsList, lambdaVersionsList)
-		totalLambdaStorage, err := getLambdaStorage(lambdaVersionsList)
-		checkError(err)
-		// if err != nil {
-		// 	errorList = append(errorList, returnError)
-		// }
-
-		// mutex.Lock()
-		globalLambdaStorage = append(globalLambdaStorage, totalLambdaStorage)
-		// mutex.Unlock()
-	}
-
-	var counter int64 = 0
-	for _, v := range globalLambdaStorage {
-		counter = counter + v
-	}
-	log.Println("Current storage size: ", humanize.Bytes(uint64(counter)))
-	log.Println("**************************")
-	log.Println("Initiating clean-up process. This may take a few minutes....")
-	// Begin delete process
-	globalLambdaDeleteList := [][]*lambda.FunctionConfiguration{}
-
-	for _, lambda := range globalLambdaVersionsList {
-		lambdasDeleteList := getLambdasToDelteList(lambda, Retain)
-		globalLambdaDeleteList = append(globalLambdaDeleteList, lambdasDeleteList)
-
-	}
-	log.Println("............")
-	globalLambdaDeleteInputStructs, err := generateDeleteInputStructs(globalLambdaDeleteList)
-	checkError(err)
-	log.Println("............")
-	err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
-	checkError(err)
-
-	// Recalculate storage size
-	updatedLambdaList, err := getAlllambdas(ctx, svc)
-	checkError(err)
-	log.Println("............")
-
-	for _, lambda := range updatedLambdaList {
-		updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
+		log.Println("............")
+		err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
 		checkError(err)
 
-		updatedTotalLambdaStorage, err := getLambdaStorage(updatededlambdaVersionsList)
+		// Recalculate storage size
+		updatedLambdaList, err := getAlllambdas(ctx, svc)
 		checkError(err)
+		log.Println("............")
 
-		updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
-	}
-	log.Println("............")
-	var updatedCounter int64 = 0
-	for _, v := range updatedGlobalLambdaStorage {
-		updatedCounter = updatedCounter + v
-	}
-	log.Println("Total space freed up: ", (humanize.Bytes(uint64(counter - updatedCounter))))
-	log.Println("Post clean-up storage size: ", humanize.Bytes(uint64(updatedCounter)))
-	log.Println("*********************************************")
+		for _, lambda := range updatedLambdaList {
+			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
+			checkError(err)
 
-	// 		return err
-	// 	})
-	// }
-	// if err := g.Wait(); err == nil || err == context.Canceled {
-	// 	log.Println(".....Processing")
-	// } else {
-	// 	log.Println(err)
-	// 	for _, err := range errorList {
-	// 		log.Println(err.Error())
-	// 	}
-	// }
+			updatedTotalLambdaStorage, err := getLambdaStorage(updatededlambdaVersionsList)
+			checkError(err)
+
+			updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
+		}
+		log.Println("............")
+		var updatedCounter int64 = 0
+		for _, v := range updatedGlobalLambdaStorage {
+			updatedCounter = updatedCounter + v
+		}
+		log.Println("Total space freed up: ", (humanize.Bytes(uint64(counter - updatedCounter))))
+		log.Println("Post clean-up storage size: ", humanize.Bytes(uint64(updatedCounter)))
+		log.Println("*********************************************")
+
+		t := time.Now()
+		elapsedTime := time.Duration(t.Sub(startTime).Minutes())
+		log.Println("Job Duration Time: ", elapsedTime)
+	}
+
+	if len(lambdaList) == 0 {
+		log.Println("No lambdas found in", region)
+	}
 
 	return returnError
 
