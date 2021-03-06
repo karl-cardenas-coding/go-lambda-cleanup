@@ -158,7 +158,6 @@ func executeClean(region string) error {
 		tempCounter := 0
 		for _, lambda := range lambdaList {
 			lambdaItem := lambda
-
 			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem)
 			checkError(err)
 
