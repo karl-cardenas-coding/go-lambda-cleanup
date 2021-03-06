@@ -38,7 +38,6 @@ jobs:
     - name: Get dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        cd lambdas/
         go get -v -t -d ./...
         if [ -f Gopkg.toml ]; then
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh

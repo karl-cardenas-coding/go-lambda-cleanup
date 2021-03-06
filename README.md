@@ -63,7 +63,7 @@ Alternatively, the `--profile` flag may be used.
 ```shell
 $ glc clean -r us-west-2 -s true -p myProfile
 INFO[03/05/21] Scanning AWS environment in us-west-2
-INFO[03
+INFO[03/05/21] ............
 ```
 
 #### Environment Variables
