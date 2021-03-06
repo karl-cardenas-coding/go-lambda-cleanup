@@ -47,9 +47,51 @@ jobs:
       -
         name: create
         run: |
-        aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.text
-        ls -laxo cmd/
-        go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=disaster -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
+          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.text
+          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
+      - uses: actions/upload-artifact@v1
+        with:
+          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+
+  darwin-arm64:
+    name: darwin-arm64
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.go.outputs.version }}
+    env:
+          GOARCH: arm64
+          GOOS: darwin
+    steps:
+      -
+        id: go
+        name: "Set up Go 1.16"
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+      -
+        name: "Check out code into the Go module directory"
+        uses: actions/checkout@v2
+      -
+        name: "Get dependencies"
+        id: dependencies
+        run: |
+            go get -v -t -d ./...
+            if [ -f Gopkg.toml ]; then
+                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+                dep ensure
+            fi
+            npm install @semantic-release/exec -D
+            npm install @semantic-release/changelog -D
+            npx semantic-release --dry-run
+            cat VERSION.env
+            source VERSION.env
+            echo "::set-output name=version::$VERSION"
+      -
+        name: create
+        run: |
+          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.text
+          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -71,7 +113,7 @@ jobs:
         with:
           go-version: 1.16
 
-       - name: Setup nodeJs
+      - name: Setup nodeJs
         uses: actions/setup-node@v1.4.4
         with:
           node-version: '14'
@@ -96,9 +138,8 @@ jobs:
       -
         name: create
         run: |
-        aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.text
-        ls -laxo cmd/
-        go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=disaster -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
+          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.text
+          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -140,9 +181,8 @@ jobs:
       -
         name: create
         run: |
-        aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.text
-        ls -laxo cmd/
-        go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{steps.dependencies.outputs.VERSION}}'" -o=disaster -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
+          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.text
+          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -184,7 +224,9 @@ jobs:
             echo "::set-output name=version::$VERSION"
       -
         name: create
-        run: go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=disaster.exe -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster.exe
+        run: |
+          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.text
+          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip disaster.exe
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -219,6 +261,11 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
             name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-linux-386.zip
+            path: ./
+
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-darwin-arm64.zip
             path: ./
 
 
