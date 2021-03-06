@@ -32,6 +32,7 @@ jobs:
     - name: next version
       run: |
             npm install @semantic-release/exec -D
+            npm install @semantic-release/changelog -D
             npx semantic-release --dry-run
 
     - name: Get dependencies
@@ -55,6 +56,7 @@ jobs:
       run: |
         FILE=./VERSION.env
         npm install @semantic-release/exec -D
+        npm install @semantic-release/changelog -D
         npx semantic-release --dry-run
         if [ -f "$FILE" ]; then
             cat VERSION.env
