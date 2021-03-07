@@ -31,5 +31,8 @@
     "@semantic-release/github": "latest",
     "commitlint": "^11.0.0",
     "husky": "^4.3.0"
+  },
+  "devDependencies": {
+    "semantic-release": "^17.4.1"
   }
 }
