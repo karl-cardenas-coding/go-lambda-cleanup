@@ -27,22 +27,24 @@ sudo mv go-clean-lambda /usr/local/bin/
 
 ```shell
 Usage:
-  gcl [flags]
-  gcl [command]
-
-Available Commands:
-  clean       Removes all versions of lambda except for the $LATEST version
-  help        Help about any command
-  version     Print the current version number of disaster-cli
+  glc clean [flags]
 
 Flags:
+  -c, --count int8   The number of versions to retain from $LATEST-(n) (default 1)
+  -h, --help         help for clean
+
+Global Flags:
   -s, --enableSharedCredentials   Leverages the default ~/.aws/credentials file (bool)
-  -h, --help                      help for gcl
   -p, --profile string            Specify the AWS profile to leverage for authentication.
   -r, --region string             Specify the desired AWS region to target.
   -v, --verbose                   Set to true to enable debugging (bool)
 
 Use "gcl [command] --help" for more information about a command.
+```
+
+To retain `2` version excluding `$LATEST`
+```shell
+glc clean -r us-east-2 -c 2 -s true -p myProfile
 ```
 
 ### Authentication

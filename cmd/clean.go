@@ -92,7 +92,7 @@ var cleanCmd = &cobra.Command{
 			}
 
 		} else {
-			log.Infof("The AWS Profil flag \"%s\" was passed in.", ProfileFlag)
+			log.Infof("The AWS Profile flag \"%s\" was passed in", ProfileFlag)
 			profile = ProfileFlag
 		}
 
@@ -151,6 +151,8 @@ func executeClean(region string) error {
 		updatedGlobalLambdaStorage []int64
 		globalLambdaVersionsList   [][]*lambda.FunctionConfiguration
 		counter                    int64 = 0
+		elapsedTime                float64
+		timeUnit                   string
 	)
 
 	log.Info("Scanning AWS environment in " + region)
@@ -224,9 +226,17 @@ func executeClean(region string) error {
 		log.Info("No lambdas found in ", region)
 	}
 
-	t := time.Now()
-	elapsedTime := time.Duration(t.Sub(startTime).Minutes())
-	log.Info("Job Duration Time: ", elapsedTime)
+	t1 := time.Now()
+	tempTime := t1.Sub(startTime)
+	if tempTime.Minutes() > 1 {
+		elapsedTime = tempTime.Minutes()
+		timeUnit = "m"
+	} else {
+		elapsedTime = tempTime.Seconds()
+		timeUnit = "s"
+	}
+
+	log.Infof("Job Duration Time: %f%s", elapsedTime, timeUnit)
 
 	return returnError
 
