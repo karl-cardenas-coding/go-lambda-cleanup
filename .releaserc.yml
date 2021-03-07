@@ -9,8 +9,8 @@ plugins:
     verifyReleaseCmd: |-
       echo 'export VERSION=${nextRelease.version}
       NEW_VERSION=true' > VERSION.env
-- "@semantic-release/github"
-- assets:
+- - "@semantic-release/github"
+  - assets:
     - "*.zip"
 - - "@semantic-release/git"
   - assets:
