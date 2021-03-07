@@ -53,6 +53,11 @@ jobs:
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
           path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+      - uses: actions/upload-artifact@v1
+        with:
+          name: VERSION.env
+          path: VERSION.env
+          
 
   darwin-arm64:
     name: darwin-arm64
@@ -253,6 +258,7 @@ jobs:
              source VERSION.env
              echo $VERSION
              echo "::set-output name=version::$VERSION"
+      
       - uses: actions/download-artifact@v1
         with:
             name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-darwin-amd64.zip
