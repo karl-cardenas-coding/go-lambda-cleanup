@@ -1,0 +1,35 @@
+{
+  "name": "go-lamnda-cleanup",
+  "version": "0.0.0",
+  "private": true,
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E  HUSKY_GIT_PARAMS"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ],
+    "rules": {
+      "subject-case": [
+        2,
+        "never",
+        [
+          "start-case",
+          "pascal-case"
+        ]
+      ]
+    }
+  },
+  "scripts": {
+    "release": "standard-version"
+  },
+  "dependencies": {
+    "@commitlint/config-conventional": "^11.0.0",
+    "@semantic-release/git": "^9.0.0",
+    "@semantic-release/github": "latest",
+    "commitlint": "^11.0.0",
+    "husky": "^4.3.0"
+  }
+}
