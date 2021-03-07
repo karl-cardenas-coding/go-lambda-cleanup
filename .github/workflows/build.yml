@@ -234,7 +234,7 @@ jobs:
 
   release:
     name: "Create a release"
-    needs: ["darwin-amd64", "linux-386", "linux-amd64", "windows-amd64"]
+    needs: ["darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64"]
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.get-version.outputs.version }}
