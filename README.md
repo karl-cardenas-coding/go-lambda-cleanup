@@ -18,7 +18,8 @@
 go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup by unzipping the zip file and and moving the included binary to a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
 
 ```shell
-wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v1.0.0/go-lambda-cleanup_linux_amd64.zip
+VERSION=1.0.3
+https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-darwin-arm64.zip
 unzip go-lambda-cleanup_linux_amd64.zip 
 sudo mv go-clean-lambda /usr/local/bin/
 ```
@@ -84,9 +85,15 @@ Static credentials may be utlized to authenticate into AWS.
 $ export AWS_ACCESS_KEY_ID=YOUR_AKID
 $ export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_KEY
 $ export AWS_SESSION_TOKEN=TOKEN
-$ gcl clean -r us-west-2
+$ glc clean -r us-west-2
 2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
 2021/03/04 20:42:46 ............
+```
+## Compile
+If you want to complile the binary yourelf you can clone the project to your local system. Ensure you have `Go 1.16` installed.
+```shell
+git clone git@github.com:karl-cardenas-coding/go-lambda-cleanup.git
+go build -o glc
 ```
 
 ## Contributing to go-lambda-cleanup
@@ -95,8 +102,22 @@ For a complete guide to contributing to go-lambda-clean, see the [Contribution G
 
 Contributions to go-lambda-cleanup of any kind including documentation, organization, tutorials, blog posts, bug reports, issues, feature requests, feature implementations, pull requests, answering questions on the forum, helping to manage issues, etc.
 
+## FAQ
+
+Q: On MacOS I am unable to open the binary due to Apple not trusting the binary. What are my options?
+
+A: You have two options. 
+
+Option A is to clone this project and compile the binary. Issue `go build -o glc`, and the end result is a binary compatible for your system. If you still encounter issues after this, invoke the code signing command on the binary `codesign -s -`
+
+Option B is not recommended but I'll offer it up. You can remove the binary from quarantine mode. 
+```shell
+xattr -d com.apple.quarantine /path/to/file
+```
 
 ## Helpful Links
 [AWS Credentials Configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
+
 [Golang Cobra CLI Framework](https://github.com/spf13/cobra)
+
 [AWS Go SDK Credentials](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html)
