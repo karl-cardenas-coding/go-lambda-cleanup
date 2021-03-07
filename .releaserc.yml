@@ -1,13 +1,9 @@
 branches: [main]
 repositoryUrl: https://github.com/karl-cardenas-coding/go-lambda-cleanup.git
 plugins:
-- "preset": "angular"
 - "@semantic-release/commit-analyzer"
 - "@semantic-release/release-notes-generator"
 - "@semantic-release/changelog"
-- - "@semantic-release/git"
-  - assets:
-    - CHANGELOG.md
 - - "@semantic-release/exec"
   - analyzeCommitsCmd: echo 'NEW_VERSION=false' > VERSION.env
     verifyReleaseCmd: |-
@@ -16,3 +12,6 @@ plugins:
 - "@semantic-release/github"
 - assets:
     - "*.zip"
+- - "@semantic-release/git"
+  - assets:
+    - CHANGELOG.md

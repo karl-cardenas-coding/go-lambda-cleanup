@@ -291,4 +291,5 @@ jobs:
         run: |
              npm install @semantic-release/exec -D
              npm install @semantic-release/changelog -D
+             npm install @semantic-release/github -D
              npx semantic-release
