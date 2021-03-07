@@ -4,10 +4,7 @@ plugins:
 - "preset": "angular"
 - "@semantic-release/commit-analyzer"
 - "@semantic-release/release-notes-generator"
--  "@semantic-release/changelog"
-- "@semantic-release/github"
-- assets:
-    - "*.zip"
+- "@semantic-release/changelog"
 - - "@semantic-release/git"
   - assets:
     - CHANGELOG.md
@@ -16,3 +13,6 @@ plugins:
     verifyReleaseCmd: |-
       echo 'export VERSION=${nextRelease.version}
       NEW_VERSION=true' > VERSION.env
+- "@semantic-release/github"
+- assets:
+    - "*.zip"
