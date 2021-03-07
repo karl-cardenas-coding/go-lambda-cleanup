@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.0...v1.0.1) (2021-03-07)
+
+
+### Bug Fixes
+
+* re-releasing as binaries not pushed up ([17073d8](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/17073d8a545212478af1d30fd48c184c01233acb))
+
 # 1.0.0 (2021-03-07)
 
 
