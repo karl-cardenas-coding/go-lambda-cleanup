@@ -19,9 +19,9 @@ go-lambda-cleanup is distributed as a single binary. [Download](https://github.c
 
 ```shell
 VERSION=1.0.3
-https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-darwin-arm64.zip
+wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-linux-amd64.zip
 unzip go-lambda-cleanup-v$VERSION-linux-amd64.zip 
-sudo mv go-clean-lambda /usr/local/bin/
+sudo mv glc /usr/local/bin/
 ```
 
 ## Usage
