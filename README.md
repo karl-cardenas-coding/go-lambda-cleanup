@@ -96,6 +96,23 @@ git clone git@github.com:karl-cardenas-coding/go-lambda-cleanup.git
 go build -o glc
 ```
 
+## Proxy
+The tool supports network proxy configurations and will honor the following proxy environment variables.
+
+* `HTTP_PROXY`,
+* `HTTPS_PROXY`
+* `NO_PROXY`
+
+The environment values may be either a complete URL or a "host[:port]", in which case the "http" scheme is assumed. An error is returned if the value is a different form.
+
+```shell
+$ export HTTPS_PROXY=http://proxy.example.org:9000
+
+$ glc clean -r us-west-2
+2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
+2021/03/04 20:42:46 ............
+```
+
 ## Contributing to go-lambda-cleanup
 
 For a complete guide to contributing to go-lambda-clean, see the [Contribution Guide](documentation/CONTRIBUTING.md).
