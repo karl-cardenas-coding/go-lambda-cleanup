@@ -1,3 +1,11 @@
+## [1.0.4](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.3...v1.0.4) (2021-03-19)
+
+
+### Bug Fixes
+
+* added support for proxy through environment variables ([0f477a3](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/0f477a3a8617e8eb4dc294f20edc5568f63fb5d4))
+* fixed demo gif having incorrect extension ([133c76d](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/133c76d398ed580fbb6dd152f172a1ac5613b58d))
+
 ## [1.0.3](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.2...v1.0.3) (2021-03-07)
 
 
