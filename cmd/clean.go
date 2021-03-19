@@ -67,12 +67,13 @@ var cleanCmd = &cobra.Command{
 			region = validateRegion(f, awsEnvRegion)
 		}
 
-		// if region != "" {
 		ctx = context.Background()
 		// Initialize parameters
 
 		// Setup client header to use TLS 1.2
 		tr := &http.Transport{
+			// Reads PROXY configuration from environment variables
+			Proxy: http.ProxyFromEnvironment,
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS12,
 			},
