@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"embed"
 	_ "embed"
+	"fmt"
 	"net/http"
 	"os"
 	"sort"
@@ -24,7 +25,8 @@ import (
 )
 
 const (
-	maxItems int64 = 1000
+	// Per AWS API Valid Range: Minimum value of 1. Maximum value of 10000.
+	maxItems int64 = 10000
 )
 
 var (
@@ -97,10 +99,14 @@ var cleanCmd = &cobra.Command{
 			profile = ProfileFlag
 		}
 
-		if Debug {
+		if Verbose {
 			logLevel = aws.LogDebugWithRequestErrors
 		} else {
 			logLevel = aws.LogOff
+		}
+
+		if DryRun {
+			log.Info("******** DRY RUN MODE ENABLED ********")
 		}
 
 		if CredentialsFile {
@@ -196,31 +202,43 @@ func executeClean(region string) error {
 		checkError(err)
 
 		log.Info("............")
-		err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
-		checkError(err)
 
-		// Recalculate storage size
-		updatedLambdaList, err := getAlllambdas(ctx, svc)
-		checkError(err)
-		log.Info("............")
+		if DryRun {
+			numVerDeleted := countDeleteVersions(globalLambdaDeleteList)
+			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
+			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
+			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", humanize.Bytes(uint64(spaceRemovedPreview))))
 
-		for _, lambda := range updatedLambdaList {
-			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
+		}
+
+		if !DryRun {
+			err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
 			checkError(err)
 
-			updatedTotalLambdaStorage, err := getLambdaStorage(updatededlambdaVersionsList)
+			// Recalculate storage size
+			updatedLambdaList, err := getAlllambdas(ctx, svc)
 			checkError(err)
+			log.Info("............")
 
-			updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
+			for _, lambda := range updatedLambdaList {
+				updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
+				checkError(err)
+
+				updatedTotalLambdaStorage, err := getLambdaStorage(updatededlambdaVersionsList)
+				checkError(err)
+
+				updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
+			}
+			log.Info("............")
+			var updatedCounter int64 = 0
+			for _, v := range updatedGlobalLambdaStorage {
+				updatedCounter = updatedCounter + v
+			}
+			log.Info("Total space freed up: ", (humanize.Bytes(uint64(counter - updatedCounter))))
+			log.Info("Post clean-up storage size: ", humanize.Bytes(uint64(updatedCounter)))
+			log.Info("*********************************************")
 		}
-		log.Info("............")
-		var updatedCounter int64 = 0
-		for _, v := range updatedGlobalLambdaStorage {
-			updatedCounter = updatedCounter + v
-		}
-		log.Info("Total space freed up: ", (humanize.Bytes(uint64(counter - updatedCounter))))
-		log.Info("Post clean-up storage size: ", humanize.Bytes(uint64(updatedCounter)))
-		log.Info("*********************************************")
+
 	}
 
 	if len(lambdaList) == 0 {
@@ -270,6 +288,40 @@ func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) 
 	}
 
 	return output, returnError
+
+}
+
+// Returns a count of versions in a slice of lambda.DeleteFunctionInput
+func calculateSpaceRemoval(deleteList [][]*lambda.FunctionConfiguration) int {
+
+	var (
+		size int
+	)
+
+	for _, lambda := range deleteList {
+
+		for _, version := range lambda {
+
+			size = size + int(*version.CodeSize)
+		}
+	}
+
+	return size
+
+}
+
+// Returns a count of versions in a slice of lambda.DeleteFunctionInput
+func countDeleteVersions(deleteList [][]*lambda.FunctionConfiguration) int {
+
+	var (
+		versionsCount int
+	)
+
+	for _, lambda := range deleteList {
+		versionsCount = versionsCount + len(lambda)
+	}
+
+	return versionsCount
 
 }
 

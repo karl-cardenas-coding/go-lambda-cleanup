@@ -28,24 +28,47 @@ sudo mv glc /usr/local/bin/
 
 ```shell
 Usage:
-  glc clean [flags]
+  glc [flags]
+  glc [command]
+
+Available Commands:
+  clean       Removes all versions of lambda except for the $LATEST version
+  help        Help about any command
+  version     Print the current version number of disaster-cli
 
 Flags:
-  -c, --count int8   The number of versions to retain from $LATEST-(n) (default 1)
-  -h, --help         help for clean
-
-Global Flags:
+  -d, --dryrun                    Executes a dry run (bool)
   -s, --enableSharedCredentials   Leverages the default ~/.aws/credentials file (bool)
-  -p, --profile string            Specify the AWS profile to leverage for authentication
-  -r, --region string             Specify the desired AWS region to target
+  -h, --help                      help for glc
+  -p, --profile string            Specify the AWS profile to leverage for authentication.
+  -r, --region string             Specify the desired AWS region to target.
   -v, --verbose                   Set to true to enable debugging (bool)
 
-Use "gcl [command] --help" for more information about a command.
+Use "glc [command] --help" for more information about a command.
 ```
 
 To retain `2` version excluding `$LATEST`
 ```shell
 glc clean -r us-east-2 -c 2 -s true -p myProfile
+```
+
+You also have the ability to preview an execution by leveraging the dry run flag `-d`
+
+```shell
+ $ glc clean -s -p myProfile -r us-east-1 -d
+INFO[03/19/21] The AWS Profile flag "myProfile" was passed in
+INFO[03/19/21] ******** DRY RUN MODE ENABLED ********
+INFO[03/19/21] Scanning AWS environment in us-east-1
+INFO[03/19/21] ............
+INFO[03/19/21] 50 Lambdas identified
+INFO[03/19/21] Current storage size: 1.2 GB
+INFO[03/19/21] **************************
+INFO[03/19/21] Initiating clean-up process. This may take a few minutes....
+INFO[03/19/21] ............
+INFO[03/19/21] ............
+INFO[03/19/21] 82 unique versions will be removed in an actual execution.
+INFO[03/19/21] 554 MB of storage space will be removed in an actual execution.
+INFO[03/19/21] Job Duration Time: 7.834585s
 ```
 
 ### Authentication

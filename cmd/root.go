@@ -19,8 +19,10 @@ var (
 	RegionFlag string
 	// Retain is the number of versions to retain excluding $LATEST
 	Retain int8
-	// Debug is to enable verbose debug output
-	Debug bool
+	// Verbose is to enable debug output
+	Verbose bool
+	// DryRun is to enable a preview of what an actual execution would do
+	DryRun bool
 )
 
 const (
@@ -50,8 +52,9 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&RegionFlag, "region", "r", "", "Specify the desired AWS region to target.")
 	rootCmd.PersistentFlags().StringVarP(&ProfileFlag, "profile", "p", "", "Specify the AWS profile to leverage for authentication.")
-	rootCmd.PersistentFlags().BoolVarP(&Debug, "verbose", "v", false, "Set to true to enable debugging (bool)")
+	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Set to true to enable debugging (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "enableSharedCredentials", "s", false, "Leverages the default ~/.aws/credentials file (bool)")
+	rootCmd.PersistentFlags().BoolVarP(&DryRun, "dryrun", "d", false, "Executes a dry run (bool)")
 	cleanCmd.Flags().Int8VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST-(n)")
 
 	// Establish logging default
@@ -68,7 +71,7 @@ func init() {
 // Execute is the main execution function
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		if Debug {
+		if Verbose {
 			log.WithFields(log.Fields{
 				"package":  "cmd",
 				"file":     "root.go",
