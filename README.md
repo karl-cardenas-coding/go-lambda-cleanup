@@ -32,7 +32,7 @@ Usage:
   glc [command]
 
 Available Commands:
-  clean       Removes all former versions of lambda except for the $LATEST version
+  clean       Removes all former versions of AWS lambdas except for the $LATEST version
   help        Help about any command
   version     Print the current version number of disaster-cli
 
@@ -157,9 +157,11 @@ xattr -d com.apple.quarantine /path/to/file
 ```
 
 Q: This keeps timing out when attempting to connect to AWS and I have verified my AWS credentials are valid?
+
 A: This could be related to a corporate firewall. If your organization has a proxy endpoint configure the proxy environment variable with the correct proxy endpoint. Consult your organization's networking team to learn more about the proper proxy settings.
 
 Q: I don't want to execute this command without understanding exactly what it will do. Is there a way to preview the actions?
+
 A: Yes, leverage the dry run mode. Dry run can be invoked through the `-d`, `--dryrun` flag.
 
 ## Helpful Links

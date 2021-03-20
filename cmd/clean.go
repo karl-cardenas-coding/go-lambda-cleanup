@@ -44,8 +44,8 @@ func init() {
 
 var cleanCmd = &cobra.Command{
 	Use:   "clean",
-	Short: "Removes all former versions of lambda except for the $LATEST version",
-	Long:  `Removes all former versions of lambda except for the $LATEST version. The user also has the ability specify n-? version to retain.`,
+	Short: "Removes all former versions of AWS lambdas except for the $LATEST version",
+	Long:  `Removes all former versions of AWS lambdas except for the $LATEST version. The user also has the ability specify n-? version to retain.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var (
