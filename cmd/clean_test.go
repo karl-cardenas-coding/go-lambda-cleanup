@@ -170,44 +170,144 @@ func TestGenerateDeleteInputStructs(t *testing.T) {
 
 }
 
-// func TestGetAllLambdaVersion(t *testing.T) {
-// 	inputList := []lambda.FunctionConfiguration{
-// 		CodeSha256: "3rCuTG9h7yez7ZU+U9Zc3wQE3DTcmSUPY+Vr73RvmKg=",
-// 		CodeSize: 3078323,
-// 		Description: "A lambda function that populates RDS with mock data",
-// 		Environment: {
-// 		  Variables: {
-// 			ENV: "test",
-// 			REGION: "us-east-1",
-// 		  },
-// 		},
-// 		FunctionArn: "arn:aws:lambda:us-east-1:731696908010:function:populate_rds:33",
-// 		FunctionName: "populate_rds",
-// 		Handler: "populate_rds.lambda_handler",
-// 		LastModified: "2021-03-01T05:54:45.642+0000",
-// 		MemorySize: 128,
-// 		PackageType: "Zip",
-// 		RevisionId: "21f4e275-7b24-46e9-bf5b-acf9c70bd476",
-// 		Role: "arn:aws:iam::731696908010:role/system/LambdaExecution-RDS-write-role",
-// 		Runtime: "python3.7",
-// 		SigningJobArn: "arn:aws:signer:us-east-1:731696908010:/signing-jobs/5b5544c6-0851-443b-91c6-4e26a73cf51f",
-// 		SigningProfileVersionArn: "arn:aws:signer:us-east-1:731696908010:/signing-profiles/SawyerBrink_TF/B1oks0DM6r",
-// 		Timeout: 30,
-// 		TracingConfig: {
-// 		  Mode: "PassThrough",
-// 		},
-// 		Version: "33",
-// 		VpcConfig: {
-// 		  SecurityGroupIds: ["sg-9b77c7bf"],
-// 		  SubnetIds: [
-// 			"subnet-ff5e8ba0",
-// 			"subnet-6ed21a08",
-// 			"subnet-938254b2",
-// 			"subnet-8131a9cc",
-// 			"subnet-8f7966b1",
-// 			"subnet-d870f2d6"
-// 		  ],
-// 		  VpcId: "vpc-4bc62236"
-// 		}
-// 	  }
-// }
+func TestCountDeleteVersions(t *testing.T) {
+
+	lambdaList := [][]*lambda.FunctionConfiguration{
+		[]*lambda.FunctionConfiguration{
+			&lambda.FunctionConfiguration{
+				CodeSha256:       new(string),
+				FunctionName:     aws.String("A"),
+				Version:          aws.String("1"),
+				CodeSize:         aws.Int64(1200),
+				DeadLetterConfig: &lambda.DeadLetterConfig{},
+				Description:      aws.String("Test A"),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("B"),
+				Version:      aws.String("2"),
+				CodeSize:     aws.Int64(1500),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("C"),
+				Version:      aws.String("3"),
+				CodeSize:     aws.Int64(1500),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("D"),
+				Version:      aws.String("4"),
+				CodeSize:     aws.Int64(1500),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("E"),
+				Version:      aws.String("5"),
+				CodeSize:     aws.Int64(1500),
+			},
+		},
+		[]*lambda.FunctionConfiguration{
+			&lambda.FunctionConfiguration{
+				CodeSha256:       new(string),
+				Version:          aws.String("1"),
+				FunctionName:     aws.String("A1"),
+				CodeSize:         aws.Int64(1200),
+				DeadLetterConfig: &lambda.DeadLetterConfig{},
+				Description:      aws.String("Test A"),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("A2"),
+				Version:      aws.String("2"),
+				CodeSize:     aws.Int64(1500),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("A3"),
+				Version:      aws.String("3"),
+				CodeSize:     aws.Int64(1500),
+			},
+		},
+	}
+
+	got := countDeleteVersions(lambdaList)
+
+	want := 8
+
+	if got != want {
+		t.Fatalf("Expected count of versions to be %d but received %d instead", want, got)
+	}
+
+}
+
+func TestCalculateSpaceRemoval(t *testing.T) {
+
+	lambdaList := [][]*lambda.FunctionConfiguration{
+		[]*lambda.FunctionConfiguration{
+			&lambda.FunctionConfiguration{
+				CodeSha256:       new(string),
+				FunctionName:     aws.String("A"),
+				Version:          aws.String("1"),
+				CodeSize:         aws.Int64(1200),
+				DeadLetterConfig: &lambda.DeadLetterConfig{},
+				Description:      aws.String("Test A"),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("B"),
+				Version:      aws.String("2"),
+				CodeSize:     aws.Int64(1500),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("C"),
+				Version:      aws.String("3"),
+				CodeSize:     aws.Int64(1500),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("D"),
+				Version:      aws.String("4"),
+				CodeSize:     aws.Int64(1500),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("E"),
+				Version:      aws.String("5"),
+				CodeSize:     aws.Int64(1500),
+			},
+		},
+		[]*lambda.FunctionConfiguration{
+			&lambda.FunctionConfiguration{
+				CodeSha256:       new(string),
+				Version:          aws.String("1"),
+				FunctionName:     aws.String("A1"),
+				CodeSize:         aws.Int64(1200),
+				DeadLetterConfig: &lambda.DeadLetterConfig{},
+				Description:      aws.String("Test A"),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("A2"),
+				Version:      aws.String("2"),
+				CodeSize:     aws.Int64(1500),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("A3"),
+				Version:      aws.String("3"),
+				CodeSize:     aws.Int64(1500),
+			},
+		},
+	}
+
+	got := calculateSpaceRemoval(lambdaList)
+
+	want := 11400
+
+	if got != want {
+		t.Fatalf("Expected the size of all versions to be %d but received %d instead", want, got)
+	}
+
+}
