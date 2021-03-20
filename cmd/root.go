@@ -32,8 +32,8 @@ const (
 
 var rootCmd = &cobra.Command{
 	Use:   "glc",
-	Short: "A CLI tool for cleaning up AWS Lambda Version",
-	Long:  `A CLI tool for cleaning up AWS Lambda Version`,
+	Short: "A CLI tool for cleaning up AWS Lambda versions",
+	Long:  `A CLI tool for cleaning up AWS Lambda versions`,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := cmd.Help()
 		if err != nil {
