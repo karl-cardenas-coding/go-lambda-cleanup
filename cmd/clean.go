@@ -210,7 +210,7 @@ func executeClean(region string) error {
 
 		}
 
-		if DryRun == false {
+		if !DryRun {
 			err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
 			checkError(err)
 
