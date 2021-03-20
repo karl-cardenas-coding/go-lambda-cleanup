@@ -144,6 +144,8 @@ For a complete guide to contributing to go-lambda-clean, see the [Contribution G
 Contributions to go-lambda-cleanup of any kind including documentation, organization, tutorials, blog posts, bug reports, issues, feature requests, feature implementations, pull requests, answering questions on the forum, helping to manage issues, etc.
 
 ## FAQ
+---
+<table><tr>
 
 Q: On MacOS I am unable to open the binary due to Apple not trusting the binary. What are my options?
 
@@ -155,14 +157,21 @@ Option B is not recommended but I'll offer it up. You can remove the binary from
 ```shell
 xattr -d com.apple.quarantine /path/to/file
 ```
+---
 
 Q: This keeps timing out when attempting to connect to AWS and I have verified my AWS credentials are valid?
 
 A: This could be related to a corporate firewall. If your organization has a proxy endpoint configure the proxy environment variable with the correct proxy endpoint. Consult your organization's networking team to learn more about the proper proxy settings.
 
+---
+
 Q: I don't want to execute this command without understanding exactly what it will do. Is there a way to preview the actions?
 
 A: Yes, leverage the dry run mode. Dry run can be invoked through the `-d`, `--dryrun` flag.
+
+---
+
+</tr></table>
 
 ## Helpful Links
 [AWS Credentials Configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
