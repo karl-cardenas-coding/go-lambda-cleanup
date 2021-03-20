@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.4...v1.0.5) (2021-03-20)
+
+
+### Bug Fixes
+
+* added dry run option ([290ed1e](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/290ed1e0034e0b9a6996205c6885cd186c31a1f7))
+
 ## [1.0.4](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.3...v1.0.4) (2021-03-19)
 
 
