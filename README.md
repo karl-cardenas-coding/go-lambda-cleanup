@@ -18,7 +18,7 @@
 go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup by the binary to a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
 
 ```shell
-VERSION=1.0.4
+VERSION=1.0.5
 wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-linux-amd64.zip
 unzip go-lambda-cleanup-v$VERSION-linux-amd64.zip 
 sudo mv glc /usr/local/bin/
@@ -32,7 +32,7 @@ Usage:
   glc [command]
 
 Available Commands:
-  clean       Removes all versions of lambda except for the $LATEST version
+  clean       Removes all former versions of AWS lambdas except for the $LATEST version
   help        Help about any command
   version     Print the current version number of disaster-cli
 
@@ -49,7 +49,7 @@ Use "glc [command] --help" for more information about a command.
 
 To retain `2` version excluding `$LATEST`
 ```shell
-glc clean -r us-east-2 -c 2 -s true -p myProfile
+glc clean -r us-east-2 -c 2 -s -p myProfile
 ```
 
 You also have the ability to preview an execution by leveraging the dry run flag `-d`
@@ -86,13 +86,13 @@ go-lambda-clean utilizes the default AWS Go SDK credentials provider to find AWS
 If `~/.aws/config` and `~/.aws/config` is setup for the AWS CLI then you may leverage the existing profile configuration for authentication.
 ```shell
 $ export AWS_PROFILE=sb-test
-$ glc clean -r us-west-2 -s true
+$ glc clean -r us-west-2 -s
 INFO[03/05/21] Scanning AWS environment in us-west-2
 INFO[03/05/21] ............
 ```
 Alternatively, the `--profile` flag may be used.
 ```shell
-$ glc clean -r us-west-2 -s true -p myProfile
+$ glc clean -r us-west-2 -s -p myProfile
 INFO[03/05/21] Scanning AWS environment in us-west-2
 INFO[03/05/21] ............
 ```
@@ -113,9 +113,10 @@ $ glc clean -r us-west-2
 2021/03/04 20:42:46 ............
 ```
 ## Compile
-If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.16` installed.
+If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.16` installed. This tool leverages the Golang [embed](https://golang.org/pkg/embed/) functionality. A file named `aws-regions.txt` is expected in the `cmd/` directory.  You need valid AWS credentials in order to generate the file.
 ```shell
 git clone git@github.com:karl-cardenas-coding/go-lambda-cleanup.git
+aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 go build -o glc
 ```
 
@@ -143,6 +144,8 @@ For a complete guide to contributing to go-lambda-clean, see the [Contribution G
 Contributions to go-lambda-cleanup of any kind including documentation, organization, tutorials, blog posts, bug reports, issues, feature requests, feature implementations, pull requests, answering questions on the forum, helping to manage issues, etc.
 
 ## FAQ
+---
+<table><tr>
 
 Q: On MacOS I am unable to open the binary due to Apple not trusting the binary. What are my options?
 
@@ -154,6 +157,21 @@ Option B is not recommended but I'll offer it up. You can remove the binary from
 ```shell
 xattr -d com.apple.quarantine /path/to/file
 ```
+---
+
+Q: This keeps timing out when attempting to connect to AWS and I have verified my AWS credentials are valid?
+
+A: This could be related to a corporate firewall. If your organization has a proxy endpoint configure the proxy environment variable with the correct proxy endpoint. Consult your organization's networking team to learn more about the proper proxy settings.
+
+---
+
+Q: I don't want to execute this command without understanding exactly what it will do. Is there a way to preview the actions?
+
+A: Yes, leverage the dry run mode. Dry run can be invoked through the `-d`, `--dryrun` flag.
+
+---
+
+</tr></table>
 
 ## Helpful Links
 [AWS Credentials Configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
