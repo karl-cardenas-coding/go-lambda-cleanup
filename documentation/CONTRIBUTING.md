@@ -2,4 +2,8 @@ Welcome and thank you for expressing interest in contributing. If you're unsure 
 
 Below are our expectations for contributors. Following these guidelines gives us the best opportunity to work with you, by making sure we have the things we need in order to make it happen.
 
+1. Open an issue. This allows for discussion to occure before starting any work that potentially might be rejected.
+
+2. Ensure you write test cases for your contributions.
+
 * [Development Environment](DEVELOPMENT.md)
