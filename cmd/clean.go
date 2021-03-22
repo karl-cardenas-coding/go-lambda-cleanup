@@ -16,6 +16,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/organizations"
@@ -54,10 +55,12 @@ var cleanCmd = &cobra.Command{
 			profile          string
 			region           string
 			sharedFileConfig session.SharedConfigState
+			userAgent        string
 		)
 
 		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
 		awsEnvProfile = os.Getenv("AWS_PROFILE")
+		userAgent = fmt.Sprintf("go-lambda-cleanup-v%s", VersionString)
 
 		if awsEnvRegion == "" {
 			if RegionFlag != "" {
@@ -140,6 +143,10 @@ var cleanCmd = &cobra.Command{
 		sessVerified := session.Must(sess, err)
 
 		svc = lambda.New(sessVerified)
+		// Set the User-Agent for all AWS connections
+		svc.Handlers.Send.PushFront(func(r *request.Request) {
+			r.HTTPRequest.Header.Set("User-Agent", userAgent)
+		})
 
 		err = executeClean(region)
 		if err != nil {
