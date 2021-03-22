@@ -60,7 +60,7 @@ var cleanCmd = &cobra.Command{
 
 		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
 		awsEnvProfile = os.Getenv("AWS_PROFILE")
-		userAgent = fmt.Sprintf("go-lambda-cleanup-v%s", VersionString)
+		userAgent = fmt.Sprintf("go-lambda-cleanup-%s", VersionString)
 
 		if awsEnvRegion == "" {
 			if RegionFlag != "" {

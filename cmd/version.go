@@ -15,7 +15,7 @@ var versionCmd = &cobra.Command{
 	Short: "Print the current version number of disaster-cli",
 	Long:  `Prints the current version number of disaster-cli`,
 	Run: func(cmd *cobra.Command, args []string) {
-		version := fmt.Sprintf("go-lambda-cleanup v%s", VersionString)
+		version := fmt.Sprintf("go-lambda-cleanup %s", VersionString)
 		fmt.Println(version)
 	},
 }
