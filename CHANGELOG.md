@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.5...v1.0.6) (2021-03-22)
+
+
+### Bug Fixes
+
+* added user-agent that reflects go-lambada-cleanup and its version ([bb0d641](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/bb0d641be80219703e9cef233789b78d85461ef1))
+
 ## [1.0.5](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.4...v1.0.5) (2021-03-20)
 
 
