@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"embed"
+	"sort"
 	"testing"
 
 	_ "embed"
@@ -57,16 +58,15 @@ func TestGetLambdasToDelteList(t *testing.T) {
 	var (
 		retainNumber int8 = 2
 		lambdaList   []*lambda.FunctionConfiguration
-		want         int = 2
+		want         int = 3
 	)
 
 	lambdaList = []*lambda.FunctionConfiguration{
 		&lambda.FunctionConfiguration{
-			CodeSha256:       new(string),
-			Version:          aws.String("1"),
-			CodeSize:         aws.Int64(1200),
-			DeadLetterConfig: &lambda.DeadLetterConfig{},
-			Description:      aws.String("Test A"),
+			CodeSha256:  new(string),
+			Version:     aws.String("1"),
+			CodeSize:    aws.Int64(1200),
+			Description: aws.String("Test A"),
 		},
 		&lambda.FunctionConfiguration{
 			CodeSha256: new(string),
@@ -90,10 +90,12 @@ func TestGetLambdasToDelteList(t *testing.T) {
 		},
 	}
 
+	sort.Sort(byVersion(lambdaList))
+
 	got := getLambdasToDelteList(lambdaList, retainNumber)
 
 	if len(got) != want {
-		t.Fatalf("Expected 2 lambda configuration items to be returned but instead received %d", len(got))
+		t.Fatalf("Expected %d lambda configuration items to be returned but instead received %d", want, len(got))
 	}
 
 }
@@ -134,6 +136,12 @@ func TestGenerateDeleteInputStructs(t *testing.T) {
 				Version:      aws.String("5"),
 				CodeSize:     aws.Int64(1500),
 			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("F"),
+				Version:      aws.String("$LATEST"),
+				CodeSize:     aws.Int64(1500),
+			},
 		},
 		[]*lambda.FunctionConfiguration{
 			&lambda.FunctionConfiguration{
@@ -154,6 +162,12 @@ func TestGenerateDeleteInputStructs(t *testing.T) {
 				CodeSha256:   new(string),
 				FunctionName: aws.String("A3"),
 				Version:      aws.String("3"),
+				CodeSize:     aws.Int64(1500),
+			},
+			&lambda.FunctionConfiguration{
+				CodeSha256:   new(string),
+				FunctionName: aws.String("A4"),
+				Version:      aws.String("$LATEST"),
 				CodeSize:     aws.Int64(1500),
 			},
 		},

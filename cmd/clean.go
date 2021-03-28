@@ -281,12 +281,14 @@ func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) 
 		var tempList []lambda.DeleteFunctionInput
 
 		for _, version := range version {
-			deleteItem := &lambda.DeleteFunctionInput{
-				FunctionName: version.FunctionName,
-				Qualifier:    version.Version,
-			}
+			if *version.Version != "$LATEST" {
+				deleteItem := &lambda.DeleteFunctionInput{
+					FunctionName: version.FunctionName,
+					Qualifier:    version.Version,
+				}
 
-			tempList = append(tempList, *deleteItem)
+				tempList = append(tempList, *deleteItem)
+			}
 
 		}
 
@@ -350,22 +352,22 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Lambda, deleteList ...
 					if aerr, ok := err.(awserr.Error); ok {
 						switch aerr.Code() {
 						case lambda.ErrCodeServiceException:
-							log.Info(lambda.ErrCodeServiceException, aerr.Error())
+							log.Error("Function Name: ", *version.FunctionName)
 							returnError = aerr
 						case lambda.ErrCodeResourceNotFoundException:
-							log.Info(lambda.ErrCodeResourceNotFoundException, aerr.Error())
+							log.Error("Function Name: ", *version.FunctionName)
 							returnError = aerr
 						case lambda.ErrCodeTooManyRequestsException:
-							log.Info(lambda.ErrCodeTooManyRequestsException, aerr.Error())
+							log.Error("Function Name: ", *version.FunctionName)
 							returnError = aerr
 						case lambda.ErrCodeInvalidParameterValueException:
-							log.Info(lambda.ErrCodeInvalidParameterValueException, aerr.Error())
+							log.Error("Function Name: ", *version.FunctionName)
 							returnError = aerr
 						case lambda.ErrCodeResourceConflictException:
-							log.Info(lambda.ErrCodeResourceConflictException, aerr.Error())
+							log.Error("Function Name: ", *version.FunctionName)
 							returnError = aerr
 						default:
-							log.Info(aerr.Error())
+							log.Error("Function Name: ", *version.FunctionName)
 							returnError = aerr
 						}
 					}
@@ -380,7 +382,6 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Lambda, deleteList ...
 
 // Generate a list of Lambdas to remove based on the desired retain value
 func getLambdasToDelteList(list []*lambda.FunctionConfiguration, retainCount int8) []*lambda.FunctionConfiguration {
-
 	var retainNumber int
 	// Ensure the passed in parameter is greater than zero
 	if retainCount >= 1 {
@@ -392,9 +393,9 @@ func getLambdasToDelteList(list []*lambda.FunctionConfiguration, retainCount int
 		retainNumber = 1
 	}
 
-	// This checks to ensure that we are not deleting a list tha only contains $LATEST
-	if (len(list)-1) > 1 && (int(retainNumber) < len(list)-1) {
-		return list[retainNumber:(len(list) - 1)]
+	// This checks to ensure that we are not deleting a list that only contains $LATEST
+	if (len(list)) > 1 && (int(retainNumber) < len(list)) {
+		return list[retainNumber:]
 	} else {
 		return nil
 	}
@@ -454,7 +455,7 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 		returnError = err
 	}
 
-	// Sort list so that the fomer versions are listed firstm and $LATEST is listed last
+	// Sort list so that the former versions are listed first and $LATEST is listed last
 	sort.Sort(byVersion(lambdasLisOutput))
 
 	return lambdasLisOutput, returnError
@@ -492,6 +493,8 @@ func checkError(err error) {
 			switch aerr.Code() {
 			case organizations.ErrCodeAccessDeniedException:
 				log.Fatal("ERROR: Access Denied - Please verify AWS credentials and permissions\n", aerr.Code())
+			case lambda.ErrCodeResourceConflictException:
+				log.Fatal("ERROR: ", err.Error())
 			default:
 				log.Fatal("ERROR: ", err.Error())
 			}
