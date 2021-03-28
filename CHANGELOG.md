@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.7...v1.0.8) (2021-03-28)
+
+
+### Bug Fixes
+
+* cleaned up retain logic ([9094087](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/909408731890d16dfb6674b30553034e9025cc5d))
+
 ## [1.0.7](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.6...v1.0.7) (2021-03-22)
 
 
