@@ -186,61 +186,43 @@ func TestGenerateDeleteInputStructs(t *testing.T) {
 
 func TestCountDeleteVersions(t *testing.T) {
 
-	lambdaList := [][]*lambda.FunctionConfiguration{
-		[]*lambda.FunctionConfiguration{
-			&lambda.FunctionConfiguration{
-				CodeSha256:       new(string),
-				FunctionName:     aws.String("A"),
-				Version:          aws.String("1"),
-				CodeSize:         aws.Int64(1200),
-				DeadLetterConfig: &lambda.DeadLetterConfig{},
-				Description:      aws.String("Test A"),
+	lambdaList := [][]lambda.DeleteFunctionInput{
+		[]lambda.DeleteFunctionInput{
+			lambda.DeleteFunctionInput{
+
+				FunctionName: aws.String("A"),
+				Qualifier:    aws.String("1"),
 			},
-			&lambda.FunctionConfiguration{
-				CodeSha256:   new(string),
+			lambda.DeleteFunctionInput{
 				FunctionName: aws.String("B"),
-				Version:      aws.String("2"),
-				CodeSize:     aws.Int64(1500),
+				Qualifier:    aws.String("2"),
 			},
-			&lambda.FunctionConfiguration{
-				CodeSha256:   new(string),
+			lambda.DeleteFunctionInput{
 				FunctionName: aws.String("C"),
-				Version:      aws.String("3"),
-				CodeSize:     aws.Int64(1500),
+				Qualifier:    aws.String("3"),
 			},
-			&lambda.FunctionConfiguration{
-				CodeSha256:   new(string),
+			lambda.DeleteFunctionInput{
 				FunctionName: aws.String("D"),
-				Version:      aws.String("4"),
-				CodeSize:     aws.Int64(1500),
+				Qualifier:    aws.String("4"),
 			},
-			&lambda.FunctionConfiguration{
-				CodeSha256:   new(string),
+			lambda.DeleteFunctionInput{
 				FunctionName: aws.String("E"),
-				Version:      aws.String("5"),
-				CodeSize:     aws.Int64(1500),
+				Qualifier:    aws.String("5"),
 			},
 		},
-		[]*lambda.FunctionConfiguration{
-			&lambda.FunctionConfiguration{
-				CodeSha256:       new(string),
-				Version:          aws.String("1"),
-				FunctionName:     aws.String("A1"),
-				CodeSize:         aws.Int64(1200),
-				DeadLetterConfig: &lambda.DeadLetterConfig{},
-				Description:      aws.String("Test A"),
+		[]lambda.DeleteFunctionInput{
+			lambda.DeleteFunctionInput{
+				FunctionName: aws.String("A1"),
+				Qualifier:    aws.String("1"),
 			},
-			&lambda.FunctionConfiguration{
-				CodeSha256:   new(string),
+			lambda.DeleteFunctionInput{
+
 				FunctionName: aws.String("A2"),
-				Version:      aws.String("2"),
-				CodeSize:     aws.Int64(1500),
+				Qualifier:    aws.String("2"),
 			},
-			&lambda.FunctionConfiguration{
-				CodeSha256:   new(string),
+			lambda.DeleteFunctionInput{
 				FunctionName: aws.String("A3"),
-				Version:      aws.String("3"),
-				CodeSize:     aws.Int64(1500),
+				Qualifier:    aws.String("3"),
 			},
 		},
 	}

@@ -211,7 +211,7 @@ func executeClean(region string) error {
 		log.Info("............")
 
 		if DryRun {
-			numVerDeleted := countDeleteVersions(globalLambdaDeleteList)
+			numVerDeleted := countDeleteVersions(globalLambdaDeleteInputStructs)
 			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
 			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
 			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", humanize.Bytes(uint64(spaceRemovedPreview))))
@@ -310,8 +310,10 @@ func calculateSpaceRemoval(deleteList [][]*lambda.FunctionConfiguration) int {
 	for _, lambda := range deleteList {
 
 		for _, version := range lambda {
+			if *version.Version != "$LATEST" {
+				size = size + int(*version.CodeSize)
+			}
 
-			size = size + int(*version.CodeSize)
 		}
 	}
 
@@ -320,7 +322,7 @@ func calculateSpaceRemoval(deleteList [][]*lambda.FunctionConfiguration) int {
 }
 
 // Returns a count of versions in a slice of lambda.DeleteFunctionInput
-func countDeleteVersions(deleteList [][]*lambda.FunctionConfiguration) int {
+func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
 
 	var (
 		versionsCount int
