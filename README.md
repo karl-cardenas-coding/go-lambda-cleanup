@@ -40,6 +40,7 @@ Flags:
   -d, --dryrun                    Executes a dry run (bool)
   -s, --enableSharedCredentials   Leverages the default ~/.aws/credentials file (bool)
   -h, --help                      help for glc
+  -l, --listFile string           Specify a file containing Lambdas to delete.
   -p, --profile string            Specify the AWS profile to leverage for authentication.
   -r, --region string             Specify the desired AWS region to target.
   -v, --verbose                   Set to true to enable debugging (bool)
@@ -69,6 +70,35 @@ INFO[03/19/21] ............
 INFO[03/19/21] 82 unique versions will be removed in an actual execution.
 INFO[03/19/21] 554 MB of storage space will be removed in an actual execution.
 INFO[03/19/21] Job Duration Time: 7.834585s
+```
+
+### Custom List
+You can provide an input file contaitning a list of Lambda functions to be cleaned-up. The input file can be of the following types; `json`, `yaml`, or `yml.`  An input file allows you to control the execution more granularly. 
+
+#### YAML
+```yaml
+# custom_list.yaml
+lambdas:
+  - stopEC2-instances
+  - putControls
+```
+
+```shell
+glc clean -r us-east-1 -sp myProfile -l custom_list.yaml
+```
+
+#### JSON
+```json
+{
+    "lambdas": [
+        "stopEC2-instances",
+        "putControls"
+    ]
+}
+```
+
+```shell
+glc clean -r us-east-1 -sp myProfile -l custom_list.json
 ```
 
 ### Authentication
