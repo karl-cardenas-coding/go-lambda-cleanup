@@ -25,7 +25,7 @@ func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 	}
 
 	if fileType == "json" {
-		deleteListJson, err = readConfigFileJson(filePath, "json")
+		deleteListJson, err = readConfigFileJson(filePath)
 		if err != nil {
 			return deleteListJson.Lambdas, err
 		}
@@ -33,7 +33,7 @@ func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 	}
 
 	if fileType == "yaml" {
-		deleteListYaml, err = readConfigFileYaml(filePath, "yaml")
+		deleteListYaml, err = readConfigFileYaml(filePath)
 		if err != nil {
 			return deleteListYaml.Lambdas, err
 		}
@@ -44,7 +44,7 @@ func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 }
 
 // This function reads a yaml input file and returns a list of Lambdas
-func readConfigFileYaml(file, fileType string) (CustomDeleteListYaml, error) {
+func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 	var (
 		list CustomDeleteListYaml
 	)
@@ -61,7 +61,7 @@ func readConfigFileYaml(file, fileType string) (CustomDeleteListYaml, error) {
 }
 
 // This function reads a json input file and returns a list of Lambdas
-func readConfigFileJson(file, fileType string) (CustomDeleteListJson, error) {
+func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 	var (
 		list CustomDeleteListJson
 	)
