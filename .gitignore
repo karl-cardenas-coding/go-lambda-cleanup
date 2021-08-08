@@ -19,3 +19,5 @@ glc
 
 node_modules/
 *.txt
+test.yaml
+test.json

@@ -21,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/dustin/go-humanize"
+	internal "github.com/karl-cardenas-coding/go-lambda-cleanup/internal"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -31,9 +32,10 @@ const (
 )
 
 var (
-	ctx      context.Context
-	logLevel aws.LogLevelType
-	svc      *lambda.Lambda
+	ctx               context.Context
+	CustomeDeleteList []string
+	logLevel          aws.LogLevelType
+	svc               *lambda.Lambda
 	//go:embed aws-regions.txt
 	f embed.FS
 )
@@ -112,6 +114,15 @@ var cleanCmd = &cobra.Command{
 			log.Info("******** DRY RUN MODE ENABLED ********")
 		}
 
+		if LambdaListFile != "" {
+			customList, err := internal.GenerateLambdaDeleteList(LambdaListFile)
+			if err != nil {
+				log.Info(err.Error())
+			}
+
+			CustomeDeleteList = customList
+		}
+
 		if CredentialsFile {
 			sharedFileConfig = session.SharedConfigEnable
 
@@ -170,7 +181,7 @@ func executeClean(region string) error {
 	)
 
 	log.Info("Scanning AWS environment in " + region)
-	lambdaList, err := getAlllambdas(ctx, svc)
+	lambdaList, err := getAlllambdas(ctx, svc, CustomeDeleteList)
 	checkError(err)
 	log.Info("............")
 
@@ -223,7 +234,7 @@ func executeClean(region string) error {
 			checkError(err)
 
 			// Recalculate storage size
-			updatedLambdaList, err := getAlllambdas(ctx, svc)
+			updatedLambdaList, err := getAlllambdas(ctx, svc, CustomeDeleteList)
 			checkError(err)
 			log.Info("............")
 
@@ -404,31 +415,49 @@ func getLambdasToDelteList(list []*lambda.FunctionConfiguration, retainCount int
 }
 
 // Return a list of all Lambdas in the respective AWS account
-func getAlllambdas(ctx context.Context, svc *lambda.Lambda) ([]*lambda.FunctionConfiguration, error) {
+func getAlllambdas(ctx context.Context, svc *lambda.Lambda, customList []string) ([]*lambda.FunctionConfiguration, error) {
 
 	var (
-		lambdasLisOutput []*lambda.FunctionConfiguration
-		returnError      error
-		input            *lambda.ListFunctionsInput
+		lambdasListOutput []*lambda.FunctionConfiguration
+		returnError       error
+		input             *lambda.ListFunctionsInput
 	)
 
-	input = &lambda.ListFunctionsInput{
-		FunctionVersion: aws.String("ALL"),
-		MaxItems:        aws.Int64(maxItems),
+	if len(customList) == 0 {
+		input = &lambda.ListFunctionsInput{
+			FunctionVersion: aws.String("ALL"),
+			MaxItems:        aws.Int64(maxItems),
+		}
+
+		pageNum := 0
+		err := svc.ListFunctionsPagesWithContext(ctx, input,
+			func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
+				pageNum++
+				lambdasListOutput = append(lambdasListOutput, page.Functions...)
+				return lastPage
+			})
+		if err != nil {
+			returnError = err
+		}
 	}
 
-	pageNum := 0
-	err := svc.ListFunctionsPagesWithContext(ctx, input,
-		func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
-			pageNum++
-			lambdasLisOutput = append(lambdasLisOutput, page.Functions...)
-			return lastPage
-		})
-	if err != nil {
-		returnError = err
+	if len(customList) > 0 {
+		for _, item := range customList {
+
+			input := &lambda.GetFunctionInput{
+				FunctionName: aws.String(item),
+			}
+
+			result, err := svc.GetFunctionWithContext(ctx, input)
+			if err != nil {
+				returnError = err
+			}
+
+			lambdasListOutput = append(lambdasListOutput, result.Configuration)
+		}
 	}
 
-	return lambdasLisOutput, returnError
+	return lambdasListOutput, returnError
 
 }
 
@@ -497,6 +526,8 @@ func checkError(err error) {
 				log.Fatal("ERROR: Access Denied - Please verify AWS credentials and permissions\n", aerr.Code())
 			case lambda.ErrCodeResourceConflictException:
 				log.Fatal("ERROR: ", err.Error())
+			case lambda.ErrCodeResourceNotFoundException:
+				log.Fatal("ERROR: ", "Invalid Lambda(s) provided. Please check the function name provided. \n")
 			default:
 				log.Fatal("ERROR: ", err.Error())
 			}
