@@ -1,0 +1,6 @@
+{
+    "lambdas": [
+        "stopEC2-instances",
+        "putControls"
+    ]
+}
