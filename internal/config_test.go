@@ -70,7 +70,7 @@ func TestGenerateLambdaDeleteListJson(t *testing.T) {
 
 	for index := range want {
 		if got[index] != want[index] {
-			t.Fatalf("Failed to read the expcted content. Expected %s but received %s", want[index], got[index])
+			t.Fatalf("Failed to read the expected content. Expected %s but received %s", want[index], got[index])
 		}
 	}
 }
@@ -87,7 +87,7 @@ func TestGenerateLambdaDeleteListYaml(t *testing.T) {
 
 	for index := range want {
 		if got[index] != want[index] {
-			t.Fatalf("Failed to read the expcted content. Expected %s but received %s", want[index], got[index])
+			t.Fatalf("Failed to read the expected content. Expected %s but received %s", want[index], got[index])
 		}
 	}
 }
@@ -104,7 +104,7 @@ func TestGenerateLambdaDeleteListYml(t *testing.T) {
 
 	for index := range want {
 		if got[index] != want[index] {
-			t.Fatalf("Failed to read the expcted content. Expected %s but received %s", want[index], got[index])
+			t.Fatalf("Failed to read the expected content. Expected %s but received %s", want[index], got[index])
 		}
 	}
 }

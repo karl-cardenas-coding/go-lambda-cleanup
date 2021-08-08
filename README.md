@@ -48,10 +48,14 @@ Flags:
 Use "glc [command] --help" for more information about a command.
 ```
 
+### Versions Retention 
+
 To retain `2` version excluding `$LATEST`
 ```shell
 glc clean -r us-east-2 -c 2 -s -p myProfile
 ```
+
+### Dry Run
 
 You also have the ability to preview an execution by leveraging the dry run flag `-d`
 
@@ -73,7 +77,7 @@ INFO[03/19/21] Job Duration Time: 7.834585s
 ```
 
 ### Custom List
-You can provide an input file contaitning a list of Lambda functions to be cleaned-up. The input file can be of the following types; `json`, `yaml`, or `yml.`  An input file allows you to control the execution more granularly. 
+You can provide an input file containing a list of Lambda functions to be cleaned-up. The input file can be of the following types; `json`, `yaml`, or `yml.`  An input file allows you to control the execution more granularly. 
 
 #### YAML
 ```yaml
