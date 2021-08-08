@@ -3,8 +3,8 @@ package internal
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 
@@ -50,10 +50,10 @@ func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 	)
 	fileContent, err := ioutil.ReadFile(file)
 	if err != nil {
-		panic(err)
+		log.Fatal("unable to read the input file")
 	}
 
-	yaml.Unmarshal(fileContent, &list)
+	err = yaml.Unmarshal(fileContent, &list)
 	if err != nil {
 		err = errors.New("unable to unmarshall the YAML file")
 	}
@@ -67,15 +67,15 @@ func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 	)
 	fileContent, err := ioutil.ReadFile(file)
 	if err != nil {
-		panic(err)
+		log.Fatal("unable to read the input file")
 	}
 
 	err = json.Unmarshal(fileContent, &list)
 	if err != nil {
-		fmt.Println("error:", err)
+		err = errors.New("unable to unmarshall the json file")
 	}
 
-	return list, nil
+	return list, err
 }
 
 // This function validates the existence of an input file and ensures its prefix is json | yaml | yml
