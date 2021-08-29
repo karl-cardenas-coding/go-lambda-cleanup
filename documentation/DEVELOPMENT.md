@@ -31,3 +31,7 @@ Add test cases to new functions and new commands. Invoke the Go tests from the r
 ```shell
 go test -v ./...
 ```
+
+### Terraform
+
+A terraform folder is included in this project. The Terraform code deploys  55 Lambdas. This is used to test the LambdaListFunctions API logic. To use this Terraform code you must provide your own AWS environment and credentials.

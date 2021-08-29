@@ -18,7 +18,7 @@
 go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup in a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
 
 ```shell
-VERSION=1.0.9
+VERSION=1.10.0
 wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-linux-amd64.zip
 unzip go-lambda-cleanup-v$VERSION-linux-amd64.zip 
 sudo mv glc /usr/local/bin/
@@ -34,7 +34,7 @@ Usage:
 Available Commands:
   clean       Removes all former versions of AWS lambdas except for the $LATEST version
   help        Help about any command
-  version     Print the current version number of disaster-cli
+  version     Print the current version number of glc
 
 Flags:
   -d, --dryrun                    Executes a dry run (bool)
