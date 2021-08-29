@@ -28,7 +28,8 @@ import (
 
 const (
 	// Per AWS API Valid Range: Minimum value of 1. Maximum value of 10000.
-	maxItems int64 = 10000
+	maxItems   int64  = 10000
+	regionFile string = "aws-regions.txt"
 )
 
 var (
@@ -429,16 +430,29 @@ func getAlllambdas(ctx context.Context, svc *lambda.Lambda, customList []string)
 			MaxItems:        aws.Int64(maxItems),
 		}
 
-		pageNum := 0
-		err := svc.ListFunctionsPagesWithContext(ctx, input,
-			func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
-				pageNum++
-				lambdasListOutput = append(lambdasListOutput, page.Functions...)
-				return lastPage
-			})
-		if err != nil {
-			returnError = err
+		// Loop condition variable
+		loopBreaker := false
+
+		for {
+			err := svc.ListFunctionsPagesWithContext(ctx, input,
+				func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
+					lambdasListOutput = append(lambdasListOutput, page.Functions...)
+
+					// Set the next marker indicator for the next iteration
+					input.Marker = page.NextMarker
+					//  Set condition variable to a new condition value
+					loopBreaker = lastPage
+					return lastPage
+				})
+			if err != nil {
+				return lambdasListOutput, err
+			}
+
+			if loopBreaker {
+				break
+			}
 		}
+
 	}
 
 	if len(customList) > 0 {
@@ -456,7 +470,6 @@ func getAlllambdas(ctx context.Context, svc *lambda.Lambda, customList []string)
 			lambdasListOutput = append(lambdasListOutput, result.Configuration)
 		}
 	}
-
 	return lambdasListOutput, returnError
 
 }
@@ -475,15 +488,29 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 		MaxItems:     aws.Int64(maxItems),
 	}
 
-	pageNum := 0
-	err := svc.ListVersionsByFunctionPagesWithContext(ctx, input,
-		func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
-			pageNum++
-			lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
-			return lastPage
-		})
-	if err != nil {
-		returnError = err
+	// Loop condition variable
+	loopBreaker := false
+
+	for {
+
+		err := svc.ListVersionsByFunctionPagesWithContext(ctx, input,
+			func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
+
+				lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
+				// Set the next marker indicator for the next iteration
+				input.Marker = page.NextMarker
+				//  Set condition variable to a new condition value
+				loopBreaker = lastPage
+				return lastPage
+			})
+		if err != nil {
+			return lambdasLisOutput, returnError
+		}
+
+		if loopBreaker {
+			break
+		}
+
 	}
 
 	// Sort list so that the former versions are listed first and $LATEST is listed last
@@ -540,7 +567,7 @@ func validateRegion(f embed.FS, input string) string {
 
 	var output string
 
-	rawData, _ := f.ReadFile("aws-regions.txt")
+	rawData, _ := f.ReadFile(regionFile)
 	regionsList := strings.Split(string(rawData), "	")
 
 	for _, region := range regionsList {

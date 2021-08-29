@@ -19,3 +19,8 @@ glc
 
 node_modules/
 *.txt
+.terraform/
+.terraform.*
+terraform.tfvars
+*.tfstate
+lambda.zip
