@@ -1,5 +1,5 @@
 {
-  "name": "go-lamnda-cleanup",
+  "name": "go-lambda-cleanup",
   "version": "0.0.0",
   "private": true,
   "husky": {
@@ -33,6 +33,6 @@
     "husky": "^4.3.0"
   },
   "devDependencies": {
-    "semantic-release": "^17.4.1"
+    "semantic-release": "^19.0.2"
   }
 }
