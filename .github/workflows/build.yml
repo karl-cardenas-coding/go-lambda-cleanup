@@ -238,59 +238,59 @@ jobs:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
           path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
 
-  # release:
-  #   name: "Create a release"
-  #   needs: ["darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64"]
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     VERSION: ${{ steps.get-version.outputs.version }}
-  #   steps:
-  #     - name: Check out code into the Go module directory
-  #       uses: actions/checkout@v2
+  release:
+    name: "Create a release"
+    needs: ["darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64"]
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
     
-  #     - uses: actions/download-artifact@v1
-  #       with:
-  #         name: VERSION.env
-  #         path: ./       
+      - uses: actions/download-artifact@v1
+        with:
+          name: VERSION.env
+          path: ./       
 
-  #     - name: Get Version
-  #       id: get-version
-  #       run: |
-  #            source VERSION.env
-  #            echo $VERSION
-  #            echo "::set-output name=version::$VERSION"
+      - name: Get Version
+        id: get-version
+        run: |
+             source VERSION.env
+             echo $VERSION
+             echo "::set-output name=version::$VERSION"
       
-  #     - uses: actions/download-artifact@v1
-  #       with:
-  #           name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-darwin-amd64.zip
-  #           path: ./
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-darwin-amd64.zip
+            path: ./
 
-  #     - uses: actions/download-artifact@v1
-  #       with:
-  #           name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-linux-386.zip
-  #           path: ./
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-linux-386.zip
+            path: ./
 
-  #     - uses: actions/download-artifact@v1
-  #       with:
-  #           name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-darwin-arm64.zip
-  #           path: ./
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-darwin-arm64.zip
+            path: ./
 
 
-  #     - uses: actions/download-artifact@v1
-  #       with:
-  #           name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-linux-amd64.zip
-  #           path: ./
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-linux-amd64.zip
+            path: ./
 
             
-  #     - uses: actions/download-artifact@v1
-  #       with:
-  #           name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-windows-amd64.zip
-  #           path: ./
+      - uses: actions/download-artifact@v1
+        with:
+            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-windows-amd64.zip
+            path: ./
 
 
-  #     - name: "release"
-  #       run: |
-  #            npm install @semantic-release/exec -D
-  #            npm install @semantic-release/changelog -D
-  #            npm install @semantic-release/github -D
-  #            npx semantic-release
+      - name: "release"
+        run: |
+             npm install @semantic-release/exec -D
+             npm install @semantic-release/changelog -D
+             npm install @semantic-release/github -D
+             npx semantic-release
