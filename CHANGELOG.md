@@ -1,3 +1,10 @@
+## [1.0.11](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.10...v1.0.11) (2022-02-14)
+
+
+### Bug Fixes
+
+* fixing enumeration bug on line 429 ([72a47a0](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/72a47a0be4d8304f64dda91362c82bec71a3ad10))
+
 ## [1.0.10](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.9...v1.0.10) (2021-08-29)
 
 
