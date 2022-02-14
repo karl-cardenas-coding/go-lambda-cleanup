@@ -7,7 +7,7 @@
   <img src="/static/logo.png" alt="drawing" width="400"/>
 </p>
 
-<p align="center">A Golang based CLI for removing unused versions of AWS Lambdas. One binary,  no additional dependencies required. </p>
+<p align="center">A Go based CLI for removing unused versions of AWS Lambdas. One binary, no additional dependencies required. </p>
 
 <p align="center">
 <img src="/static/demo.gif" alt="drawing" width="400"/>
@@ -18,7 +18,7 @@
 go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup in a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
 
 ```shell
-VERSION=1.0.10
+VERSION=1.0.11
 wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-linux-amd64.zip
 unzip go-lambda-cleanup-v$VERSION-linux-amd64.zip 
 sudo mv glc /usr/local/bin/
@@ -147,7 +147,7 @@ $ glc clean -r us-west-2
 2021/03/04 20:42:46 ............
 ```
 ## Compile
-If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.16` installed. This tool leverages the Golang [embed](https://golang.org/pkg/embed/) functionality. A file named `aws-regions.txt` is expected in the `cmd/` directory.  You need valid AWS credentials in order to generate the file.
+If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.17` installed. This tool leverages the Golang [embed](https://golang.org/pkg/embed/) functionality. A file named `aws-regions.txt` is expected in the `cmd/` directory.  You need valid AWS credentials in order to generate the file.
 ```shell
 git clone git@github.com:karl-cardenas-coding/go-lambda-cleanup.git
 aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt

@@ -426,8 +426,7 @@ func getAlllambdas(ctx context.Context, svc *lambda.Lambda, customList []string)
 
 	if len(customList) == 0 {
 		input = &lambda.ListFunctionsInput{
-			FunctionVersion: aws.String("ALL"),
-			MaxItems:        aws.Int64(maxItems),
+			MaxItems: aws.Int64(maxItems),
 		}
 
 		// Loop condition variable
