@@ -65,14 +65,14 @@ var cleanCmd = &cobra.Command{
 		awsEnvProfile = os.Getenv("AWS_PROFILE")
 		userAgent = fmt.Sprintf("go-lambda-cleanup-%s", VersionString)
 
-		if awsEnvRegion == "" {
-			if RegionFlag != "" {
-				region = validateRegion(f, RegionFlag)
+		if RegionFlag == "" {
+			if awsEnvRegion != "" {
+				region = validateRegion(f, awsEnvRegion)
 			} else {
-				log.Fatal("ERROR: Missing region flag. Please use -r and provide a valid AWS region.")
+				log.Fatal("ERROR: Missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region.")
 			}
 		} else {
-			region = validateRegion(f, awsEnvRegion)
+			region = validateRegion(f, RegionFlag)
 		}
 
 		ctx = context.Background()
