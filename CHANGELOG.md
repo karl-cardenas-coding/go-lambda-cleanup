@@ -1,3 +1,10 @@
+## [1.0.12](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.11...v1.0.12) (2022-03-05)
+
+
+### Bug Fixes
+
+* allow region flag to overwrite AWS env region ([6ae5305](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/6ae5305855dc4d4defa7ef453900cf363e199643))
+
 ## [1.0.11](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.10...v1.0.11) (2022-02-14)
 
 
