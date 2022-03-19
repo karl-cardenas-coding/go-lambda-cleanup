@@ -2,7 +2,7 @@
 
 ## Requirements
 * node v14.15.0+
-* [Go](https://golang.org/doc/install) 1.16+
+* [Go](https://golang.org/doc/install) 1.18+
 
 ## Setup
 If you wish to work on the go-lambda-cleanup CLI, you'll first need Go installed on your machine (please check the requirements before proceeding).
