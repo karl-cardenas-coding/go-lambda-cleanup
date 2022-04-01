@@ -49,12 +49,11 @@ jobs:
       run: |
         aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 
-    - name: golangci-lint
-      uses: golangci/golangci-lint-action@v2
-      with:
-          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.29
-          args: -v
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v3.1.0
+      with:  
+        args: -v
+
     
     - name: Execute Go tests
       run: go test -v ./...
