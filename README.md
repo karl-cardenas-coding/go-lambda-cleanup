@@ -187,7 +187,9 @@ A: You have two options.
 
 Option A is to clone this project and compile the binary. Issue `go build -o glc`, and the end result is a binary compatible for your system. If you still encounter issues after this, invoke the code signing command on the binary `codesign -s -`
 
-Option B is not recommended but I'll offer it up. You can remove the binary from quarantine mode. 
+Option B is to to grant permission for the application to run. Use [this guide](https://support.apple.com/en-us/HT202491) to help you grant permission to the application.
+
+Option C is not recommended but I'll offer it up. You can remove the binary from quarantine mode. 
 ```shell
 xattr -d com.apple.quarantine /path/to/file
 ```
