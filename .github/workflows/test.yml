@@ -11,6 +11,10 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   LINT_VERSION: "1.25.1"
 
+permissions: 
+  contents: read
+  packages: write
+
 jobs:
   test:
     outputs:
@@ -107,7 +111,7 @@ jobs:
     #   uses: docker/metadata-action@v3
     #   with:
     #     images: |
-    #       go-lambda-cleanup
+    #       ghcr.io/karl-cardenas-coding/go-lambda-cleanup
     #     tags: |
     #       type=schedule
     #       type=ref,event=branch
@@ -125,7 +129,7 @@ jobs:
         # push: ${{ github.event_name != 'pull_request' }}
         push: true
         # tags: ${{ steps.image-tag.outputs.tags }}
-        tags: go-lambda-cleanup-v:${{steps.dependencies.outputs.VERSION}}
+        tags: ghcr.io/karl-cardenas-coding/go-lambda-cleanup-v:${{steps.dependencies.outputs.VERSION}}
         # secrets: |
         #     GITHUB_TOKEN=${{ secrets.MYTOKEN }}
 
