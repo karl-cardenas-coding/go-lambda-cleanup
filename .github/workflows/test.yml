@@ -122,6 +122,7 @@ jobs:
         context: .
         platforms: linux/amd64,linux/arm64
         # push: ${{ github.event_name != 'pull_request' }}
+        push: true
         # tags: ${{ steps.image-tag.outputs.tags }}
         tags: go-lambda-cleanup-v:${{steps.dependencies.outputs.VERSION}}
 
