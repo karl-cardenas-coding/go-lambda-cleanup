@@ -120,7 +120,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        platforms: linux/amd64,linux/arm64, darwin/arm64, darwin/amd64
+        platforms: linux/amd64,linux/arm64
         # push: ${{ github.event_name != 'pull_request' }}
         # tags: ${{ steps.image-tag.outputs.tags }}
         tags: go-lambda-cleanup-v:${{steps.dependencies.outputs.VERSION}}
