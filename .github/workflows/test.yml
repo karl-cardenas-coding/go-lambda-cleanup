@@ -52,9 +52,9 @@ jobs:
           source VERSION.env
           echo "::set-output name=version::$VERSION"
 
-    # - name: Generate AWS region file
-    #   run: |
-    #     aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+    - name: Generate AWS region file
+      run: |
+        aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 
     # - name: Run golangci-lint
     #   uses: golangci/golangci-lint-action@v3.1.0
