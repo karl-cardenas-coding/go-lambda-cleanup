@@ -13,6 +13,8 @@ env:
 
 jobs:
   test:
+    outputs:
+      VERSION: ${{ steps.go.outputs.version }}
     name: Test
     runs-on: ubuntu-latest
     steps:
@@ -78,6 +80,22 @@ jobs:
         go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o=glc -v
         ./glc clean -r us-west-2
 
+    -
+      name: "Get dependencies"
+      id: dependencies
+      run: |
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+          npm install @semantic-release/exec -D
+          npm install @semantic-release/changelog -D
+          npx semantic-release --dry-run
+          cat VERSION.env
+          source VERSION.env
+          echo "::set-output name=version::$VERSION"
+
     - name: Login to GHCR
       # if: github.event_name != 'pull_request'
       uses: docker/login-action@v1
@@ -93,20 +111,20 @@ jobs:
        uses: docker/setup-buildx-action@v2
 
 
-    - name: Docker meta
-      id: image-tag # you'll use this in the next step
-      uses: docker/metadata-action@v3
-      with:
-        images: |
-          go-lambda-cleanup
-        tags: |
-          type=schedule
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
-          type=sha
+    # - name: Docker meta
+    #   id: image-tag # you'll use this in the next step
+    #   uses: docker/metadata-action@v3
+    #   with:
+    #     images: |
+    #       go-lambda-cleanup
+    #     tags: |
+    #       type=schedule
+    #       type=ref,event=branch
+    #       type=ref,event=pr
+    #       type=semver,pattern={{version}}
+    #       type=semver,pattern={{major}}.{{minor}}
+    #       type=semver,pattern={{major}}
+    #       type=sha
 
     - name: Build and push
       uses: docker/build-push-action@v2
@@ -114,8 +132,8 @@ jobs:
         context: .
         platforms: linux/amd64,linux/arm/v7, darwin/arm64, darwin/amd64
         # push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.image-tag.outputs.tags }}
-        labels: ${{ steps.image-tag.outputs.labels }}
+        # tags: ${{ steps.image-tag.outputs.tags }}
+        tags: go-lambda-cleanup-v:${{steps.dependencies.outputs.VERSION}}
 
     - uses: actions/upload-artifact@v1
       with:
