@@ -47,7 +47,7 @@ jobs:
           npm install @semantic-release/exec -D
           npm install @semantic-release/changelog -D
           npx semantic-release --dry-run
-          echo "1.0.13" > VERSION.env
+          echo "export VERSION=1.0.13" > VERSION.env
           cat VERSION.env
           source VERSION.env
           echo "::set-output name=version::$VERSION"
