@@ -115,7 +115,7 @@ jobs:
         platforms: linux/amd64,linux/arm/v7, darwin/arm64, darwin/amd64
         # push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.image-tag.outputs.tags }}
-        labels: ${{ steps.image-tag.outputs.labels }
+        labels: ${{ steps.image-tag.outputs.labels }}
 
     - uses: actions/upload-artifact@v1
       with:
