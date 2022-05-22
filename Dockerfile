@@ -3,14 +3,15 @@ FROM golang:1.18.2-alpine3.15 as builder
 LABEL org.opencontainers.image.source="http://github.com/karl-cardenas-coding/go-lambda-cleanup"
 
 ARG VERSION
-ARG OS linux
-ARG ARCH amd64
+ARG OS
+ARG ARCH
 
 RUN 
 ADD ./ /source
 RUN cd /source && \
-GOOS=$OS GOARCH=$ARCH go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o glc -v && \
-adduser -H -u 1002 -D appuser appuser
+adduser -H -u 1002 -D appuser appuser && \
+if [ -z "$OS" && -z "$ARCH" ] ; then go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o glc -v ; else GOOS=$OS GOARCH=$ARCH go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o glc -v; fi
+
 
 
 FROM alpine:latest
