@@ -1,6 +1,7 @@
 FROM golang:1.18.2-alpine3.15 as builder
 
 LABEL org.opencontainers.image.source="http://github.com/karl-cardenas-coding/go-lambda-cleanup"
+LABEL org.opencontainers.image.description "A solution for removing previous versions of AWS Lambdas"
 
 ARG VERSION
 ARG OS
