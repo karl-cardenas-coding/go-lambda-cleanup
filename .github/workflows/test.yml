@@ -98,7 +98,6 @@ jobs:
 
 
     - name: Login to GHCR
-      # if: github.event_name != 'pull_request'
       uses: docker/login-action@v1
       with:
         registry: ghcr.io
@@ -106,32 +105,13 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
 
-    # - name: Docker meta
-    #   id: image-tag # you'll use this in the next step
-    #   uses: docker/metadata-action@v3
-    #   with:
-    #     images: |
-    #       ghcr.io/karl-cardenas-coding/go-lambda-cleanup
-    #     tags: |
-    #       type=schedule
-    #       type=ref,event=branch
-    #       type=ref,event=pr
-    #       type=semver,pattern={{version}}
-    #       type=semver,pattern={{major}}.{{minor}}
-    #       type=semver,pattern={{major}}
-    #       type=sha
-
     - name: Build and push
       uses: docker/build-push-action@v2
       with:
         context: .
         platforms: linux/amd64,linux/arm64
-        # push: ${{ github.event_name != 'pull_request' }}
         push: true
-        # tags: ${{ steps.image-tag.outputs.tags }}
-        tags: ghcr.io/karl-cardenas-coding/go-lambda-cleanup-v:${{steps.dependencies.outputs.VERSION}}
-        # secrets: |
-        #     GITHUB_TOKEN=${{ secrets.MYTOKEN }}
+        tags: ghcr.io/${{ github.repository }}:${{steps.dependencies.outputs.VERSION}}
 
     - uses: actions/upload-artifact@v1
       with:
