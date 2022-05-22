@@ -3,8 +3,8 @@ name: Test
 on:
   push:
     branches-ignore: [ main ]
-  pull_request:
-    branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
 env:
   GITHUB_TOKEN: ${{ github.token }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -33,68 +33,57 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: next version
-      run: |
-            npm install @semantic-release/exec -D
-            npm install @semantic-release/changelog -D
-            npx semantic-release --dry-run
-
-    - name: Get dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        go get -v -t -d ./...
-        if [ -f Gopkg.toml ]; then
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            dep ensure
-        fi
-    - name: Generate AWS region file
-      run: |
-        aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3.1.0
-      with:  
-        args: -v
-
-    
-    - name: Execute Go tests
-      run: go test -v ./...
-
-    - name: Test CLI
-      run: |
-        FILE=./VERSION.env
-        npm install @semantic-release/exec -D
-        npm install @semantic-release/changelog -D
-        npx semantic-release --dry-run
-        if [ -f "$FILE" ]; then
-            cat VERSION.env
-            source VERSION.env
-        fi
-        go test -coverprofile=go.txt -v ./...
-        go run main.go clean -r us-west-2
-        go run main.go version
-  
-    - name: build & execute
-      run: |
-        echo "--------------------------------------------------"
-        go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o=glc -v
-        ./glc clean -r us-west-2
-
     -
       name: "Get dependencies"
       id: dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
           go get -v -t -d ./...
           if [ -f Gopkg.toml ]; then
               curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
               dep ensure
           fi
+          echo "Installing npm dependencies"
           npm install @semantic-release/exec -D
           npm install @semantic-release/changelog -D
           npx semantic-release --dry-run
           cat VERSION.env
           source VERSION.env
           echo "::set-output name=version::$VERSION"
+
+    # - name: Generate AWS region file
+    #   run: |
+    #     aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+
+    # - name: Run golangci-lint
+    #   uses: golangci/golangci-lint-action@v3.1.0
+    #   with:  
+    #     args: -v
+
+    
+    # - name: Execute Go tests
+    #   run: go test -v ./...
+
+    # - name: Test CLI
+    #   run: |
+    #     FILE=./VERSION.env
+    #     npm install @semantic-release/exec -D
+    #     npm install @semantic-release/changelog -D
+    #     npx semantic-release --dry-run
+    #     if [ -f "$FILE" ]; then
+    #         cat VERSION.env
+    #         source VERSION.env
+    #     fi
+    #     go test -coverprofile=go.txt -v ./...
+    #     go run main.go clean -r us-west-2
+    #     go run main.go version
+  
+    # - name: build & execute
+    #   run: |
+    #     echo "--------------------------------------------------"
+    #     go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o=glc -v
+    #     ./glc clean -r us-west-2
+
 
     - name: Login to GHCR
       # if: github.event_name != 'pull_request'
