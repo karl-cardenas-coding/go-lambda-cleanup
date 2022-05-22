@@ -6,13 +6,10 @@ ARG VERSION
 ARG OS
 ARG ARCH
 
-RUN 
 ADD ./ /source
 RUN cd /source && \
 adduser -H -u 1002 -D appuser appuser && \
 if [ -z "$OS" && -z "$ARCH" ] ; then go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o glc -v ; else GOOS=$OS GOARCH=$ARCH go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o glc -v; fi
-
-
 
 FROM alpine:latest
 

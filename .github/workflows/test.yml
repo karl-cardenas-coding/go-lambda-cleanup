@@ -126,7 +126,7 @@ jobs:
         # tags: ${{ steps.image-tag.outputs.tags }}
         tags: go-lambda-cleanup-v:${{steps.dependencies.outputs.VERSION}}
         secrets: |
-            GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}
+            GITHUB_TOKEN=${{ secrets.MYTOKEN }}
 
     - uses: actions/upload-artifact@v1
       with:
