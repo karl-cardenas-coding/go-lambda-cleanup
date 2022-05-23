@@ -4,13 +4,11 @@ LABEL org.opencontainers.image.source="http://github.com/karl-cardenas-coding/go
 LABEL org.opencontainers.image.description "A solution for removing previous versions of AWS Lambdas"
 
 ARG VERSION
-ARG OS
-ARG ARCH
 
 ADD ./ /source
 RUN cd /source && \
 adduser -H -u 1002 -D appuser appuser && \
-if [ -z "$OS" && -z "$ARCH" ] ; then go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o glc -v ; else GOOS=$OS GOARCH=$ARCH go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=$VERSION'" -o glc -v; fi
+go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${VERSION}'" -o glc -v
 
 FROM alpine:latest
 

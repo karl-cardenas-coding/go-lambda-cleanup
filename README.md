@@ -24,6 +24,35 @@ unzip go-lambda-cleanup-v$VERSION-linux-amd64.zip
 sudo mv glc /usr/local/bin/
 ```
 
+
+## Docker
+go-lambda-cleanup is distributed is also available as a Docker image. 
+```
+VERSION=1.0.13
+docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION
+docker run ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION clean -r us-east-2 -d
+```
+
+You can pass AWS credentials to the container through ENVIRONMENT variables.
+```
+export AWS_ACCESS_KEY_ID=47as12fdsdg....
+export AWS_SECRET_ACCESS_KEY=21a5sf5dg8e...
+
+docker run -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION clean -r us-east-1 -d
+time=05/23/22 level=info msg="******** DRY RUN MODE ENABLED ********"
+time=05/23/22 level=info msg="Scanning AWS environment in us-east-1"
+time=05/23/22 level=info msg=............
+time=05/23/22 level=info msg="8 Lambdas identified"
+time=05/23/22 level=info msg="Current storage size: 193 MB"
+time=05/23/22 level=info msg="**************************"
+time=05/23/22 level=info msg="Initiating clean-up process. This may take a few minutes...."
+time=05/23/22 level=info msg=............
+time=05/23/22 level=info msg=............
+time=05/23/22 level=info msg="24 unique versions will be removed in an actual execution."
+time=05/23/22 level=info msg="124 MB of storage space will be removed in an actual execution."
+time=05/23/22 level=info msg="Job Duration Time: 1.454406s"
+```
+
 ## Usage
 
 ```shell
