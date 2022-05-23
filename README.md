@@ -26,11 +26,10 @@ sudo mv glc /usr/local/bin/
 
 
 ## Docker
-go-lambda-cleanup is distributed is also available as a Docker image. 
+go-lambda-cleanup is also available as a Docker image. 
 ```
 VERSION=1.0.13
 docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION
-docker run ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION clean -r us-east-2 -d
 ```
 
 You can pass AWS credentials to the container through ENVIRONMENT variables.
