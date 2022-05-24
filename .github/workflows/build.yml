@@ -240,6 +240,7 @@ jobs:
 
   docker:
     name: "Release Docker image"
+    needs: ["darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64"]
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.get-version.outputs.version }}
@@ -272,7 +273,7 @@ jobs:
           echo "Installing npm dependencies"
           npm install @semantic-release/exec -D
           npm install @semantic-release/changelog -D
-          npx semantic-release
+          npx semantic-release --dry-run
           cat VERSION.env
           source VERSION.env
           echo "::set-output name=version::$VERSION"
