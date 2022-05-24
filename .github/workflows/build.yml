@@ -297,7 +297,7 @@ jobs:
 
 
     - name: Build and push
-      if: ${{steps.dependencies.outputs.VERSION != 'VERSION='}}
+      if: ${{ steps.dependencies.outputs.VERSION != ''}}
       uses: docker/build-push-action@v2
       with:
         context: .
