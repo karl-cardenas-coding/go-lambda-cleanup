@@ -26,7 +26,8 @@ sudo mv glc /usr/local/bin/
 
 
 ## Docker
-go-lambda-cleanup is also available as a Docker image. 
+go-lambda-cleanup is also available as a Docker image. Check out the [GitHub Packages](https://github.com/karl-cardenas-coding/go-lambda-cleanup/pkgs/container/go-lambda-cleanup) page for this repository to learn more about the available images.
+
 ```
 VERSION=1.0.13
 docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION
@@ -201,9 +202,9 @@ $ glc clean -r us-west-2
 
 ## Contributing to go-lambda-cleanup
 
-For a complete guide to contributing to go-lambda-clean, see the [Contribution Guide](documentation/CONTRIBUTING.md).
+For a complete guide to contributing to go-lambda-clean, please review the [Contribution Guide](documentation/CONTRIBUTING.md).
 
-Contributions to go-lambda-cleanup of any kind including documentation, organization, tutorials, blog posts, bug reports, issues, feature requests, feature implementations, pull requests, answering questions on the forum, helping to manage issues, etc.
+Contributions to go-lambda-cleanup of any kind are welcome. Contributions include, but not limited to; documentation, organization, tutorials, blog posts, bug reports, issues, feature requests, feature implementations, pull requests, answering questions on the forum, helping to manage issues, etc.
 
 ## FAQ
 ---
@@ -211,16 +212,17 @@ Contributions to go-lambda-cleanup of any kind including documentation, organiza
 
 Q: On MacOS I am unable to open the binary due to Apple not trusting the binary. What are my options?
 
-A: You have two options. 
+A: You have four options. 
 
-Option A is to clone this project and compile the binary. Issue `go build -o glc`, and the end result is a binary compatible for your system. If you still encounter issues after this, invoke the code signing command on the binary `codesign -s -`
+- Option A is to clone this project and compile the binary. Issue `go build -o glc`, and the end result is a binary compatible for your system. If you still encounter issues after this, invoke the code signing command on the binary `codesign -s -`
 
-Option B is to to grant permission for the application to run. Use [this guide](https://support.apple.com/en-us/HT202491) to help you grant permission to the application.
+- Option B is to to grant permission for the application to run. Use [this guide](https://support.apple.com/en-us/HT202491) to help you grant permission to the application.
 
-Option C is not recommended but I'll offer it up. You can remove the binary from quarantine mode. 
+- Option C is not recommended but I'll offer it up. You can remove the binary from quarantine mode. 
 ```shell
 xattr -d com.apple.quarantine /path/to/file
 ```
+- Option D is to use the Docker container. Please review the [Docker steps](#docker).
 ---
 
 Q: This keeps timing out when attempting to connect to AWS and I have verified my AWS credentials are valid?
