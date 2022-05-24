@@ -24,3 +24,5 @@ node_modules/
 terraform.tfvars
 *.tfstate
 lambda.zip
+main
+.DS_STORE

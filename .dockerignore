@@ -1,0 +1,6 @@
+static/
+documentation/
+.github/
+node_modules/
+package*.json
+.releaserc.yml
