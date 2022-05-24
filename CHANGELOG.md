@@ -4,6 +4,14 @@
 ### Bug Fixes
 
 * docker images available ([05d7294](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/05d7294980cb2ea19fb64bf951dfad5559ec4f22))
+* updated ci flow ([62df21c](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/62df21c5271a8a80cdca5e7a609a7ad22ba7a793))
+
+## [1.0.14](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.13...v1.0.14) (2022-05-24)
+
+
+### Bug Fixes
+
+* docker images available ([05d7294](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/05d7294980cb2ea19fb64bf951dfad5559ec4f22))
 
 ## [1.0.13](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.12...v1.0.13) (2022-03-19)
 
