@@ -25,6 +25,8 @@ var (
 	DryRun bool
 	// LambdaListFile points a file that contains a listof Lambdas to delete
 	LambdaListFile string
+	// MoreDetail is to show information about the Lambda being worked on
+	MoreDetail bool
 )
 
 const (
@@ -55,6 +57,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&RegionFlag, "region", "r", "", "Specify the desired AWS region to target.")
 	rootCmd.PersistentFlags().StringVarP(&ProfileFlag, "profile", "p", "", "Specify the AWS profile to leverage for authentication.")
 	rootCmd.PersistentFlags().StringVarP(&LambdaListFile, "listFile", "l", "", "Specify a file containing Lambdas to delete.")
+	rootCmd.PersistentFlags().BoolVarP(&MoreDetail, "moreDetail", "m", false, "Set to true to show Lambda names being worked on (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Set to true to enable debugging (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "enableSharedCredentials", "s", false, "Leverages the default ~/.aws/credentials file (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&DryRun, "dryrun", "d", false, "Executes a dry run (bool)")
