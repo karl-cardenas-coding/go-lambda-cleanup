@@ -206,7 +206,7 @@ func executeClean(region string) error {
 			counter = counter + v
 		}
 
-		log.Info("Current storage size: ", humanize.Bytes(uint64(counter)))
+		log.Info("Current storage size: ", humanize.IBytes(uint64(counter)))
 		log.Info("**************************")
 		log.Info("Initiating clean-up process. This may take a few minutes....")
 		// Begin delete process
@@ -227,7 +227,7 @@ func executeClean(region string) error {
 			numVerDeleted := countDeleteVersions(globalLambdaDeleteInputStructs)
 			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
 			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
-			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", humanize.Bytes(uint64(spaceRemovedPreview))))
+			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", humanize.IBytes(uint64(spaceRemovedPreview))))
 		} else {
 			err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
 			checkError(err)
@@ -305,7 +305,7 @@ func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) 
 		}
 
 		if MoreDetail && fName != "" {
-			log.Info(fmt.Sprintf("%d versions of %s to be removed", len(tempList), fName))
+			log.Info(fmt.Sprintf("%5d versions of %s to be removed", len(tempList), fName))
 		}
 
 		output = append(output, tempList)
@@ -486,7 +486,6 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 	for {
 		err := svc.ListVersionsByFunctionPagesWithContext(ctx, input,
 			func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
-
 				lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
 				// Set the next marker indicator for the next iteration
 				input.Marker = page.NextMarker
@@ -512,8 +511,10 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 
 type byVersion []*lambda.FunctionConfiguration
 
-func (a byVersion) Len() int      { return len(a) }
+func (a byVersion) Len() int { return len(a) }
+
 func (a byVersion) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+
 func (a byVersion) Less(i, j int) bool {
 	one, _ := strconv.ParseInt(*a[i].Version, 10, 32)
 	two, _ := strconv.ParseInt(*a[j].Version, 10, 32)
