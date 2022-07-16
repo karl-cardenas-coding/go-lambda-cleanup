@@ -253,8 +253,8 @@ func executeClean(region string) error {
 				updatedCounter = updatedCounter + v
 			}
 
-			log.Info("Total space freed up: ", (humanize.Bytes(uint64(counter - updatedCounter))))
-			log.Info("Post clean-up storage size: ", humanize.Bytes(uint64(updatedCounter)))
+			log.Info("Total space freed up: ", (humanize.IBytes(uint64(counter - updatedCounter))))
+			log.Info("Post clean-up storage size: ", humanize.IBytes(uint64(updatedCounter)))
 			log.Info("*********************************************")
 		}
 	}
@@ -287,12 +287,12 @@ func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) 
 
 	for _, version := range versionsList {
 		var tempList []lambda.DeleteFunctionInput
-		var fName = ""
+		var functionName string 
 
 		for _, entry := range version {
 			if *entry.Version != "$LATEST" {
-				if fName == "" {
-					fName = *entry.FunctionName
+				if functionName == "" {
+					functionName = *entry.FunctionName
 				}
 
 				deleteItem := &lambda.DeleteFunctionInput{
@@ -304,8 +304,8 @@ func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) 
 			}
 		}
 
-		if MoreDetail && fName != "" {
-			log.Info(fmt.Sprintf("%5d versions of %s to be removed", len(tempList), fName))
+		if MoreDetail && functionName != "" {
+			log.Info(fmt.Sprintf("%5d versions of %s to be removed", len(tempList), functionName))
 		}
 
 		output = append(output, tempList)
