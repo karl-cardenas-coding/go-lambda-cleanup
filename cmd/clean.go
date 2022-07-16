@@ -176,8 +176,6 @@ func executeClean(region string) error {
 		updatedGlobalLambdaStorage []int64
 		globalLambdaVersionsList   [][]*lambda.FunctionConfiguration
 		counter                    int64 = 0
-		elapsedTime                float64
-		timeUnit                   string
 	)
 
 	log.Info("Scanning AWS environment in " + region)
@@ -228,40 +226,55 @@ func executeClean(region string) error {
 			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
 			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
 			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", humanize.IBytes(uint64(spaceRemovedPreview))))
-		} else {
-			err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
-			checkError(err)
 
-			// Recalculate storage size
-			updatedLambdaList, err := getAllLambdas(ctx, svc, CustomeDeleteList)
-			checkError(err)
-			log.Info("............")
+			displayDuration(startTime)
 
-			for _, lambda := range updatedLambdaList {
-				updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
-				checkError(err)
-
-				updatedTotalLambdaStorage, err := getLambdaStorage(updatededlambdaVersionsList)
-				checkError(err)
-
-				updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
-			}
-
-			log.Info("............")
-			var updatedCounter int64 = 0
-			for _, v := range updatedGlobalLambdaStorage {
-				updatedCounter = updatedCounter + v
-			}
-
-			log.Info("Total space freed up: ", (humanize.IBytes(uint64(counter - updatedCounter))))
-			log.Info("Post clean-up storage size: ", humanize.IBytes(uint64(updatedCounter)))
-			log.Info("*********************************************")
+			return returnError
 		}
+
+		err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
+		checkError(err)
+
+		// Recalculate storage size
+		updatedLambdaList, err := getAllLambdas(ctx, svc, CustomeDeleteList)
+		checkError(err)
+		log.Info("............")
+
+		for _, lambda := range updatedLambdaList {
+			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
+			checkError(err)
+
+			updatedTotalLambdaStorage, err := getLambdaStorage(updatededlambdaVersionsList)
+			checkError(err)
+
+			updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
+		}
+
+		log.Info("............")
+		var updatedCounter int64 = 0
+		for _, v := range updatedGlobalLambdaStorage {
+			updatedCounter = updatedCounter + v
+		}
+
+		log.Info("Total space freed up: ", (humanize.IBytes(uint64(counter - updatedCounter))))
+		log.Info("Post clean-up storage size: ", humanize.IBytes(uint64(updatedCounter)))
+		log.Info("*********************************************")
 	}
 
 	if len(lambdaList) == 0 {
 		log.Info("No lambdas found in ", region)
 	}
+
+	displayDuration(startTime)
+
+	return returnError
+}
+
+func displayDuration(startTime time.Time) {
+	var (
+		elapsedTime float64
+		timeUnit    string
+	)
 
 	t1 := time.Now()
 	tempTime := t1.Sub(startTime)
@@ -274,8 +287,6 @@ func executeClean(region string) error {
 	}
 
 	log.Infof("Job Duration Time: %f%s", elapsedTime, timeUnit)
-
-	return returnError
 }
 
 // Generates a list of Lambda version delete structs
