@@ -176,9 +176,10 @@ $ glc clean -r us-west-2
 2021/03/04 20:42:46 ............
 ```
 ## Compile
-If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.18` installed. 
+If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.18` installed. This tool leverages the Golang [embed](https://golang.org/pkg/embed/) functionality. A file named `aws-regions.txt` is expected in the `cmd/` directory.  You need valid AWS credentials in order to generate the file.
 ```shell
 git clone git@github.com:karl-cardenas-coding/go-lambda-cleanup.git
+aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 go build -o glc
 ```
 

@@ -48,6 +48,7 @@ func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 	var (
 		list CustomDeleteListYaml
 	)
+
 	fileContent, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Fatal("unable to read the input file")
@@ -65,6 +66,7 @@ func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 	var (
 		list CustomDeleteListJson
 	)
+
 	fileContent, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Fatal("unable to read the input file")
@@ -95,8 +97,9 @@ func determineFileType(file string) (string, error) {
 
 		default:
 			fileType = "none"
-			err = errors.New("invalid file type provided. Must be of type json, ymal or yml")
+			err = errors.New("invalid file type provided. Must be of type json, yaml or yml")
 		}
 	}
+
 	return fileType, err
 }

@@ -287,7 +287,7 @@ func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) 
 
 	for _, version := range versionsList {
 		var tempList []lambda.DeleteFunctionInput
-		var functionName string 
+		var functionName string
 
 		for _, entry := range version {
 			if *entry.Version != "$LATEST" {
@@ -304,7 +304,7 @@ func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) 
 			}
 		}
 
-		if MoreDetail && functionName != "" {
+		if MoreLambdaDetail && functionName != "" {
 			log.Info(fmt.Sprintf("%5d versions of %s to be removed", len(tempList), functionName))
 		}
 
