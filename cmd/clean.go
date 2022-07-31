@@ -249,8 +249,8 @@ func executeClean(config *cliConfig) error {
 			updatedCounter = updatedCounter + v
 		}
 
-		log.Info("Total space freed up: ", (calculateFileSize(uint64(counter-updatedCounter), *config)))
-		log.Info("Post clean-up storage size: ", calculateFileSize(uint64(updatedCounter), *config))
+		log.Info("Total space freed up: ", (calculateFileSize(uint64(counter-updatedCounter), config)))
+		log.Info("Post clean-up storage size: ", calculateFileSize(uint64(updatedCounter), config))
 		log.Info("*********************************************")
 	}
 
@@ -577,7 +577,7 @@ func validateRegion(f embed.FS, input string) string {
 }
 
 // calculateFileSize returns the size of a file in bytes. The function takes a cliConfig paramter to determine the number format type to return
-func calculateFileSize(value uint64, config cliConfig) string {
+func calculateFileSize(value uint64, config *cliConfig) string {
 	if *config.SizeIEC {
 		return humanize.IBytes(value)
 	}
