@@ -197,22 +197,14 @@ func executeClean(config *cliConfig) error {
 			counter = counter + v
 		}
 
-<<<<<<< HEAD
 		log.Info("Current storage size: ", calculateFileSize(uint64(counter), *config))
-=======
-		log.Info("Current storage size: ", humanize.IBytes(uint64(counter)))
->>>>>>> 8e9da968ec6dd471b1d59f5e0c7bc9399378da3b
 		log.Info("**************************")
 		log.Info("Initiating clean-up process. This may take a few minutes....")
 		// Begin delete process
 		globalLambdaDeleteList := [][]*lambda.FunctionConfiguration{}
 
 		for _, lambda := range globalLambdaVersionsList {
-<<<<<<< HEAD
 			lambdasDeleteList := getLambdasToDeleteList(lambda, *config.Retain)
-=======
-			lambdasDeleteList := getLambdasToDeleteList(lambda, Retain)
->>>>>>> 8e9da968ec6dd471b1d59f5e0c7bc9399378da3b
 			globalLambdaDeleteList = append(globalLambdaDeleteList, lambdasDeleteList)
 		}
 
@@ -226,11 +218,7 @@ func executeClean(config *cliConfig) error {
 			numVerDeleted := countDeleteVersions(globalLambdaDeleteInputStructs)
 			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
 			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
-<<<<<<< HEAD
 			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", calculateFileSize(uint64(spaceRemovedPreview), *config)))
-=======
-			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", humanize.IBytes(uint64(spaceRemovedPreview))))
->>>>>>> 8e9da968ec6dd471b1d59f5e0c7bc9399378da3b
 
 			displayDuration(startTime)
 
@@ -261,13 +249,8 @@ func executeClean(config *cliConfig) error {
 			updatedCounter = updatedCounter + v
 		}
 
-<<<<<<< HEAD
 		log.Info("Total space freed up: ", (calculateFileSize(uint64(counter-updatedCounter), *config)))
 		log.Info("Post clean-up storage size: ", calculateFileSize(uint64(updatedCounter), *config))
-=======
-		log.Info("Total space freed up: ", (humanize.IBytes(uint64(counter - updatedCounter))))
-		log.Info("Post clean-up storage size: ", humanize.IBytes(uint64(updatedCounter)))
->>>>>>> 8e9da968ec6dd471b1d59f5e0c7bc9399378da3b
 		log.Info("*********************************************")
 	}
 
@@ -300,11 +283,7 @@ func displayDuration(startTime time.Time) {
 }
 
 // Generates a list of Lambda version delete structs
-<<<<<<< HEAD
 func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration, details bool) ([][]lambda.DeleteFunctionInput, error) {
-=======
-func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) ([][]lambda.DeleteFunctionInput, error) {
->>>>>>> 8e9da968ec6dd471b1d59f5e0c7bc9399378da3b
 	var (
 		returnError error
 		output      [][]lambda.DeleteFunctionInput
@@ -329,11 +308,7 @@ func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) 
 			}
 		}
 
-<<<<<<< HEAD
 		if details && functionName != "" {
-=======
-		if MoreLambdaDetail && functionName != "" {
->>>>>>> 8e9da968ec6dd471b1d59f5e0c7bc9399378da3b
 			log.Info(fmt.Sprintf("%5d versions of %s to be removed", len(tempList), functionName))
 		}
 
