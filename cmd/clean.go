@@ -171,11 +171,7 @@ func executeClean(config *cliConfig) error {
 		counter                    int64 = 0
 	)
 
-<<<<<<< HEAD
 	log.Info("Scanning AWS environment in " + *config.RegionFlag)
-=======
-	log.Info("Scanning AWS environment in " + region)
->>>>>>> 8e9da968ec6dd471b1d59f5e0c7bc9399378da3b
 	lambdaList, err := getAllLambdas(ctx, svc, CustomeDeleteList)
 	checkError(err)
 	log.Info("............")
