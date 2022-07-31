@@ -18,7 +18,7 @@
 go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup in a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
 
 ```shell
-VERSION=1.0.14
+VERSION=1.0.15
 wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-linux-amd64.zip
 unzip go-lambda-cleanup-v$VERSION-linux-amd64.zip 
 sudo mv glc /usr/local/bin/
@@ -29,7 +29,7 @@ sudo mv glc /usr/local/bin/
 go-lambda-cleanup is also available as a Docker image. Check out the [GitHub Packages](https://github.com/karl-cardenas-coding/go-lambda-cleanup/pkgs/container/go-lambda-cleanup) page for this repository to learn more about the available images.
 
 ```
-VERSION=1.0.14
+VERSION=1.0.15
 docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION
 ```
 
@@ -70,8 +70,10 @@ Flags:
   -s, --enableSharedCredentials   Leverages the default ~/.aws/credentials file (bool)
   -h, --help                      help for glc
   -l, --listFile string           Specify a file containing Lambdas to delete.
+  -m, --moreLambdaDetails         Set to true to show Lambda names and count of versions to be removed (bool)
   -p, --profile string            Specify the AWS profile to leverage for authentication.
   -r, --region string             Specify the desired AWS region to target.
+  -i, --size-iec                  Displays file sizes in IEC units (bool)
   -v, --verbose                   Set to true to enable debugging (bool)
 
 Use "glc [command] --help" for more information about a command.
@@ -79,9 +81,38 @@ Use "glc [command] --help" for more information about a command.
 
 ### Versions Retention 
 
-To retain `2` version excluding `$LATEST`
+To retain the two previous version excluding `$LATEST`, use the `-r` retain flag. Use this flag to control the number of versions to retain.
 ```shell
-glc clean -r us-east-2 -c 2 -s -p myProfile
+$ glc clean -r us-east-2 -c 2 -s -p myProfile
+```
+
+### Additonal Lambda Details
+To view additional details, such as the Lambda names and version counts, set the `-m` flag to true.
+
+```shell
+glc clean -r us-east-1 -sdmp mySuperAwesomeProfile
+```
+
+```shell
+INFO[07/31/22] Scanning AWS environment in us-east-1
+INFO[07/31/22] ............
+INFO[07/31/22] 72 Lambdas identified
+INFO[07/31/22] Current storage size: 817 MiB
+INFO[07/31/22] **************************
+INFO[07/31/22] Initiating clean-up process. This may take a few minutes....
+INFO[07/31/22] ............
+INFO[07/31/22]     1 versions of YourLambda to be removed
+INFO[07/31/22]     1 versions of AnotherLambda to be removed
+INFO[07/31/22] ............
+INFO[07/31/22] 2 unique versions will be removed in an actual execution.
+INFO[07/31/22] 12 MiB of storage space will be removed in an actual execution.
+INFO[07/31/22] Job Duration Time: 9.409405s
+```
+
+### File Size Format
+To display file sizes in [IEC format](https://en.wikipedia.org/wiki/Binary_prefix), enable the `-i` flag.
+```shell
+$ glc clean -i -r us-east-1 -p myProfile
 ```
 
 ### Dry Run
@@ -117,7 +148,7 @@ lambdas:
 ```
 
 ```shell
-glc clean -r us-east-1 -sp myProfile -l custom_list.yaml
+$ glc clean -r us-east-1 -sp myProfile -l custom_list.yaml
 ```
 
 #### JSON

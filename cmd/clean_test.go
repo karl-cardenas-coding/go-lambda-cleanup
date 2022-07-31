@@ -24,13 +24,13 @@ func TestGetLambdaStorage(t *testing.T) {
 	)
 
 	lambdaList = []*lambda.FunctionConfiguration{
-		&lambda.FunctionConfiguration{
+		{
 			CodeSha256:       new(string),
 			CodeSize:         aws.Int64(1200),
 			DeadLetterConfig: &lambda.DeadLetterConfig{},
 			Description:      aws.String("Test A"),
 		},
-		&lambda.FunctionConfiguration{
+		{
 			CodeSha256: new(string),
 			CodeSize:   aws.Int64(1500),
 		},
@@ -54,7 +54,7 @@ func TestValidateRegion(t *testing.T) {
 
 }
 
-func TestGetLambdasToDelteList(t *testing.T) {
+func TestGetLambdasToDeleteList(t *testing.T) {
 	var (
 		retainNumber int8 = 2
 		lambdaList   []*lambda.FunctionConfiguration
@@ -62,28 +62,28 @@ func TestGetLambdasToDelteList(t *testing.T) {
 	)
 
 	lambdaList = []*lambda.FunctionConfiguration{
-		&lambda.FunctionConfiguration{
+		{
 			CodeSha256:  new(string),
 			Version:     aws.String("1"),
 			CodeSize:    aws.Int64(1200),
 			Description: aws.String("Test A"),
 		},
-		&lambda.FunctionConfiguration{
+		{
 			CodeSha256: new(string),
 			Version:    aws.String("2"),
 			CodeSize:   aws.Int64(1500),
 		},
-		&lambda.FunctionConfiguration{
+		{
 			CodeSha256: new(string),
 			Version:    aws.String("3"),
 			CodeSize:   aws.Int64(1500),
 		},
-		&lambda.FunctionConfiguration{
+		{
 			CodeSha256: new(string),
 			Version:    aws.String("4"),
 			CodeSize:   aws.Int64(1500),
 		},
-		&lambda.FunctionConfiguration{
+		{
 			CodeSha256: new(string),
 			Version:    aws.String("5"),
 			CodeSize:   aws.Int64(1500),
@@ -92,7 +92,7 @@ func TestGetLambdasToDelteList(t *testing.T) {
 
 	sort.Sort(byVersion(lambdaList))
 
-	got := getLambdasToDelteList(lambdaList, retainNumber)
+	got := getLambdasToDeleteList(lambdaList, retainNumber)
 
 	if len(got) != want {
 		t.Fatalf("Expected %d lambda configuration items to be returned but instead received %d", want, len(got))
@@ -103,7 +103,7 @@ func TestGetLambdasToDelteList(t *testing.T) {
 func TestGenerateDeleteInputStructs(t *testing.T) {
 
 	lambdaList := [][]*lambda.FunctionConfiguration{
-		[]*lambda.FunctionConfiguration{
+		{
 			&lambda.FunctionConfiguration{
 				CodeSha256:       new(string),
 				FunctionName:     aws.String("A"),
@@ -143,7 +143,7 @@ func TestGenerateDeleteInputStructs(t *testing.T) {
 				CodeSize:     aws.Int64(1500),
 			},
 		},
-		[]*lambda.FunctionConfiguration{
+		{
 			&lambda.FunctionConfiguration{
 				CodeSha256:       new(string),
 				Version:          aws.String("1"),
@@ -173,7 +173,7 @@ func TestGenerateDeleteInputStructs(t *testing.T) {
 		},
 	}
 
-	got, err := generateDeleteInputStructs(lambdaList)
+	got, err := generateDeleteInputStructs(lambdaList, false)
 	if len(got) != 2 || err != nil {
 		t.Fatalf("Expected a lambda delete struct list to be 2 but go a length of %d", len(got))
 	}
@@ -187,30 +187,30 @@ func TestGenerateDeleteInputStructs(t *testing.T) {
 func TestCountDeleteVersions(t *testing.T) {
 
 	lambdaList := [][]lambda.DeleteFunctionInput{
-		[]lambda.DeleteFunctionInput{
-			lambda.DeleteFunctionInput{
+		{
+			{
 
 				FunctionName: aws.String("A"),
 				Qualifier:    aws.String("1"),
 			},
-			lambda.DeleteFunctionInput{
+			{
 				FunctionName: aws.String("B"),
 				Qualifier:    aws.String("2"),
 			},
-			lambda.DeleteFunctionInput{
+			{
 				FunctionName: aws.String("C"),
 				Qualifier:    aws.String("3"),
 			},
-			lambda.DeleteFunctionInput{
+			{
 				FunctionName: aws.String("D"),
 				Qualifier:    aws.String("4"),
 			},
-			lambda.DeleteFunctionInput{
+			{
 				FunctionName: aws.String("E"),
 				Qualifier:    aws.String("5"),
 			},
 		},
-		[]lambda.DeleteFunctionInput{
+		{
 			lambda.DeleteFunctionInput{
 				FunctionName: aws.String("A1"),
 				Qualifier:    aws.String("1"),
@@ -240,7 +240,7 @@ func TestCountDeleteVersions(t *testing.T) {
 func TestCalculateSpaceRemoval(t *testing.T) {
 
 	lambdaList := [][]*lambda.FunctionConfiguration{
-		[]*lambda.FunctionConfiguration{
+		{
 			&lambda.FunctionConfiguration{
 				CodeSha256:       new(string),
 				FunctionName:     aws.String("A"),
@@ -274,7 +274,7 @@ func TestCalculateSpaceRemoval(t *testing.T) {
 				CodeSize:     aws.Int64(1500),
 			},
 		},
-		[]*lambda.FunctionConfiguration{
+		{
 			&lambda.FunctionConfiguration{
 				CodeSha256:       new(string),
 				Version:          aws.String("1"),
@@ -306,4 +306,26 @@ func TestCalculateSpaceRemoval(t *testing.T) {
 		t.Fatalf("Expected the size of all versions to be %d but received %d instead", want, got)
 	}
 
+}
+
+func TestCalculateFileSize(t *testing.T) {
+
+	cliConfig := cliConfig{
+		SizeIEC: aws.Bool(true),
+	}
+
+	want := "294 MiB"
+	got := calculateFileSize(308000000, cliConfig)
+
+	if got != want {
+		t.Fatalf("Expected the size output to be %s but received %s instead", want, got)
+	}
+
+	cliConfig.SizeIEC = aws.Bool(false)
+
+	want2 := "308 MB"
+	got2 := calculateFileSize(308000000, cliConfig)
+	if got2 != want2 {
+		t.Fatalf("Expected the size output to be %s but received %s instead", want2, got2)
+	}
 }

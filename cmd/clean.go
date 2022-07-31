@@ -43,7 +43,6 @@ var (
 
 func init() {
 	rootCmd.AddCommand(cleanCmd)
-
 }
 
 var cleanCmd = &cobra.Command{
@@ -51,31 +50,30 @@ var cleanCmd = &cobra.Command{
 	Short: "Removes all former versions of AWS lambdas except for the $LATEST version",
 	Long:  `Removes all former versions of AWS lambdas except for the $LATEST version. The user also has the ability specify n-? version to retain.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx = context.Background()
 
 		var (
 			awsEnvRegion     string
 			awsEnvProfile    string
-			profile          string
-			region           string
 			sharedFileConfig session.SharedConfigState
 			userAgent        string
+			config           cliConfig
 		)
 
+		config = GlobalCliConfig
 		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
 		awsEnvProfile = os.Getenv("AWS_PROFILE")
 		userAgent = fmt.Sprintf("go-lambda-cleanup-%s", VersionString)
-
-		if RegionFlag == "" {
+		if *config.RegionFlag == "" {
 			if awsEnvRegion != "" {
-				region = validateRegion(f, awsEnvRegion)
+				*config.RegionFlag = validateRegion(f, awsEnvRegion)
 			} else {
 				log.Fatal("ERROR: Missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region.")
 			}
 		} else {
-			region = validateRegion(f, RegionFlag)
+			*config.RegionFlag = validateRegion(f, *config.RegionFlag)
 		}
 
-		ctx = context.Background()
 		// Initialize parameters
 
 		// Setup client header to use TLS 1.2
@@ -86,36 +84,33 @@ var cleanCmd = &cobra.Command{
 				MinVersion: tls.VersionTLS12,
 			},
 		}
+
 		// Needed due to custom client being leveraged, otherwise HTTP2 will not be used.
 		tr.ForceAttemptHTTP2 = true
 
 		// Create the client
 		client := http.Client{Transport: tr}
 
-		if ProfileFlag == "" {
+		if *config.ProfileFlag == "" {
 			if awsEnvProfile != "" {
 				log.Infof("AWS_PROFILE set to \"%s\"", awsEnvProfile)
-				profile = awsEnvProfile
-			} else {
-				profile = ""
+				config.ProfileFlag = &awsEnvProfile
 			}
-
 		} else {
-			log.Infof("The AWS Profile flag \"%s\" was passed in", ProfileFlag)
-			profile = ProfileFlag
+			log.Infof("The AWS Profile flag \"%s\" was passed in", *config.ProfileFlag)
 		}
 
-		if Verbose {
+		if *config.Verbose {
 			logLevel = aws.LogDebugWithRequestErrors
 		} else {
 			logLevel = aws.LogOff
 		}
 
-		if DryRun {
+		if *config.DryRun {
 			log.Info("******** DRY RUN MODE ENABLED ********")
 		}
 
-		if LambdaListFile != "" {
+		if *config.LambdaListFile != "" {
 			customList, err := internal.GenerateLambdaDeleteList(LambdaListFile)
 			if err != nil {
 				log.Info(err.Error())
@@ -124,24 +119,24 @@ var cleanCmd = &cobra.Command{
 			CustomeDeleteList = customList
 		}
 
-		if CredentialsFile {
+		if *config.CredentialsFile {
 			sharedFileConfig = session.SharedConfigEnable
-
 		} else {
 			sharedFileConfig = session.SharedConfigDisable
 		}
 
 		sess, err := session.NewSessionWithOptions(session.Options{
 			Config: aws.Config{
-				Region:                        aws.String(region),
+				Region:                        aws.String(*config.RegionFlag),
 				CredentialsChainVerboseErrors: aws.Bool(true),
 				LogLevel:                      aws.LogLevel(logLevel),
 				HTTPClient:                    &client,
 				MaxRetries:                    aws.Int(1),
 			},
 			SharedConfigState: sharedFileConfig,
-			Profile:           profile,
+			Profile:           *config.ProfileFlag,
 		})
+
 		if err != nil {
 			log.Fatal("ERROR ESTABLISHING AWS SESSION")
 		}
@@ -149,18 +144,15 @@ var cleanCmd = &cobra.Command{
 		sess.Config.Credentials.Expire()
 		_, err = sess.Config.Credentials.Get()
 		if err != nil {
-			log.Fatal("ERROR: Failed to aquire valid credentials.")
+			log.Fatal("ERROR: Failed to acquire valid credentials.")
 		}
-
 		sessVerified := session.Must(sess, err)
-
 		svc = lambda.New(sessVerified)
 		// Set the User-Agent for all AWS connections
 		svc.Handlers.Send.PushFront(func(r *request.Request) {
 			r.HTTPRequest.Header.Set("User-Agent", userAgent)
 		})
-
-		err = executeClean(region)
+		err = executeClean(&config)
 		if err != nil {
 			log.Fatal("ERROR: ", err)
 		}
@@ -168,7 +160,7 @@ var cleanCmd = &cobra.Command{
 }
 
 // An action function that removes Lambda versions
-func executeClean(region string) error {
+func executeClean(config *cliConfig) error {
 	startTime := time.Now()
 
 	var (
@@ -177,12 +169,10 @@ func executeClean(region string) error {
 		updatedGlobalLambdaStorage []int64
 		globalLambdaVersionsList   [][]*lambda.FunctionConfiguration
 		counter                    int64 = 0
-		elapsedTime                float64
-		timeUnit                   string
 	)
 
-	log.Info("Scanning AWS environment in " + region)
-	lambdaList, err := getAlllambdas(ctx, svc, CustomeDeleteList)
+	log.Info("Scanning AWS environment in " + *config.RegionFlag)
+	lambdaList, err := getAllLambdas(ctx, svc, CustomeDeleteList)
 	checkError(err)
 	log.Info("............")
 
@@ -201,23 +191,25 @@ func executeClean(region string) error {
 			globalLambdaStorage = append(globalLambdaStorage, totalLambdaStorage)
 			tempCounter++
 		}
+
 		log.Info(tempCounter, " Lambdas identified")
 		for _, v := range globalLambdaStorage {
 			counter = counter + v
 		}
-		log.Info("Current storage size: ", humanize.Bytes(uint64(counter)))
+
+		log.Info("Current storage size: ", calculateFileSize(uint64(counter), *config))
 		log.Info("**************************")
 		log.Info("Initiating clean-up process. This may take a few minutes....")
 		// Begin delete process
 		globalLambdaDeleteList := [][]*lambda.FunctionConfiguration{}
 
 		for _, lambda := range globalLambdaVersionsList {
-			lambdasDeleteList := getLambdasToDelteList(lambda, Retain)
+			lambdasDeleteList := getLambdasToDeleteList(lambda, *config.Retain)
 			globalLambdaDeleteList = append(globalLambdaDeleteList, lambdasDeleteList)
-
 		}
+
 		log.Info("............")
-		globalLambdaDeleteInputStructs, err := generateDeleteInputStructs(globalLambdaDeleteList)
+		globalLambdaDeleteInputStructs, err := generateDeleteInputStructs(globalLambdaDeleteList, *config.MoreLambdaDetails)
 		checkError(err)
 
 		log.Info("............")
@@ -226,43 +218,56 @@ func executeClean(region string) error {
 			numVerDeleted := countDeleteVersions(globalLambdaDeleteInputStructs)
 			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
 			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
-			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", humanize.Bytes(uint64(spaceRemovedPreview))))
+			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", calculateFileSize(uint64(spaceRemovedPreview), *config)))
 
+			displayDuration(startTime)
+
+			return returnError
 		}
 
-		if !DryRun {
-			err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
+		err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
+		checkError(err)
+
+		// Recalculate storage size
+		updatedLambdaList, err := getAllLambdas(ctx, svc, CustomeDeleteList)
+		checkError(err)
+		log.Info("............")
+
+		for _, lambda := range updatedLambdaList {
+			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
 			checkError(err)
 
-			// Recalculate storage size
-			updatedLambdaList, err := getAlllambdas(ctx, svc, CustomeDeleteList)
+			updatedTotalLambdaStorage, err := getLambdaStorage(updatededlambdaVersionsList)
 			checkError(err)
-			log.Info("............")
 
-			for _, lambda := range updatedLambdaList {
-				updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
-				checkError(err)
-
-				updatedTotalLambdaStorage, err := getLambdaStorage(updatededlambdaVersionsList)
-				checkError(err)
-
-				updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
-			}
-			log.Info("............")
-			var updatedCounter int64 = 0
-			for _, v := range updatedGlobalLambdaStorage {
-				updatedCounter = updatedCounter + v
-			}
-			log.Info("Total space freed up: ", (humanize.Bytes(uint64(counter - updatedCounter))))
-			log.Info("Post clean-up storage size: ", humanize.Bytes(uint64(updatedCounter)))
-			log.Info("*********************************************")
+			updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
 		}
 
+		log.Info("............")
+		var updatedCounter int64 = 0
+		for _, v := range updatedGlobalLambdaStorage {
+			updatedCounter = updatedCounter + v
+		}
+
+		log.Info("Total space freed up: ", (calculateFileSize(uint64(counter-updatedCounter), *config)))
+		log.Info("Post clean-up storage size: ", calculateFileSize(uint64(updatedCounter), *config))
+		log.Info("*********************************************")
 	}
 
 	if len(lambdaList) == 0 {
-		log.Info("No lambdas found in ", region)
+		log.Info("No lambdas found in ", *config.RegionFlag)
 	}
+
+	displayDuration(startTime)
+
+	return returnError
+}
+
+func displayDuration(startTime time.Time) {
+	var (
+		elapsedTime float64
+		timeUnit    string
+	)
 
 	t1 := time.Now()
 	tempTime := t1.Sub(startTime)
@@ -275,67 +280,63 @@ func executeClean(region string) error {
 	}
 
 	log.Infof("Job Duration Time: %f%s", elapsedTime, timeUnit)
-
-	return returnError
-
 }
 
 // Generates a list of Lambda version delete structs
-func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration) ([][]lambda.DeleteFunctionInput, error) {
-
+func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration, details bool) ([][]lambda.DeleteFunctionInput, error) {
 	var (
 		returnError error
 		output      [][]lambda.DeleteFunctionInput
 	)
 
 	for _, version := range versionsList {
-
 		var tempList []lambda.DeleteFunctionInput
+		var functionName string
 
-		for _, version := range version {
-			if *version.Version != "$LATEST" {
+		for _, entry := range version {
+			if *entry.Version != "$LATEST" {
+				if functionName == "" {
+					functionName = *entry.FunctionName
+				}
+
 				deleteItem := &lambda.DeleteFunctionInput{
-					FunctionName: version.FunctionName,
-					Qualifier:    version.Version,
+					FunctionName: entry.FunctionName,
+					Qualifier:    entry.Version,
 				}
 
 				tempList = append(tempList, *deleteItem)
 			}
+		}
 
+		if details && functionName != "" {
+			log.Info(fmt.Sprintf("%5d versions of %s to be removed", len(tempList), functionName))
 		}
 
 		output = append(output, tempList)
-
 	}
 
 	return output, returnError
-
 }
 
 // Returns a count of versions in a slice of lambda.DeleteFunctionInput
 func calculateSpaceRemoval(deleteList [][]*lambda.FunctionConfiguration) int {
-
 	var (
 		size int
 	)
 
 	for _, lambda := range deleteList {
-
 		for _, version := range lambda {
 			if *version.Version != "$LATEST" {
 				size = size + int(*version.CodeSize)
 			}
-
 		}
 	}
 
 	return size
-
 }
 
 // Returns a count of versions in a slice of lambda.DeleteFunctionInput
 func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
-
 	var (
 		versionsCount int
 	)
@@ -345,12 +346,10 @@ func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
 	}
 
 	return versionsCount
-
 }
 
 // Deletes all Lambda versions specified in the input list
 func deleteLambdaVersion(ctx context.Context, svc *lambda.Lambda, deleteList ...[]lambda.DeleteFunctionInput) error {
-
 	var (
 		returnError error
 		wg          sync.WaitGroup
@@ -389,13 +388,13 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Lambda, deleteList ...
 			}()
 		}
 	}
+
 	wg.Wait()
 	return returnError
-
 }
 
 // Generate a list of Lambdas to remove based on the desired retain value
-func getLambdasToDelteList(list []*lambda.FunctionConfiguration, retainCount int8) []*lambda.FunctionConfiguration {
+func getLambdasToDeleteList(list []*lambda.FunctionConfiguration, retainCount int8) []*lambda.FunctionConfiguration {
 	var retainNumber int
 	// Ensure the passed in parameter is greater than zero
 	if retainCount >= 1 {
@@ -416,8 +415,7 @@ func getLambdasToDelteList(list []*lambda.FunctionConfiguration, retainCount int
 }
 
 // Return a list of all Lambdas in the respective AWS account
-func getAlllambdas(ctx context.Context, svc *lambda.Lambda, customList []string) ([]*lambda.FunctionConfiguration, error) {
-
+func getAllLambdas(ctx context.Context, svc *lambda.Lambda, customList []string) ([]*lambda.FunctionConfiguration, error) {
 	var (
 		lambdasListOutput []*lambda.FunctionConfiguration
 		returnError       error
@@ -469,13 +467,12 @@ func getAlllambdas(ctx context.Context, svc *lambda.Lambda, customList []string)
 			lambdasListOutput = append(lambdasListOutput, result.Configuration)
 		}
 	}
-	return lambdasListOutput, returnError
 
+	return lambdasListOutput, returnError
 }
 
 // A function that returns all the version of a Lambda
 func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.FunctionConfiguration) ([]*lambda.FunctionConfiguration, error) {
-
 	var (
 		lambdasLisOutput []*lambda.FunctionConfiguration
 		returnError      error
@@ -491,10 +488,8 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 	loopBreaker := false
 
 	for {
-
 		err := svc.ListVersionsByFunctionPagesWithContext(ctx, input,
 			func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
-
 				lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
 				// Set the next marker indicator for the next iteration
 				input.Marker = page.NextMarker
@@ -502,6 +497,7 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 				loopBreaker = lastPage
 				return lastPage
 			})
+
 		if err != nil {
 			return lambdasLisOutput, returnError
 		}
@@ -509,20 +505,20 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 		if loopBreaker {
 			break
 		}
-
 	}
 
 	// Sort list so that the former versions are listed first and $LATEST is listed last
 	sort.Sort(byVersion(lambdasLisOutput))
 
 	return lambdasLisOutput, returnError
-
 }
 
 type byVersion []*lambda.FunctionConfiguration
 
-func (a byVersion) Len() int      { return len(a) }
+func (a byVersion) Len() int { return len(a) }
+
 func (a byVersion) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+
 func (a byVersion) Less(i, j int) bool {
 	one, _ := strconv.ParseInt(*a[i].Version, 10, 32)
 	two, _ := strconv.ParseInt(*a[j].Version, 10, 32)
@@ -531,7 +527,6 @@ func (a byVersion) Less(i, j int) bool {
 
 // A function that calculates the aggregate sum of all the functions' size
 func getLambdaStorage(list []*lambda.FunctionConfiguration) (int64, error) {
-
 	var (
 		sizeCounter int64
 		returnError error
@@ -563,7 +558,6 @@ func checkError(err error) {
 
 // Validates that the user passed in a valid AWS Region
 func validateRegion(f embed.FS, input string) string {
-
 	var output string
 
 	rawData, _ := f.ReadFile(regionFile)
@@ -580,4 +574,12 @@ func validateRegion(f embed.FS, input string) string {
 	}
 
 	return output
+}
+
+// calculateFileSize returns the size of a file in bytes. The function takes a cliConfig paramter to determine the number format type to return
+func calculateFileSize(value uint64, config cliConfig) string {
+	if *config.SizeIEC {
+		return humanize.IBytes(value)
+	}
+	return humanize.Bytes(value)
 }
