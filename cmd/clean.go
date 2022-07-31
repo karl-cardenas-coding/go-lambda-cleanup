@@ -197,7 +197,7 @@ func executeClean(config *cliConfig) error {
 			counter = counter + v
 		}
 
-		log.Info("Current storage size: ", calculateFileSize(uint64(counter), *config))
+		log.Info("Current storage size: ", calculateFileSize(uint64(counter), config))
 		log.Info("**************************")
 		log.Info("Initiating clean-up process. This may take a few minutes....")
 		// Begin delete process
@@ -218,7 +218,7 @@ func executeClean(config *cliConfig) error {
 			numVerDeleted := countDeleteVersions(globalLambdaDeleteInputStructs)
 			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
 			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
-			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", calculateFileSize(uint64(spaceRemovedPreview), *config)))
+			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", calculateFileSize(uint64(spaceRemovedPreview), config)))
 
 			displayDuration(startTime)
 
