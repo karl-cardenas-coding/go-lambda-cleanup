@@ -315,7 +315,7 @@ func TestCalculateFileSize(t *testing.T) {
 	}
 
 	want := "294 MiB"
-	got := calculateFileSize(308000000, cliConfig)
+	got := calculateFileSize(308000000, &cliConfig)
 
 	if got != want {
 		t.Fatalf("Expected the size output to be %s but received %s instead", want, got)
@@ -324,7 +324,7 @@ func TestCalculateFileSize(t *testing.T) {
 	cliConfig.SizeIEC = aws.Bool(false)
 
 	want2 := "308 MB"
-	got2 := calculateFileSize(308000000, cliConfig)
+	got2 := calculateFileSize(308000000, &cliConfig)
 	if got2 != want2 {
 		t.Fatalf("Expected the size output to be %s but received %s instead", want2, got2)
 	}
