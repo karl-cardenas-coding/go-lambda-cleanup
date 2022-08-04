@@ -25,6 +25,12 @@ var (
 	DryRun bool
 	// LambdaListFile points a file that contains a listof Lambdas to delete
 	LambdaListFile string
+	// MoreLambdaDetails is to show information about the Lambda being worked on
+	MoreLambdaDetails bool
+	// SizeIEC is used to display the size in IEC units
+	SizeIEC bool
+	// CliConfig is the struct that holds the CLI configuration
+	GlobalCliConfig cliConfig
 )
 
 const (
@@ -55,11 +61,22 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&RegionFlag, "region", "r", "", "Specify the desired AWS region to target.")
 	rootCmd.PersistentFlags().StringVarP(&ProfileFlag, "profile", "p", "", "Specify the AWS profile to leverage for authentication.")
 	rootCmd.PersistentFlags().StringVarP(&LambdaListFile, "listFile", "l", "", "Specify a file containing Lambdas to delete.")
+	rootCmd.PersistentFlags().BoolVarP(&MoreLambdaDetails, "moreLambdaDetails", "m", false, "Set to true to show Lambda names and count of versions to be removed (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Set to true to enable debugging (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "enableSharedCredentials", "s", false, "Leverages the default ~/.aws/credentials file (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&DryRun, "dryrun", "d", false, "Executes a dry run (bool)")
+	rootCmd.PersistentFlags().BoolVarP(&SizeIEC, "size-iec", "i", false, "Displays file sizes in IEC units (bool)")
 	cleanCmd.Flags().Int8VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST-(n)")
 
+	GlobalCliConfig.RegionFlag = &RegionFlag
+	GlobalCliConfig.ProfileFlag = &ProfileFlag
+	GlobalCliConfig.LambdaListFile = &LambdaListFile
+	GlobalCliConfig.MoreLambdaDetails = &MoreLambdaDetails
+	GlobalCliConfig.Verbose = &Verbose
+	GlobalCliConfig.CredentialsFile = &CredentialsFile
+	GlobalCliConfig.DryRun = &DryRun
+	GlobalCliConfig.SizeIEC = &SizeIEC
+	GlobalCliConfig.Retain = &Retain
 	// Establish logging default
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors:   false,
