@@ -1,3 +1,13 @@
+## [1.0.15](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.14...v1.0.15) (2022-08-04)
+
+
+### Bug Fixes
+
+* Add more detail to output, improved flag name ([1ff44c6](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/1ff44c6257e648deb79ffaf4b5c3b219e55de984))
+* capability for additional lambda details and file size format enabled ([c1aa813](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/c1aa813b6ab26bc0b3d5c2a2e2f6f527da743b0f))
+* capability for additional lambda details and file size format enabled ([fdb299c](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/fdb299cac0e0da231aea0c7461b0f0ed2596ca34))
+* Remove unnecessary if/else block ([d0a586b](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/d0a586bb6e5feaa11f47896b6072b3c6f440df92))
+
 ## [1.0.14](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.13...v1.0.14) (2022-05-24)
 
 
