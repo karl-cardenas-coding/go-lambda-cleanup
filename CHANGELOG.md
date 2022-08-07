@@ -1,3 +1,10 @@
+## [1.0.16](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.15...v1.0.16) (2022-08-07)
+
+
+### Bug Fixes
+
+* fixed issue with some aws regions not recognized as valid ([3358c6b](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/3358c6ba00f15a1c451ee42ca5c3695dc019a1f4))
+
 ## [1.0.15](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.14...v1.0.15) (2022-08-04)
 
 
