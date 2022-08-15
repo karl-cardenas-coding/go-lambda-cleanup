@@ -81,7 +81,7 @@ Use "glc [command] --help" for more information about a command.
 
 ### Versions Retention 
 
-To retain the two previous version excluding `$LATEST`, use the `-r` retain flag. Use this flag to control the number of versions to retain.
+To retain previous version excluding `$LATEST`, use the `-c` flag. Use this flag to control the number of versions to retain.
 ```shell
 $ glc clean -r us-east-2 -c 2 -s -p myProfile
 ```
