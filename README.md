@@ -231,6 +231,45 @@ $ glc clean -r us-west-2
 2021/03/04 20:42:46 ............
 ```
 
+## GitHub Actions Cron
+
+go-lambda-cleanup is a good fit for cron jobs. Below is an example snippet for how you can setup a cron job through GitHub Actions.
+
+```yml
+name: Nightly Lambda Version Cleanup
+
+on:
+  schedule:
+    # At 04:00 on every day
+    - cron: '0 04 * * *'
+env:
+  VERSION: 1.0.16
+
+jobs:
+  build:
+    name: Run go-lambda-cleanup
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Pull Docker Image
+        run: docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION
+
+
+      - name: Run go-lambda-cleanup in Test
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.AWS_TEST_ACCESS_KEY}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_TEST_SECRET_ACCESS_KEY}}
+          REGION: us-east-1
+        run: docker run -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION clean -r $REGION
+
+      - name: Run go-lambda-cleanup in Prod
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.AWS_PROD_ACCESS_KEY}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_PROD_SECRET_ACCESS_KEY}}
+          REGION: us-east-1
+        run: docker run -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION clean -r $REGION
+```
+
 ## Contributing to go-lambda-cleanup
 
 For a complete guide to contributing to go-lambda-clean, please review the [Contribution Guide](documentation/CONTRIBUTING.md).
