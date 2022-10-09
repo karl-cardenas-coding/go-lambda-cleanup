@@ -179,13 +179,13 @@ go-lambda-clean utilizes the default AWS Go SDK credentials provider to find AWS
 If `~/.aws/config` and `~/.aws/config` is setup for the AWS CLI then you may leverage the existing profile configuration for authentication.
 ```shell
 $ export AWS_PROFILE=sb-test
-$ glc clean -r us-west-2 -s
+$ glc clean -r us-west-2
 INFO[03/05/21] Scanning AWS environment in us-west-2
 INFO[03/05/21] ............
 ```
 Alternatively, the `--profile` flag may be used.
 ```shell
-$ glc clean -r us-west-2 -s -p myProfile
+$ glc clean -r us-west-2 -p myProfile
 INFO[03/05/21] Scanning AWS environment in us-west-2
 INFO[03/05/21] ............
 ```
