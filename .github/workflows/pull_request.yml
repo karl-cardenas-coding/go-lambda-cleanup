@@ -46,10 +46,9 @@ jobs:
         aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3.1.0
+      uses: golangci/golangci-lint-action@v3
       with:  
         args: -v
-
     
     - name: Execute Go tests
       run: go test -v ./...
