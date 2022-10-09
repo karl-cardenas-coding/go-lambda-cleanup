@@ -18,7 +18,7 @@
 go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup in a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
 
 ```shell
-VERSION=1.0.16
+VERSION=2.0.0
 wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-linux-amd64.zip
 unzip go-lambda-cleanup-v$VERSION-linux-amd64.zip 
 sudo mv glc /usr/local/bin/
@@ -29,7 +29,7 @@ sudo mv glc /usr/local/bin/
 go-lambda-cleanup is also available as a Docker image. Check out the [GitHub Packages](https://github.com/karl-cardenas-coding/go-lambda-cleanup/pkgs/container/go-lambda-cleanup) page for this repository to learn more about the available images.
 
 ```
-VERSION=1.0.16
+VERSION=2.0.0
 docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION
 ```
 
@@ -242,7 +242,7 @@ on:
     # At 04:00 on every day
     - cron: '0 04 * * *'
 env:
-  VERSION: 1.0.16
+  VERSION: 2.0.0
 
 jobs:
   build:
