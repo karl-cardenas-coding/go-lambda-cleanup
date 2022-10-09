@@ -63,7 +63,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&LambdaListFile, "listFile", "l", "", "Specify a file containing Lambdas to delete.")
 	rootCmd.PersistentFlags().BoolVarP(&MoreLambdaDetails, "moreLambdaDetails", "m", false, "Set to true to show Lambda names and count of versions to be removed (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Set to true to enable debugging (bool)")
-	rootCmd.PersistentFlags().BoolVarP(&CredentialsFile, "enableSharedCredentials", "s", false, "Leverages the default ~/.aws/credentials file (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&DryRun, "dryrun", "d", false, "Executes a dry run (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&SizeIEC, "size-iec", "i", false, "Displays file sizes in IEC units (bool)")
 	cleanCmd.Flags().Int8VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST-(n)")
@@ -73,7 +72,6 @@ func init() {
 	GlobalCliConfig.LambdaListFile = &LambdaListFile
 	GlobalCliConfig.MoreLambdaDetails = &MoreLambdaDetails
 	GlobalCliConfig.Verbose = &Verbose
-	GlobalCliConfig.CredentialsFile = &CredentialsFile
 	GlobalCliConfig.DryRun = &DryRun
 	GlobalCliConfig.SizeIEC = &SizeIEC
 	GlobalCliConfig.Retain = &Retain

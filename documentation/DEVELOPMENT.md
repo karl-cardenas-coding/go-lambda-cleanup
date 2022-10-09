@@ -22,7 +22,7 @@ $ npm install
 
 The `clean` command expects the file `cmd/aws-regions.txt` to be present. Otherwise binary builds or `go run main.go clean` will fail. Issue the command below from the root of the project namespace. This assumes you have your local aws credentials configured.
 ```shell
- aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+ aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 ```
 
 ## Testing

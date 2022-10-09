@@ -67,7 +67,6 @@ Available Commands:
 
 Flags:
   -d, --dryrun                    Executes a dry run (bool)
-  -s, --enableSharedCredentials   Leverages the default ~/.aws/credentials file (bool)
   -h, --help                      help for glc
   -l, --listFile string           Specify a file containing Lambdas to delete.
   -m, --moreLambdaDetails         Set to true to show Lambda names and count of versions to be removed (bool)
@@ -83,14 +82,14 @@ Use "glc [command] --help" for more information about a command.
 
 To retain previous version excluding `$LATEST`, use the `-c` flag. Use this flag to control the number of versions to retain.
 ```shell
-$ glc clean -r us-east-2 -c 2 -s -p myProfile
+$ glc clean -r us-east-2 -c 2 -p myProfile
 ```
 
 ### Additonal Lambda Details
 To view additional details, such as the Lambda names and version counts, set the `-m` flag to true.
 
 ```shell
-glc clean -r us-east-1 -sdmp mySuperAwesomeProfile
+glc clean -r us-east-1 -dmp mySuperAwesomeProfile
 ```
 
 ```shell
@@ -120,7 +119,7 @@ $ glc clean -i -r us-east-1 -p myProfile
 You also have the ability to preview an execution by leveraging the dry run flag `-d`
 
 ```shell
- $ glc clean -s -p myProfile -r us-east-1 -d
+ $ glc clean -p myProfile -r us-east-1 -d
 INFO[03/19/21] The AWS Profile flag "myProfile" was passed in
 INFO[03/19/21] ******** DRY RUN MODE ENABLED ********
 INFO[03/19/21] Scanning AWS environment in us-east-1
@@ -148,7 +147,7 @@ lambdas:
 ```
 
 ```shell
-$ glc clean -r us-east-1 -sp myProfile -l custom_list.yaml
+$ glc clean -r us-east-1 -p myProfile -l custom_list.yaml
 ```
 
 #### JSON
@@ -162,7 +161,7 @@ $ glc clean -r us-east-1 -sp myProfile -l custom_list.yaml
 ```
 
 ```shell
-glc clean -r us-east-1 -sp myProfile -l custom_list.json
+glc clean -r us-east-1 -p myProfile -l custom_list.json
 ```
 
 ### Authentication
@@ -210,7 +209,7 @@ $ glc clean -r us-west-2
 If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.18` installed. This tool leverages the Golang [embed](https://golang.org/pkg/embed/) functionality. A file named `aws-regions.txt` is expected in the `cmd/` directory.  You need valid AWS credentials in order to generate the file.
 ```shell
 git clone git@github.com:karl-cardenas-coding/go-lambda-cleanup.git
-aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 go build -o glc
 ```
 
@@ -285,7 +284,7 @@ Q: On MacOS I am unable to open the binary due to Apple not trusting the binary.
 
 A: You have four options. 
 
-- Option A is to clone this project and compile the binary. Issue `go build -o glc`, and the end result is a binary compatible for your system. If you still encounter issues after this, invoke the code signing command on the binary `codesign -s -`
+- Option A (Recommended) is to use the Docker container. Please review the [Docker steps](#docker).
 
 - Option B is to to grant permission for the application to run. Use [this guide](https://support.apple.com/en-us/HT202491) to help you grant permission to the application.
 
@@ -293,7 +292,7 @@ A: You have four options.
 ```shell
 xattr -d com.apple.quarantine /path/to/file
 ```
-- Option D is to use the Docker container. Please review the [Docker steps](#docker).
+- Option D is to clone this project and compile the binary. Issue `go build -o glc`, and the end result is a binary compatible for your system. If you still encounter issues after this, invoke the code signing command on the binary `codesign -s -`
 ---
 
 Q: This keeps timing out when attempting to connect to AWS and I have verified my AWS credentials are valid?
