@@ -26,3 +26,4 @@ terraform.tfvars
 lambda.zip
 main
 .DS_STORE
+main

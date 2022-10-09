@@ -3,7 +3,6 @@ package internal
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -49,7 +48,7 @@ func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 		list CustomDeleteListYaml
 	)
 
-	fileContent, err := ioutil.ReadFile(file)
+	fileContent, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatal("unable to read the input file")
 	}
@@ -67,7 +66,7 @@ func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 		list CustomDeleteListJson
 	)
 
-	fileContent, err := ioutil.ReadFile(file)
+	fileContent, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatal("unable to read the input file")
 	}

@@ -7,8 +7,9 @@ import (
 
 	_ "embed"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 )
 
 var (
@@ -19,20 +20,20 @@ var (
 func TestGetLambdaStorage(t *testing.T) {
 
 	var (
-		lambdaList []*lambda.FunctionConfiguration
+		lambdaList []types.FunctionConfiguration
 		want       int64
 	)
 
-	lambdaList = []*lambda.FunctionConfiguration{
+	lambdaList = []types.FunctionConfiguration{
 		{
 			CodeSha256:       new(string),
-			CodeSize:         aws.Int64(1200),
-			DeadLetterConfig: &lambda.DeadLetterConfig{},
+			CodeSize:         1200,
+			DeadLetterConfig: &types.DeadLetterConfig{},
 			Description:      aws.String("Test A"),
 		},
 		{
 			CodeSha256: new(string),
-			CodeSize:   aws.Int64(1500),
+			CodeSize:   1500,
 		},
 	}
 
@@ -57,36 +58,41 @@ func TestValidateRegion(t *testing.T) {
 func TestGetLambdasToDeleteList(t *testing.T) {
 	var (
 		retainNumber int8 = 2
-		lambdaList   []*lambda.FunctionConfiguration
+		lambdaList   []types.FunctionConfiguration
 		want         int = 3
 	)
 
-	lambdaList = []*lambda.FunctionConfiguration{
+	lambdaList = []types.FunctionConfiguration{
 		{
+
 			CodeSha256:  new(string),
 			Version:     aws.String("1"),
-			CodeSize:    aws.Int64(1200),
+			CodeSize:    1200,
 			Description: aws.String("Test A"),
 		},
 		{
+
 			CodeSha256: new(string),
 			Version:    aws.String("2"),
-			CodeSize:   aws.Int64(1500),
+			CodeSize:   1500,
 		},
 		{
+
 			CodeSha256: new(string),
 			Version:    aws.String("3"),
-			CodeSize:   aws.Int64(1500),
+			CodeSize:   1500,
 		},
 		{
+
 			CodeSha256: new(string),
 			Version:    aws.String("4"),
-			CodeSize:   aws.Int64(1500),
+			CodeSize:   1500,
 		},
 		{
+
 			CodeSha256: new(string),
 			Version:    aws.String("5"),
-			CodeSize:   aws.Int64(1500),
+			CodeSize:   1500,
 		},
 	}
 
@@ -102,73 +108,73 @@ func TestGetLambdasToDeleteList(t *testing.T) {
 
 func TestGenerateDeleteInputStructs(t *testing.T) {
 
-	lambdaList := [][]*lambda.FunctionConfiguration{
+	lambdaList := [][]types.FunctionConfiguration{
 		{
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:       new(string),
 				FunctionName:     aws.String("A"),
 				Version:          aws.String("1"),
-				CodeSize:         aws.Int64(1200),
-				DeadLetterConfig: &lambda.DeadLetterConfig{},
+				CodeSize:         1200,
+				DeadLetterConfig: &types.DeadLetterConfig{},
 				Description:      aws.String("Test A"),
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("B"),
 				Version:      aws.String("2"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("C"),
 				Version:      aws.String("3"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("D"),
 				Version:      aws.String("4"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("E"),
 				Version:      aws.String("5"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("F"),
 				Version:      aws.String("$LATEST"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
 		},
 		{
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:       new(string),
 				Version:          aws.String("1"),
 				FunctionName:     aws.String("A1"),
-				CodeSize:         aws.Int64(1200),
-				DeadLetterConfig: &lambda.DeadLetterConfig{},
+				CodeSize:         1200,
+				DeadLetterConfig: &types.DeadLetterConfig{},
 				Description:      aws.String("Test A"),
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("A2"),
 				Version:      aws.String("2"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("A3"),
 				Version:      aws.String("3"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("A4"),
 				Version:      aws.String("$LATEST"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
 		},
 	}
@@ -239,61 +245,61 @@ func TestCountDeleteVersions(t *testing.T) {
 
 func TestCalculateSpaceRemoval(t *testing.T) {
 
-	lambdaList := [][]*lambda.FunctionConfiguration{
+	lambdaList := [][]types.FunctionConfiguration{
 		{
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:       new(string),
 				FunctionName:     aws.String("A"),
 				Version:          aws.String("1"),
-				CodeSize:         aws.Int64(1200),
-				DeadLetterConfig: &lambda.DeadLetterConfig{},
+				CodeSize:         1200,
+				DeadLetterConfig: &types.DeadLetterConfig{},
 				Description:      aws.String("Test A"),
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("B"),
 				Version:      aws.String("2"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("C"),
 				Version:      aws.String("3"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("D"),
 				Version:      aws.String("4"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("E"),
 				Version:      aws.String("5"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
 		},
 		{
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:       new(string),
 				Version:          aws.String("1"),
 				FunctionName:     aws.String("A1"),
-				CodeSize:         aws.Int64(1200),
-				DeadLetterConfig: &lambda.DeadLetterConfig{},
+				CodeSize:         1200,
+				DeadLetterConfig: &types.DeadLetterConfig{},
 				Description:      aws.String("Test A"),
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("A2"),
 				Version:      aws.String("2"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
-			&lambda.FunctionConfiguration{
+			types.FunctionConfiguration{
 				CodeSha256:   new(string),
 				FunctionName: aws.String("A3"),
 				Version:      aws.String("3"),
-				CodeSize:     aws.Int64(1500),
+				CodeSize:     1500,
 			},
 		},
 	}

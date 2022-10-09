@@ -22,13 +22,13 @@ jobs:
     steps:
       -
         id: go
-        name: "Set up Go 1.18"
+        name: "Set up Go 1.19"
         uses: actions/setup-go@v1
         with:
-          go-version: 1.18
+          go-version: 1.19
       -
         name: "Check out code into the Go module directory"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: "Get dependencies"
         id: dependencies
@@ -48,7 +48,7 @@ jobs:
       -
         name: create
         run: |
-          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+          aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
@@ -71,13 +71,13 @@ jobs:
     steps:
       -
         id: go
-        name: "Set up Go 1.18"
+        name: "Set up Go 1.19"
         uses: actions/setup-go@v1
         with:
-          go-version: 1.18
+          go-version: 1.19
       -
         name: "Check out code into the Go module directory"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: "Get dependencies"
         id: dependencies
@@ -96,7 +96,7 @@ jobs:
       -
         name: create
         run: |
-          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+          aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
@@ -114,10 +114,10 @@ jobs:
     steps:
       -
         id: go
-        name: "Set up Go 1.18"
+        name: "Set up Go 1.19"
         uses: actions/setup-go@v1
         with:
-          go-version: 1.18
+          go-version: 1.19
 
       - name: Setup nodeJs
         uses: actions/setup-node@v1.4.4
@@ -125,7 +125,7 @@ jobs:
           node-version: '14'
       -
         name: "Check out code into the Go module directory"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: "Get dependencies"
         id: dependencies
@@ -144,7 +144,7 @@ jobs:
       -
         name: create
         run: |
-          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+          aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
@@ -165,10 +165,10 @@ jobs:
         name: "Set up Go"
         uses: actions/setup-go@v1
         with:
-          go-version: 1.18
+          go-version: 1.19
       -
         name: "Check out code into the Go module directory"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: "Get dependencies"
         id: dependencies
@@ -187,7 +187,7 @@ jobs:
       -
         name: create
         run: |
-          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+          aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
@@ -206,13 +206,13 @@ jobs:
     steps:
       -
         id: go
-        name: "Set up Go 1.18"
+        name: "Set up Go 1.19"
         uses: actions/setup-go@v1
         with:
-          go-version: 1.18
+          go-version: 1.19
       -
         name: "Check out code into the Go module directory"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: "Get dependencies"
         id: dependencies
@@ -231,7 +231,7 @@ jobs:
       -
         name: create
         run: |
-          aws ec2 describe-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+          aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc.exe
       - uses: actions/upload-artifact@v1
         with:
@@ -249,7 +249,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3.1.0
       with:
-        go-version: '1.18'
+        go-version: '1.19'
         check-latest: true
       id: go
 
@@ -259,7 +259,7 @@ jobs:
         node-version: '14'
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     -
       name: "Get dependencies"
@@ -318,7 +318,7 @@ jobs:
       VERSION: ${{ steps.get-version.outputs.version }}
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
     
       - uses: actions/download-artifact@v1
         with:

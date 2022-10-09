@@ -14,12 +14,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/aws/aws-sdk-go/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/middleware"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/dustin/go-humanize"
 	internal "github.com/karl-cardenas-coding/go-lambda-cleanup/internal"
 	log "github.com/sirupsen/logrus"
@@ -28,15 +27,14 @@ import (
 
 const (
 	// Per AWS API Valid Range: Minimum value of 1. Maximum value of 10000.
-	maxItems   int64  = 10000
+	maxItems   int32  = 10000
 	regionFile string = "aws-regions.txt"
 )
 
 var (
 	ctx               context.Context
 	CustomeDeleteList []string
-	logLevel          aws.LogLevelType
-	svc               *lambda.Lambda
+	svc               *lambda.Client
 	//go:embed aws-regions.txt
 	f embed.FS
 )
@@ -53,17 +51,14 @@ var cleanCmd = &cobra.Command{
 		ctx = context.Background()
 
 		var (
-			awsEnvRegion     string
-			awsEnvProfile    string
-			sharedFileConfig session.SharedConfigState
-			userAgent        string
-			config           cliConfig
+			awsEnvRegion  string
+			awsEnvProfile string
+			config        cliConfig
 		)
 
 		config = GlobalCliConfig
 		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
 		awsEnvProfile = os.Getenv("AWS_PROFILE")
-		userAgent = fmt.Sprintf("go-lambda-cleanup-%s", VersionString)
 		if *config.RegionFlag == "" {
 			if awsEnvRegion != "" {
 				*config.RegionFlag = validateRegion(f, awsEnvRegion)
@@ -73,8 +68,6 @@ var cleanCmd = &cobra.Command{
 		} else {
 			*config.RegionFlag = validateRegion(f, *config.RegionFlag)
 		}
-
-		// Initialize parameters
 
 		// Setup client header to use TLS 1.2
 		tr := &http.Transport{
@@ -91,6 +84,11 @@ var cleanCmd = &cobra.Command{
 		// Create the client
 		client := http.Client{Transport: tr}
 
+		// Create a list of AWS Configurations Options
+		awsConfigOptions := []func(*awsConfig.LoadOptions) error{
+			awsConfig.WithRegion(*config.RegionFlag),
+			awsConfig.WithHTTPClient(&client),
+		}
 		if *config.ProfileFlag == "" {
 			if awsEnvProfile != "" {
 				log.Infof("AWS_PROFILE set to \"%s\"", awsEnvProfile)
@@ -99,11 +97,10 @@ var cleanCmd = &cobra.Command{
 		} else {
 			log.Infof("The AWS Profile flag \"%s\" was passed in", *config.ProfileFlag)
 		}
+		awsConfigOptions = append(awsConfigOptions, awsConfig.WithSharedConfigProfile(*config.ProfileFlag))
 
 		if *config.Verbose {
-			logLevel = aws.LogDebugWithRequestErrors
-		} else {
-			logLevel = aws.LogOff
+			awsConfigOptions = append(awsConfigOptions, awsConfig.WithClientLogMode(aws.LogRetries|aws.LogRequest))
 		}
 
 		if *config.DryRun {
@@ -111,46 +108,31 @@ var cleanCmd = &cobra.Command{
 		}
 
 		if *config.LambdaListFile != "" {
+			log.Info("******** CUSTOM LAMBDA LIST PROVIDED ********")
 			customList, err := internal.GenerateLambdaDeleteList(LambdaListFile)
 			if err != nil {
 				log.Info(err.Error())
 			}
-
 			CustomeDeleteList = customList
 		}
 
-		if *config.CredentialsFile {
-			sharedFileConfig = session.SharedConfigEnable
-		} else {
-			sharedFileConfig = session.SharedConfigDisable
-		}
-
-		sess, err := session.NewSessionWithOptions(session.Options{
-			Config: aws.Config{
-				Region:                        aws.String(*config.RegionFlag),
-				CredentialsChainVerboseErrors: aws.Bool(true),
-				LogLevel:                      aws.LogLevel(logLevel),
-				HTTPClient:                    &client,
-				MaxRetries:                    aws.Int(1),
-			},
-			SharedConfigState: sharedFileConfig,
-			Profile:           *config.ProfileFlag,
-		})
-
+		cfg, err := awsConfig.LoadDefaultConfig(ctx, awsConfigOptions...)
 		if err != nil {
 			log.Fatal("ERROR ESTABLISHING AWS SESSION")
 		}
 
-		sess.Config.Credentials.Expire()
-		_, err = sess.Config.Credentials.Get()
+		creds, err := cfg.Credentials.Retrieve(ctx)
 		if err != nil {
-			log.Fatal("ERROR: Failed to acquire valid credentials.")
+			log.Fatal("ERROR RETRIEVING AWS CREDENTIALS")
 		}
-		sessVerified := session.Must(sess, err)
-		svc = lambda.New(sessVerified)
-		// Set the User-Agent for all AWS connections
-		svc.Handlers.Send.PushFront(func(r *request.Request) {
-			r.HTTPRequest.Header.Set("User-Agent", userAgent)
+		if creds.Expired() {
+			log.Fatal("AWS CREDENTIALS EXPIRED")
+		}
+
+		// svc = lambda.NewFromConfig(cfg)
+		svc = lambda.NewFromConfig(cfg, func(o *lambda.Options) {
+			// Set the User-Agent for all AWS with the Lambda client
+			o.APIOptions = append(o.APIOptions, middleware.AddUserAgentKeyValue("go-lambda-cleanup", VersionString))
 		})
 		err = executeClean(&config)
 		if err != nil {
@@ -167,13 +149,16 @@ func executeClean(config *cliConfig) error {
 		returnError                error
 		globalLambdaStorage        []int64
 		updatedGlobalLambdaStorage []int64
-		globalLambdaVersionsList   [][]*lambda.FunctionConfiguration
+		globalLambdaVersionsList   [][]types.FunctionConfiguration
 		counter                    int64 = 0
 	)
 
 	log.Info("Scanning AWS environment in " + *config.RegionFlag)
 	lambdaList, err := getAllLambdas(ctx, svc, CustomeDeleteList)
-	checkError(err)
+	if err != nil {
+		log.Error("ERROR: ", err)
+		log.Fatal("ERROR: Failed to retrieve Lambda list.")
+	}
 	log.Info("............")
 
 	if len(lambdaList) > 0 {
@@ -181,12 +166,18 @@ func executeClean(config *cliConfig) error {
 		for _, lambda := range lambdaList {
 			lambdaItem := lambda
 			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem)
-			checkError(err)
+			if err != nil {
+				log.Error("ERROR: ", err)
+				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
+			}
 
 			globalLambdaVersionsList = append(globalLambdaVersionsList, lambdaVersionsList)
 
 			totalLambdaStorage, err := getLambdaStorage(lambdaVersionsList)
-			checkError(err)
+			if err != nil {
+				log.Error("ERROR: ", err)
+				log.Fatal("ERROR: Failed to retrieve Lambda storage.")
+			}
 
 			globalLambdaStorage = append(globalLambdaStorage, totalLambdaStorage)
 			tempCounter++
@@ -201,7 +192,7 @@ func executeClean(config *cliConfig) error {
 		log.Info("**************************")
 		log.Info("Initiating clean-up process. This may take a few minutes....")
 		// Begin delete process
-		globalLambdaDeleteList := [][]*lambda.FunctionConfiguration{}
+		globalLambdaDeleteList := [][]types.FunctionConfiguration{}
 
 		for _, lambda := range globalLambdaVersionsList {
 			lambdasDeleteList := getLambdasToDeleteList(lambda, *config.Retain)
@@ -210,7 +201,10 @@ func executeClean(config *cliConfig) error {
 
 		log.Info("............")
 		globalLambdaDeleteInputStructs, err := generateDeleteInputStructs(globalLambdaDeleteList, *config.MoreLambdaDetails)
-		checkError(err)
+		if err != nil {
+			log.Error("ERROR: ", err)
+			log.Fatal("ERROR: Failed to generate delete input structs")
+		}
 
 		log.Info("............")
 
@@ -226,19 +220,31 @@ func executeClean(config *cliConfig) error {
 		}
 
 		err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
-		checkError(err)
+		if err != nil {
+			log.Error("ERROR: ", err)
+			log.Fatal("ERROR: Failed to delete Lambda versions.")
+		}
 
 		// Recalculate storage size
 		updatedLambdaList, err := getAllLambdas(ctx, svc, CustomeDeleteList)
-		checkError(err)
+		if err != nil {
+			log.Error("ERROR: ", err)
+			log.Fatal("ERROR: Failed to retrieve Lambda list.")
+		}
 		log.Info("............")
 
 		for _, lambda := range updatedLambdaList {
 			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
-			checkError(err)
+			if err != nil {
+				log.Error("ERROR: ", err)
+				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
+			}
 
 			updatedTotalLambdaStorage, err := getLambdaStorage(updatededlambdaVersionsList)
-			checkError(err)
+			if err != nil {
+				log.Error("ERROR: ", err)
+				log.Fatal("ERROR: Failed to retrieve Lambda storage size.")
+			}
 
 			updatedGlobalLambdaStorage = append(updatedGlobalLambdaStorage, updatedTotalLambdaStorage)
 		}
@@ -283,7 +289,7 @@ func displayDuration(startTime time.Time) {
 }
 
 // Generates a list of Lambda version delete structs
-func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration, details bool) ([][]lambda.DeleteFunctionInput, error) {
+func generateDeleteInputStructs(versionsList [][]types.FunctionConfiguration, details bool) ([][]lambda.DeleteFunctionInput, error) {
 	var (
 		returnError error
 		output      [][]lambda.DeleteFunctionInput
@@ -319,7 +325,7 @@ func generateDeleteInputStructs(versionsList [][]*lambda.FunctionConfiguration, 
 }
 
 // Returns a count of versions in a slice of lambda.DeleteFunctionInput
-func calculateSpaceRemoval(deleteList [][]*lambda.FunctionConfiguration) int {
+func calculateSpaceRemoval(deleteList [][]types.FunctionConfiguration) int {
 	var (
 		size int
 	)
@@ -327,7 +333,7 @@ func calculateSpaceRemoval(deleteList [][]*lambda.FunctionConfiguration) int {
 	for _, lambda := range deleteList {
 		for _, version := range lambda {
 			if *version.Version != "$LATEST" {
-				size = size + int(*version.CodeSize)
+				size = size + int(version.CodeSize)
 			}
 		}
 	}
@@ -349,7 +355,7 @@ func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
 }
 
 // Deletes all Lambda versions specified in the input list
-func deleteLambdaVersion(ctx context.Context, svc *lambda.Lambda, deleteList ...[]lambda.DeleteFunctionInput) error {
+func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, deleteList ...[]lambda.DeleteFunctionInput) error {
 	var (
 		returnError error
 		wg          sync.WaitGroup
@@ -360,30 +366,10 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Lambda, deleteList ...
 			wg.Add(1)
 			func() {
 				defer wg.Done()
-				_, err := svc.DeleteFunction(&version)
+				_, err := svc.DeleteFunction(ctx, &version)
 				if err != nil {
-					if aerr, ok := err.(awserr.Error); ok {
-						switch aerr.Code() {
-						case lambda.ErrCodeServiceException:
-							log.Error("Function Name: ", *version.FunctionName)
-							returnError = aerr
-						case lambda.ErrCodeResourceNotFoundException:
-							log.Error("Function Name: ", *version.FunctionName)
-							returnError = aerr
-						case lambda.ErrCodeTooManyRequestsException:
-							log.Error("Function Name: ", *version.FunctionName)
-							returnError = aerr
-						case lambda.ErrCodeInvalidParameterValueException:
-							log.Error("Function Name: ", *version.FunctionName)
-							returnError = aerr
-						case lambda.ErrCodeResourceConflictException:
-							log.Error("Function Name: ", *version.FunctionName)
-							returnError = aerr
-						default:
-							log.Error("Function Name: ", *version.FunctionName)
-							returnError = aerr
-						}
-					}
+					log.Error(err)
+					returnError = err
 				}
 			}()
 		}
@@ -394,7 +380,7 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Lambda, deleteList ...
 }
 
 // Generate a list of Lambdas to remove based on the desired retain value
-func getLambdasToDeleteList(list []*lambda.FunctionConfiguration, retainCount int8) []*lambda.FunctionConfiguration {
+func getLambdasToDeleteList(list []types.FunctionConfiguration, retainCount int8) []types.FunctionConfiguration {
 	var retainNumber int
 	// Ensure the passed in parameter is greater than zero
 	if retainCount >= 1 {
@@ -415,41 +401,27 @@ func getLambdasToDeleteList(list []*lambda.FunctionConfiguration, retainCount in
 }
 
 // Return a list of all Lambdas in the respective AWS account
-func getAllLambdas(ctx context.Context, svc *lambda.Lambda, customList []string) ([]*lambda.FunctionConfiguration, error) {
+func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string) ([]types.FunctionConfiguration, error) {
 	var (
-		lambdasListOutput []*lambda.FunctionConfiguration
+		lambdasListOutput []types.FunctionConfiguration
 		returnError       error
 		input             *lambda.ListFunctionsInput
 	)
 
 	if len(customList) == 0 {
 		input = &lambda.ListFunctionsInput{
-			MaxItems: aws.Int64(maxItems),
+			MaxItems: aws.Int32(maxItems),
 		}
 
-		// Loop condition variable
-		loopBreaker := false
-
-		for {
-			err := svc.ListFunctionsPagesWithContext(ctx, input,
-				func(page *lambda.ListFunctionsOutput, lastPage bool) bool {
-					lambdasListOutput = append(lambdasListOutput, page.Functions...)
-
-					// Set the next marker indicator for the next iteration
-					input.Marker = page.NextMarker
-					//  Set condition variable to a new condition value
-					loopBreaker = lastPage
-					return lastPage
-				})
+		p := lambda.NewListFunctionsPaginator(svc, input)
+		for p.HasMorePages() {
+			page, err := p.NextPage(ctx)
 			if err != nil {
+				log.Error(err)
 				return lambdasListOutput, err
 			}
-
-			if loopBreaker {
-				break
-			}
+			lambdasListOutput = append(lambdasListOutput, page.Functions...)
 		}
-
 	}
 
 	if len(customList) > 0 {
@@ -459,12 +431,11 @@ func getAllLambdas(ctx context.Context, svc *lambda.Lambda, customList []string)
 				FunctionName: aws.String(item),
 			}
 
-			result, err := svc.GetFunctionWithContext(ctx, input)
+			result, err := svc.GetFunction(ctx, input)
 			if err != nil {
 				returnError = err
 			}
-
-			lambdasListOutput = append(lambdasListOutput, result.Configuration)
+			lambdasListOutput = append(lambdasListOutput, *result.Configuration)
 		}
 	}
 
@@ -472,39 +443,26 @@ func getAllLambdas(ctx context.Context, svc *lambda.Lambda, customList []string)
 }
 
 // A function that returns all the version of a Lambda
-func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.FunctionConfiguration) ([]*lambda.FunctionConfiguration, error) {
+func getAllLambdaVersion(ctx context.Context, svc *lambda.Client, item types.FunctionConfiguration) ([]types.FunctionConfiguration, error) {
 	var (
-		lambdasLisOutput []*lambda.FunctionConfiguration
+		lambdasLisOutput []types.FunctionConfiguration
 		returnError      error
 		input            *lambda.ListVersionsByFunctionInput
 	)
 
 	input = &lambda.ListVersionsByFunctionInput{
 		FunctionName: aws.String(*item.FunctionName),
-		MaxItems:     aws.Int64(maxItems),
+		MaxItems:     aws.Int32(maxItems),
 	}
 
-	// Loop condition variable
-	loopBreaker := false
-
-	for {
-		err := svc.ListVersionsByFunctionPagesWithContext(ctx, input,
-			func(page *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
-				lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
-				// Set the next marker indicator for the next iteration
-				input.Marker = page.NextMarker
-				//  Set condition variable to a new condition value
-				loopBreaker = lastPage
-				return lastPage
-			})
-
+	p := lambda.NewListVersionsByFunctionPaginator(svc, input)
+	for p.HasMorePages() {
+		page, err := p.NextPage(ctx)
 		if err != nil {
-			return lambdasLisOutput, returnError
+			log.Error(err)
+			return lambdasLisOutput, err
 		}
-
-		if loopBreaker {
-			break
-		}
+		lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
 	}
 
 	// Sort list so that the former versions are listed first and $LATEST is listed last
@@ -513,7 +471,7 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Lambda, item *lambda.F
 	return lambdasLisOutput, returnError
 }
 
-type byVersion []*lambda.FunctionConfiguration
+type byVersion []types.FunctionConfiguration
 
 func (a byVersion) Len() int { return len(a) }
 
@@ -526,34 +484,17 @@ func (a byVersion) Less(i, j int) bool {
 }
 
 // A function that calculates the aggregate sum of all the functions' size
-func getLambdaStorage(list []*lambda.FunctionConfiguration) (int64, error) {
+func getLambdaStorage(list []types.FunctionConfiguration) (int64, error) {
 	var (
 		sizeCounter int64
 		returnError error
 	)
 
 	for _, item := range list {
-		sizeCounter = sizeCounter + *item.CodeSize
+		sizeCounter = sizeCounter + item.CodeSize
 	}
 
 	return sizeCounter, returnError
-}
-
-func checkError(err error) {
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case organizations.ErrCodeAccessDeniedException:
-				log.Fatal("ERROR: Access Denied - Please verify AWS credentials and permissions\n", aerr.Code())
-			case lambda.ErrCodeResourceConflictException:
-				log.Fatal("ERROR: ", err.Error())
-			case lambda.ErrCodeResourceNotFoundException:
-				log.Fatal("ERROR: ", "Invalid Lambda(s) provided. Please check the function name provided. \n")
-			default:
-				log.Fatal("ERROR: ", err.Error())
-			}
-		}
-	}
 }
 
 // Validates that the user passed in a valid AWS Region
