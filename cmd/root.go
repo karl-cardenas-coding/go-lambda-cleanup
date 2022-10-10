@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"crypto/tls"
+	"fmt"
+	"net/http"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -31,6 +34,10 @@ var (
 	SizeIEC bool
 	// CliConfig is the struct that holds the CLI configuration
 	GlobalCliConfig cliConfig
+	// HTTPClient is the HTTP client to use for the AWS API calls
+	GlobalHTTPClient *http.Client
+	// UserAgent is the value to use for the User-Agent header
+	UserAgent string
 )
 
 const (
@@ -75,6 +82,7 @@ func init() {
 	GlobalCliConfig.DryRun = &DryRun
 	GlobalCliConfig.SizeIEC = &SizeIEC
 	GlobalCliConfig.Retain = &Retain
+	UserAgent = fmt.Sprintf("go-clean-lambda/%s", VersionString)
 	// Establish logging default
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors:   false,
@@ -82,8 +90,9 @@ func init() {
 		FullTimestamp:   true,
 	})
 	log.SetOutput(os.Stdout)
-
 	log.SetLevel(log.InfoLevel)
+	GlobalHTTPClient = createHTTPClient()
+
 }
 
 // Execute is the main execution function
@@ -101,4 +110,23 @@ func Execute() {
 			log.Fatal(err.Error())
 		}
 	}
+}
+
+// createHTTPClient creates an HTTP client with TLS
+func createHTTPClient() *http.Client {
+
+	// Setup client header to use TLS 1.2
+	tr := &http.Transport{
+		// Reads PROXY configuration from environment variables
+		Proxy: http.ProxyFromEnvironment,
+		TLSClientConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	}
+
+	// Needed due to custom client being leveraged, otherwise HTTP2 will not be used.
+	tr.ForceAttemptHTTP2 = true
+
+	// Create the client
+	return &http.Client{Transport: tr}
 }

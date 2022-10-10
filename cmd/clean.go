@@ -2,11 +2,9 @@ package cmd
 
 import (
 	"context"
-	"crypto/tls"
 	"embed"
 	_ "embed"
 	"fmt"
-	"net/http"
 	"os"
 	"sort"
 	"strconv"
@@ -69,25 +67,10 @@ var cleanCmd = &cobra.Command{
 			*config.RegionFlag = validateRegion(f, *config.RegionFlag)
 		}
 
-		// Setup client header to use TLS 1.2
-		tr := &http.Transport{
-			// Reads PROXY configuration from environment variables
-			Proxy: http.ProxyFromEnvironment,
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12,
-			},
-		}
-
-		// Needed due to custom client being leveraged, otherwise HTTP2 will not be used.
-		tr.ForceAttemptHTTP2 = true
-
-		// Create the client
-		client := http.Client{Transport: tr}
-
 		// Create a list of AWS Configurations Options
 		awsConfigOptions := []func(*awsConfig.LoadOptions) error{
 			awsConfig.WithRegion(*config.RegionFlag),
-			awsConfig.WithHTTPClient(&client),
+			awsConfig.WithHTTPClient(GlobalHTTPClient),
 		}
 		if *config.ProfileFlag == "" {
 			if awsEnvProfile != "" {
