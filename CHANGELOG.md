@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v2.0.0...v2.0.1) (2022-10-10)
+
+
+### Bug Fixes
+
+* added ability to query GitHub for new versions ([603cdaf](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/603cdaf7fb146abf13f51375628723975caf284f))
+
 ## [1.0.16](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v1.0.15...v1.0.16) (2022-08-07)
 
 
