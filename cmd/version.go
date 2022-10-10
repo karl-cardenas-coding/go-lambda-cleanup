@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/mod/semver"
 )
 
 func init() {
@@ -20,20 +22,25 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		version := fmt.Sprintf("go-lambda-cleanup %s", VersionString)
 		log.Info(version)
-		checkForNewRelease(GlobalHTTPClient)
+		_, message, err := checkForNewRelease(GlobalHTTPClient, VersionString, UserAgent)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Info(message)
 	},
 }
 
-func checkForNewRelease(client *http.Client) (bool, error) {
+func checkForNewRelease(client *http.Client, currentVersion, useragent string) (bool, string, error) {
 	url := "https://api.github.com/repos/karl-cardenas-coding/go-lambda-cleanup/releases/latest"
-	// version := VersionString
-	version := "v1.0.0"
-	var output bool = false
+	var (
+		output  bool
+		message string
+	)
 
 	log.Info("Checking for new releases")
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
-	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("User-Agent", useragent)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -43,7 +50,8 @@ func checkForNewRelease(client *http.Client) (bool, error) {
 			"function":        "client.Do",
 			"error":           err,
 			"data":            nil,
-		}).Fatal("Error initaiting connection to, ", url, "If this error persists, please open up an issue on github")
+		}).Debug("Error initaiting connection to, ", url, "If this error persists, please open up an issue on github")
+		return output, message, err
 	}
 	defer resp.Body.Close()
 
@@ -58,19 +66,22 @@ func checkForNewRelease(client *http.Client) (bool, error) {
 			"function":        "json.NewDecoder",
 			"error":           err,
 			"data":            nil,
-		}).Fatal("Error unmarshalling Github response", "If this error persists, please open up an issue on github")
+		}).Debug("Error unmarshalling Github response", "If this error persists, please open up an issue on github")
+		return output, message, err
 	}
-	// Check to see if the current version is equivalent to the latest release
-	if version != release.TagName {
-		log.Info("New version available - ", release.TagName)
-		log.Info("Download it here - ", release.HTMLURL)
+	switch semver.Compare(currentVersion, release.TagName) {
+	case -1:
+		message = fmt.Sprintf("There is a new release available: %s \n Download it here - %s", release.TagName, release.HTMLURL)
 		output = true
+	case 0:
+		message = "No new version available"
+		output = true
+	case 1:
+		message = "You are running a pre-release version"
+		output = true
+	default:
+		return output, message, errors.New("error comparing versions")
 	}
 
-	if version == release.TagName {
-		log.Info("No new version available")
-		output = false
-	}
-
-	return output, nil
+	return output, message, nil
 }
