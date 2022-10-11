@@ -13,7 +13,7 @@ const (
 func TestCheckForNewRelease(t *testing.T) {
 
 	client := createHTTPClient()
-	version := "v0.0.0"
+	version := "0.0.0"
 	useragent := fmt.Sprintf("go-lambda-cleanup/%s", version)
 
 	want := true
@@ -25,7 +25,7 @@ func TestCheckForNewRelease(t *testing.T) {
 		t.Fatalf("Error checking for new release: %s", err)
 	}
 
-	version = "v100.0.0"
+	version = "100.0.0"
 	want2 := true
 	got2, msg2, err := checkForNewRelease(client, version, useragent)
 	if err != nil {
