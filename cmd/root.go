@@ -107,7 +107,7 @@ func Execute() {
 				"data":     nil,
 			}).Fatal("Error executing the CLI!", IssueMSG)
 		} else {
-			log.Fatal(err.Error())
+			log.Fatal("Error executing the CLI!", IssueMSG)
 		}
 	}
 }
