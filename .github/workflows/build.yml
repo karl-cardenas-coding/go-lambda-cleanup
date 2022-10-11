@@ -137,6 +137,7 @@ jobs:
             fi
             npm install @semantic-release/exec -D
             npm install @semantic-release/changelog -D
+            npm install @semantic-release/git -D
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
@@ -180,6 +181,7 @@ jobs:
             fi
             npm install @semantic-release/exec -D
             npm install @semantic-release/changelog -D
+            npm install @semantic-release/git -D
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
@@ -224,6 +226,7 @@ jobs:
             fi
             npm install @semantic-release/exec -D
             npm install @semantic-release/changelog -D
+            npm install @semantic-release/git -D
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
@@ -273,6 +276,7 @@ jobs:
           echo "Installing npm dependencies"
           npm install @semantic-release/exec -D
           npm install @semantic-release/changelog -D
+          npm install @semantic-release/git -D
           npx semantic-release --dry-run
           cat VERSION.env
           source VERSION.env
@@ -365,4 +369,5 @@ jobs:
              npm install @semantic-release/exec -D
              npm install @semantic-release/changelog -D
              npm install @semantic-release/github -D
+             npm install @semantic-release/git -D
              npx semantic-release
