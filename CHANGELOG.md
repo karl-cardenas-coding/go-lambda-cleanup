@@ -1,3 +1,10 @@
+## [2.0.5](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v2.0.4...v2.0.5) (2023-03-23)
+
+
+### Bug Fixes
+
+* added support for MFA tokens ([eccb907](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/eccb907bae2ff72b73d7119aa1638aec45fb9e55))
+
 ## [2.0.4](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v2.0.3...v2.0.4) (2023-03-18)
 
 
