@@ -175,6 +175,8 @@ go-lambda-clean utilizes the default AWS Go SDK credentials provider to find AWS
 
 4. If your application is running on an Amazon EC2 instance, IAM role for Amazon EC2.
 
+_If there is an MFA serial attached to the credentials, you will be prompted for an MFA token._
+
 #### Shared File Example
 If `~/.aws/config` and `~/.aws/config` is setup for the AWS CLI then you may leverage the existing profile configuration for authentication.
 ```shell
