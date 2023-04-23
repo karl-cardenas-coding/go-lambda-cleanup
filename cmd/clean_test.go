@@ -1,15 +1,19 @@
 package cmd
 
 import (
+	"bytes"
 	"embed"
+	"regexp"
 	"sort"
 	"testing"
+	"time"
 
 	_ "embed"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -333,5 +337,30 @@ func TestCalculateFileSize(t *testing.T) {
 	got2 := calculateFileSize(308000000, &cliConfig)
 	if got2 != want2 {
 		t.Fatalf("Expected the size output to be %s but received %s instead", want2, got2)
+	}
+}
+
+func TestDisplayDuration(t *testing.T) {
+	startTime := time.Now().Add(-time.Minute * 2)
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+
+	displayDuration(startTime)
+
+	got := buf.String()
+	want := "time=.* level=.* msg=\"Job Duration Time: 2.000000m\"\n"
+	if match, _ := regexp.MatchString(want, got); !match {
+		t.Errorf("displayDuration() = %q, want %q", got, want)
+	}
+
+	buf.Reset()
+	startTime = time.Now().Add(-time.Second * 30)
+
+	displayDuration(startTime)
+
+	got = buf.String()
+	want = "time=.* level=.* msg=\"Job Duration Time: 30.000000s\"\n"
+	if match, _ := regexp.MatchString(want, got); !match {
+		t.Errorf("displayDuration() = %q, want %q", got, want)
 	}
 }

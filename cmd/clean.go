@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -420,6 +421,12 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string)
 
 			result, err := svc.GetFunction(ctx, input)
 			if err != nil {
+				var rnf *types.ResourceNotFoundException
+				if errors.As(err, &rnf) {
+					log.Warn(fmt.Sprintf("The lambda function %s does not exist. Ensure you specified the correct name and that function exists and try again. ", item))
+					log.Warn(fmt.Sprintf("Skipping %s", item))
+					continue
+				}
 				returnError = err
 			}
 			lambdasListOutput = append(lambdasListOutput, *result.Configuration)
