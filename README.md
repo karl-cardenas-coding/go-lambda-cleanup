@@ -317,3 +317,7 @@ A: Yes, leverage the dry run mode. Dry run can be invoked through the `-d`, `--d
 [Golang Cobra CLI Framework](https://github.com/spf13/cobra)
 
 [AWS Go SDK Credentials](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html)
+
+# Open Source Licenses
+
+For a list of all open source packages and software used, check out the open source [acknowledgment](./documentation/open-source.md) resource.

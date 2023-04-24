@@ -1,3 +1,6 @@
+// Copyright (c) karl-cardenas-coding
+// SPDX-License-Identifier: MIT
+
 package main
 
 import (
