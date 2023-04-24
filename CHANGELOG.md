@@ -1,3 +1,10 @@
+## [2.0.6](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v2.0.5...v2.0.6) (2023-04-24)
+
+
+### Bug Fixes
+
+* fixed issue [#79](https://github.com/karl-cardenas-coding/go-lambda-cleanup/issues/79) related to panic for resourceNotFound errors ([#80](https://github.com/karl-cardenas-coding/go-lambda-cleanup/issues/80)) ([f575904](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/f5759048ff2525f1dd8696cfb77689a687fc4295))
+
 ## [2.0.5](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v2.0.4...v2.0.5) (2023-03-23)
 
 
