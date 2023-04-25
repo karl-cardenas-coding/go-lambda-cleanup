@@ -7,7 +7,7 @@
     "release": "standard-version"
   },
   "devDependencies": {
-    "semantic-release": "^19.0.5",
+    "semantic-release": "^21.0.1",
     "standard-version": "^9.5.0",
     "husky": "^8.0.0",
     "@semantic-release/changelog": "^6.0.1",
