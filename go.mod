@@ -3,7 +3,7 @@ module github.com/karl-cardenas-coding/go-lambda-cleanup
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.17.6
+	github.com/aws/aws-sdk-go-v2 v1.18.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.18
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.17
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.30.1
