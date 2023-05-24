@@ -1,3 +1,6 @@
+aws-regions.txt:
+	aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text > cmd/aws-regions.txt
+
 license:
 	@echo "Applying license headers..."
 	 copywrite headers
