@@ -207,6 +207,20 @@ $ glc clean -r us-west-2
 2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
 2021/03/04 20:42:46 ............
 ```
+
+### Lambda Aliases
+
+The AWS API will refuse to delete lambda versions that have an alias directing
+to them. The default behavior for `glc` is to attempt to delete them anyway,
+which will report an error and result in a non-zero exit code.
+
+The `clean` command has a run-time flag `--skip-aliases` / `-s` that will check
+for the existence of aliases and skip trying to delete the versions they refer
+to.
+
+This entails one additional API query per lambda that is cleaned up, so
+consider not enabling this functionality if you do not use aliases.
+
 ## Compile
 If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.18` installed. This tool leverages the Golang [embed](https://golang.org/pkg/embed/) functionality. A file named `aws-regions.txt` is expected in the `cmd/` directory.  You need valid AWS credentials in order to generate the file.
 ```shell
