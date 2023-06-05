@@ -156,7 +156,7 @@ func executeClean(config *cliConfig) error {
 		tempCounter := 0
 		for _, lambda := range lambdaList {
 			lambdaItem := lambda
-			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem)
+			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem, SkipAliases)
 			if err != nil {
 				log.Error("ERROR: ", err)
 				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
@@ -225,7 +225,7 @@ func executeClean(config *cliConfig) error {
 		log.Info("............")
 
 		for _, lambda := range updatedLambdaList {
-			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda)
+			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda, SkipAliases)
 			if err != nil {
 				log.Error("ERROR: ", err)
 				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
@@ -440,7 +440,12 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string)
 }
 
 // A function that returns all the version of a Lambda
-func getAllLambdaVersion(ctx context.Context, svc *lambda.Client, item types.FunctionConfiguration) ([]types.FunctionConfiguration, error) {
+func getAllLambdaVersion(
+	ctx context.Context,
+	svc *lambda.Client,
+	item types.FunctionConfiguration,
+	skipAliases bool,
+) ([]types.FunctionConfiguration, error) {
 	var (
 		lambdasLisOutput []types.FunctionConfiguration
 		returnError      error
@@ -464,6 +469,32 @@ func getAllLambdaVersion(ctx context.Context, svc *lambda.Client, item types.Fun
 
 	// Sort list so that the former versions are listed first and $LATEST is listed last
 	sort.Sort(byVersion(lambdasLisOutput))
+
+	if skipAliases {
+		// fetch the list of aliases for this function
+		aliasesOut, err := svc.ListAliases(context.Background(), &lambda.ListAliasesInput{
+			FunctionName: aws.String(*item.FunctionArn),
+		})
+		if err != nil {
+			log.Error(err)
+			return lambdasLisOutput, err
+		}
+
+		// produce a new slice that includes only versions for which there is no alias
+		var result []types.FunctionConfiguration
+	versions:
+		for _, funConf := range lambdasLisOutput {
+			for _, alias := range aliasesOut.Aliases {
+				if alias.FunctionVersion != nil && *alias.FunctionVersion == *funConf.Version {
+					continue versions
+				}
+			}
+			result = append(result, funConf)
+		}
+
+		// return the pared down list of versions
+		lambdasLisOutput = result
+	}
 
 	return lambdasLisOutput, returnError
 }
