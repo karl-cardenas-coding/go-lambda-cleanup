@@ -39,8 +39,7 @@ jobs:
                 dep ensure
             fi
             echo "Installing npm dependencies"
-            npm install @semantic-release/exec -D
-            npm install @semantic-release/changelog -D
+            npm ci
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
@@ -87,8 +86,7 @@ jobs:
                 curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
                 dep ensure
             fi
-            npm install @semantic-release/exec -D
-            npm install @semantic-release/changelog -D
+            npm ci
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
@@ -135,9 +133,7 @@ jobs:
                 curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
                 dep ensure
             fi
-            npm install @semantic-release/exec -D
-            npm install @semantic-release/changelog -D
-            npm install @semantic-release/git -D
+            npm ci
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
@@ -179,9 +175,7 @@ jobs:
                 curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
                 dep ensure
             fi
-            npm install @semantic-release/exec -D
-            npm install @semantic-release/changelog -D
-            npm install @semantic-release/git -D
+            npm ci
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
@@ -224,9 +218,7 @@ jobs:
                 curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
                 dep ensure
             fi
-            npm install @semantic-release/exec -D
-            npm install @semantic-release/changelog -D
-            npm install @semantic-release/git -D
+            npm ci
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
@@ -274,9 +266,7 @@ jobs:
               dep ensure
           fi
           echo "Installing npm dependencies"
-          npm install @semantic-release/exec -D
-          npm install @semantic-release/changelog -D
-          npm install @semantic-release/git -D
+          npm ci
           npx semantic-release --dry-run
           cat VERSION.env
           source VERSION.env
@@ -366,8 +356,5 @@ jobs:
 
       - name: "release"
         run: |
-             npm install @semantic-release/exec -D
-             npm install @semantic-release/changelog -D
-             npm install @semantic-release/github -D
-             npm install @semantic-release/git -D
+             npm ci
              npx semantic-release
