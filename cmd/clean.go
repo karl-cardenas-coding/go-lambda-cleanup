@@ -162,7 +162,7 @@ func executeClean(config *cliConfig) error {
 		tempCounter := 0
 		for _, lambda := range lambdaList {
 			lambdaItem := lambda
-			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem, *config.SkipAliases)
+			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem, *config)
 			if err != nil {
 				log.Error("ERROR: ", err)
 				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
@@ -231,7 +231,7 @@ func executeClean(config *cliConfig) error {
 		log.Info("............")
 
 		for _, lambda := range updatedLambdaList {
-			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda, *config.SkipAliases)
+			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda, *config)
 			if err != nil {
 				log.Error("ERROR: ", err)
 				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
@@ -450,7 +450,7 @@ func getAllLambdaVersion(
 	ctx context.Context,
 	svc *lambda.Client,
 	item types.FunctionConfiguration,
-	skipAliases bool,
+	flags cliConfig,
 ) ([]types.FunctionConfiguration, error) {
 	var (
 		lambdasLisOutput []types.FunctionConfiguration
@@ -473,7 +473,7 @@ func getAllLambdaVersion(
 		lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
 	}
 
-	if skipAliases {
+	if *flags.SkipAliases {
 		// fetch the list of aliases for this function
 		aliasesOut, err := svc.ListAliases(ctx, &lambda.ListAliasesInput{
 			FunctionName: aws.String(*item.FunctionArn),
