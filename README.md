@@ -18,7 +18,7 @@
 go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup in a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
 
 ```shell
-VERSION=2.0.6
+VERSION=2.0.7
 wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-linux-amd64.zip
 unzip go-lambda-cleanup-v$VERSION-linux-amd64.zip 
 sudo mv glc /usr/local/bin/
@@ -29,7 +29,7 @@ sudo mv glc /usr/local/bin/
 go-lambda-cleanup is also available as a Docker image. Check out the [GitHub Packages](https://github.com/karl-cardenas-coding/go-lambda-cleanup/pkgs/container/go-lambda-cleanup) page for this repository to learn more about the available images.
 
 ```
-VERSION=2.0.6
+VERSION=2.0.7
 docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION
 ```
 
@@ -106,6 +106,22 @@ INFO[07/31/22] ............
 INFO[07/31/22] 2 unique versions will be removed in an actual execution.
 INFO[07/31/22] 12 MiB of storage space will be removed in an actual execution.
 INFO[07/31/22] Job Duration Time: 9.409405s
+```
+
+
+### Lambda Aliases
+
+AWS disallows the deletion of Lambda versions that are attached to an alias. The default behavior of `glc` is to attempt to delete a Lambda version, regardless of whether it has an alias attachment. If a Lambda version is attached to an alias and `glc` attempts to delete the version, an error will occur, and the program will exit with a non-zero exit code.
+
+You can use the CLI flags `--skip-aliases` or `-s` to check
+the Lambda version for the existence of aliases and skip the removal step if an alias is attached to the version. This check entails one additional API query per lambda, so consider not enabling this functionality if you do not use aliases.
+
+## Compile
+If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.18` installed. This tool leverages the Golang [embed](https://golang.org/pkg/embed/) functionality. A file named `aws-regions.txt` is expected in the `cmd/` directory.  You need valid AWS credentials in order to generate the file.
+```shell
+git clone git@github.com:karl-cardenas-coding/go-lambda-cleanup.git
+aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+go build -o glc
 ```
 
 ### File Size Format
@@ -206,13 +222,6 @@ $ export AWS_SESSION_TOKEN=TOKEN
 $ glc clean -r us-west-2
 2021/03/04 20:42:46 Scanning AWS environment in us-west-2.....
 2021/03/04 20:42:46 ............
-```
-## Compile
-If you want to complile the binary, clone the project to your local system. Ensure you have `Go 1.18` installed. This tool leverages the Golang [embed](https://golang.org/pkg/embed/) functionality. A file named `aws-regions.txt` is expected in the `cmd/` directory.  You need valid AWS credentials in order to generate the file.
-```shell
-git clone git@github.com:karl-cardenas-coding/go-lambda-cleanup.git
-aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-go build -o glc
 ```
 
 ## Proxy

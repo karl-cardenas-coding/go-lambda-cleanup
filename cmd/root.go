@@ -41,6 +41,8 @@ var (
 	GlobalHTTPClient *http.Client
 	// UserAgent is the value to use for the User-Agent header
 	UserAgent string
+	// SkipAliases indicates that lambda versions attached to an alias should be skipped from deletion
+	SkipAliases bool
 )
 
 const (
@@ -76,6 +78,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&DryRun, "dryrun", "d", false, "Executes a dry run (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&SizeIEC, "size-iec", "i", false, "Displays file sizes in IEC units (bool)")
 	cleanCmd.Flags().Int8VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST-(n)")
+	cleanCmd.Flags().BoolVarP(&SkipAliases, "skip-aliases", "s", false, "Skip trying to delete versions with aliases attached")
 
 	GlobalCliConfig.RegionFlag = &RegionFlag
 	GlobalCliConfig.ProfileFlag = &ProfileFlag
@@ -85,6 +88,7 @@ func init() {
 	GlobalCliConfig.DryRun = &DryRun
 	GlobalCliConfig.SizeIEC = &SizeIEC
 	GlobalCliConfig.Retain = &Retain
+	GlobalCliConfig.SkipAliases = &SkipAliases
 	UserAgent = fmt.Sprintf("go-clean-lambda/%s", VersionString)
 	// Establish logging default
 	log.SetFormatter(&log.TextFormatter{

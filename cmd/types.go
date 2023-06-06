@@ -15,6 +15,7 @@ type cliConfig struct {
 	LambdaListFile    *string
 	MoreLambdaDetails *bool
 	SizeIEC           *bool
+	SkipAliases       *bool
 }
 
 // Github Release Structure (v3)
