@@ -41,8 +41,7 @@ var (
 	GlobalHTTPClient *http.Client
 	// UserAgent is the value to use for the User-Agent header
 	UserAgent string
-
-	// SkipAliases indicates that lambda versions attached to an alias should be skipped
+	// SkipAliases indicates that lambda versions attached to an alias should be skipped from deletion
 	SkipAliases bool
 )
 
@@ -89,6 +88,7 @@ func init() {
 	GlobalCliConfig.DryRun = &DryRun
 	GlobalCliConfig.SizeIEC = &SizeIEC
 	GlobalCliConfig.Retain = &Retain
+	GlobalCliConfig.SkipAliases = &SkipAliases
 	UserAgent = fmt.Sprintf("go-clean-lambda/%s", VersionString)
 	// Establish logging default
 	log.SetFormatter(&log.TextFormatter{

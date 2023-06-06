@@ -98,6 +98,12 @@ var cleanCmd = &cobra.Command{
 			log.Info("******** DRY RUN MODE ENABLED ********")
 		}
 
+		config.SkipAliases = &SkipAliases
+
+		if *config.SkipAliases {
+			log.Info("Skip Aliases enabled")
+		}
+
 		if *config.LambdaListFile != "" {
 			log.Info("******** CUSTOM LAMBDA LIST PROVIDED ********")
 			customList, err := internal.GenerateLambdaDeleteList(LambdaListFile)
@@ -156,7 +162,7 @@ func executeClean(config *cliConfig) error {
 		tempCounter := 0
 		for _, lambda := range lambdaList {
 			lambdaItem := lambda
-			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem, SkipAliases)
+			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem, *config.SkipAliases)
 			if err != nil {
 				log.Error("ERROR: ", err)
 				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
@@ -225,7 +231,7 @@ func executeClean(config *cliConfig) error {
 		log.Info("............")
 
 		for _, lambda := range updatedLambdaList {
-			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda, SkipAliases)
+			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda, *config.SkipAliases)
 			if err != nil {
 				log.Error("ERROR: ", err)
 				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
@@ -467,12 +473,9 @@ func getAllLambdaVersion(
 		lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
 	}
 
-	// Sort list so that the former versions are listed first and $LATEST is listed last
-	sort.Sort(byVersion(lambdasLisOutput))
-
 	if skipAliases {
 		// fetch the list of aliases for this function
-		aliasesOut, err := svc.ListAliases(context.Background(), &lambda.ListAliasesInput{
+		aliasesOut, err := svc.ListAliases(ctx, &lambda.ListAliasesInput{
 			FunctionName: aws.String(*item.FunctionArn),
 		})
 		if err != nil {
@@ -482,19 +485,32 @@ func getAllLambdaVersion(
 
 		// produce a new slice that includes only versions for which there is no alias
 		var result []types.FunctionConfiguration
-	versions:
+
+		// iterate over the list of versions and check if there is an alias for each
+		// if there is no alias, add the version to the result
+		// if there is an alias, skip the version
+		// this is done to avoid deleting versions that are in use by an alias
 		for _, funConf := range lambdasLisOutput {
+			isAlias := false
+
 			for _, alias := range aliasesOut.Aliases {
 				if alias.FunctionVersion != nil && *alias.FunctionVersion == *funConf.Version {
-					continue versions
+					isAlias = true
+					break
 				}
 			}
-			result = append(result, funConf)
+
+			if !isAlias {
+				result = append(result, funConf)
+			}
 		}
 
 		// return the pared down list of versions
 		lambdasLisOutput = result
 	}
+
+	// Sort list so that the former versions are listed first and $LATEST is listed last
+	sort.Sort(byVersion(lambdasLisOutput))
 
 	return lambdasLisOutput, returnError
 }
