@@ -10,7 +10,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
-	golang.org/x/mod v0.10.0
+	golang.org/x/mod v0.11.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
