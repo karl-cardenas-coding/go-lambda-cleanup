@@ -22,8 +22,8 @@ jobs:
     steps:
       -
         id: go
-        name: "Set up Go 1.19"
-        uses: actions/setup-go@v1
+        name: "Set up Go 1.20"
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20
       -
@@ -51,7 +51,7 @@ jobs:
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
-            echo "::set-output name=version::$VERSION"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
       -
         name: create
         run: |
@@ -78,8 +78,8 @@ jobs:
     steps:
       -
         id: go
-        name: "Set up Go 1.19"
-        uses: actions/setup-go@v1
+        name: "Set up Go 1.20"
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20
       -
@@ -106,7 +106,7 @@ jobs:
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
-            echo "::set-output name=version::$VERSION"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
       -
         name: create
         run: |
@@ -128,8 +128,8 @@ jobs:
     steps:
       -
         id: go
-        name: "Set up Go 1.19"
-        uses: actions/setup-go@v1
+        name: "Set up Go"
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20
       -
@@ -155,7 +155,7 @@ jobs:
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
-            echo "::set-output name=version::$VERSION"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
       -
         name: create
         run: |
@@ -178,7 +178,7 @@ jobs:
       -
         id: go
         name: "Set up Go"
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20
       -
@@ -204,7 +204,7 @@ jobs:
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
-            echo "::set-output name=version::$VERSION"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
       -
         name: create
         run: |
@@ -227,8 +227,8 @@ jobs:
     steps:
       -
         id: go
-        name: "Set up Go 1.20"
-        uses: actions/setup-go@v1
+        name: "Set up Go"
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20
       -
@@ -254,7 +254,7 @@ jobs:
             npx semantic-release --dry-run
             cat VERSION.env
             source VERSION.env
-            echo "::set-output name=version::$VERSION"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
       -
         name: create
         run: |
@@ -274,7 +274,7 @@ jobs:
     steps:
 
     - name: Set up Go
-      uses: actions/setup-go@v3.1.0
+      uses: actions/setup-go@v4
       with:
         go-version: '1.20'
         check-latest: true
@@ -303,7 +303,7 @@ jobs:
           npx semantic-release --dry-run
           cat VERSION.env
           source VERSION.env
-          echo "::set-output name=version::$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Generate AWS region file
       run: |
@@ -364,7 +364,7 @@ jobs:
         run: |
              source VERSION.env
              echo $VERSION
-             echo "::set-output name=version::$VERSION"
+             echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
       
       - uses: actions/download-artifact@v1
         with:
