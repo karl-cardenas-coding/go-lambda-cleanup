@@ -11,7 +11,6 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
-	golang.org/x/mod v0.12.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
