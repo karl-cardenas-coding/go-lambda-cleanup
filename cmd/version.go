@@ -26,6 +26,7 @@ var versionCmd = &cobra.Command{
 		log.Info(version)
 		_, message, err := checkForNewRelease(GlobalHTTPClient, VersionString, UserAgent)
 		if err != nil {
+			log.Error(err)
 			log.Fatal("unable to check for new releases. " + IssueMSG)
 		}
 		log.Info(message)
