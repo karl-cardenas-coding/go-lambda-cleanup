@@ -26,15 +26,6 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v3
 
-    # - name: "Get dependencies"
-    #   id: dependencies
-    #   run: |
-    #       go get -v -t -d ./...
-    #       if [ -f Gopkg.toml ]; then
-    #           curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-    #           dep ensure
-    #       fi
-
     - name: Generate AWS region file
       run: |
         aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
@@ -50,6 +41,7 @@ jobs:
 
     - name: Test CLI
       run: |
+        go get
         go test -coverprofile=go.txt -v ./...
         go run main.go clean -r us-west-2
         go run main.go version
