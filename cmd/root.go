@@ -16,7 +16,7 @@ import (
 
 var (
 	// VersionString is the version of the CLI
-	VersionString string = "No version provided"
+	VersionString string = "0.0.0"
 	// ProfileFlag is the AWS crendentials profile passed in
 	ProfileFlag string
 	// CredentialsFile is a boolean for the credentials provider logic
