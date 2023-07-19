@@ -5,13 +5,12 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-version"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"golang.org/x/mod/semver"
 )
 
 func init() {
@@ -82,8 +81,34 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent string) (
 		}).Debug("Error unmarshalling Github response", IssueMSG)
 		return output, message, err
 	}
-	// The release tag name is the version number but with the v stripped out
-	switch semver.Compare(currentVersion, release.TagName[1:]) {
+
+	cVersion, err := version.NewVersion(currentVersion)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"package":         "cmd",
+			"file":            "version.go",
+			"parent_function": "checkForNewRelease",
+			"function":        "version.NewVersion",
+			"error":           err,
+			"data":            nil,
+		}).Debug("Error creating new version", IssueMSG)
+		return output, message, err
+	}
+
+	latestVersion, err := version.NewVersion(release.TagName[1:])
+	if err != nil {
+		log.WithFields(log.Fields{
+			"package":         "cmd",
+			"file":            "version.go",
+			"parent_function": "checkForNewRelease",
+			"function":        "version.NewVersion",
+			"error":           err,
+			"data":            nil,
+		}).Debug("Error creating new version", IssueMSG)
+		return output, message, err
+	}
+
+	switch cVersion.Compare(latestVersion) {
 	case -1:
 		message = fmt.Sprintf("There is a new release available: %s \n Download it here - %s", release.TagName, release.HTMLURL)
 		output = true
@@ -94,7 +119,7 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent string) (
 		message = "You are running a pre-release version"
 		output = true
 	default:
-		return output, message, errors.New("error comparing versions")
+		return output, message, fmt.Errorf("error comparing versions")
 	}
 
 	return output, message, nil
