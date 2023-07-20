@@ -56,7 +56,7 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -111,7 +111,7 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -160,7 +160,7 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -209,7 +209,7 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -259,7 +259,7 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc.exe
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc.exe
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip

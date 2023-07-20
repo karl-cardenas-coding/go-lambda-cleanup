@@ -22,7 +22,7 @@ jobs:
     steps:
 
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
         go-version: '1.20'
         check-latest: true
@@ -31,15 +31,6 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v3
 
-    -
-      name: "Get dependencies"
-      id: dependencies
-      run: |
-          go get -v -t -d ./...
-          if [ -f Gopkg.toml ]; then
-              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-              dep ensure
-          fi
 
     - name: Generate AWS region file
       run: |
@@ -51,7 +42,7 @@ jobs:
         args: -v
     
     - name: Execute Go tests
-      run: go test -v ./...
+      run: go get && go test -v ./...
 
     - name: Test CLI
       run: |
@@ -82,7 +73,7 @@ jobs:
 
 
     - name: Build and push
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v4
       with:
         context: .
         build-args: VERSION=${{steps.dependencies.outputs.VERSION}}
