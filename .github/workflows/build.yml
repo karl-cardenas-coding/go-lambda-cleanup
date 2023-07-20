@@ -37,23 +37,7 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      -
-        name: "Get dependencies"
-        id: dependencies
-        run: |
-            go get -v -t -d ./...
-            if [ -f Gopkg.toml ]; then
-                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-                dep ensure
-            fi
-            echo "Installing npm dependencies"
-            npm ci
-            npx semantic-release --dry-run
-            cat VERSION.env
-            source VERSION.env
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-      -
-        name: create
+      - name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
@@ -97,11 +81,6 @@ jobs:
         name: "Get dependencies"
         id: dependencies
         run: |
-            go get -v -t -d ./...
-            if [ -f Gopkg.toml ]; then
-                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-                dep ensure
-            fi
             npm ci
             npx semantic-release --dry-run
             cat VERSION.env
@@ -146,11 +125,6 @@ jobs:
         name: "Get dependencies"
         id: dependencies
         run: |
-            go get -v -t -d ./...
-            if [ -f Gopkg.toml ]; then
-                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-                dep ensure
-            fi
             npm ci
             npx semantic-release --dry-run
             cat VERSION.env
@@ -195,11 +169,6 @@ jobs:
         name: "Get dependencies"
         id: dependencies
         run: |
-            go get -v -t -d ./...
-            if [ -f Gopkg.toml ]; then
-                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-                dep ensure
-            fi
             npm ci
             npx semantic-release --dry-run
             cat VERSION.env
@@ -245,11 +214,6 @@ jobs:
         name: "Get dependencies"
         id: dependencies
         run: |
-            go get -v -t -d ./...
-            if [ -f Gopkg.toml ]; then
-                curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-                dep ensure
-            fi
             npm ci
             npx semantic-release --dry-run
             cat VERSION.env
@@ -293,12 +257,6 @@ jobs:
       name: "Get dependencies"
       id: dependencies
       run: |
-          go get -v -t -d ./...
-          if [ -f Gopkg.toml ]; then
-              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-              dep ensure
-          fi
-          echo "Installing npm dependencies"
           npm ci
           npx semantic-release --dry-run
           cat VERSION.env
@@ -329,7 +287,7 @@ jobs:
 
     - name: Build and push
       if: ${{ steps.dependencies.outputs.VERSION != ''}}
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v4
       with:
         context: .
         build-args: VERSION=${{steps.dependencies.outputs.VERSION}}
