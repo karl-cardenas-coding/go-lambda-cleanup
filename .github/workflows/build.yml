@@ -11,16 +11,12 @@ env:
 
 jobs:
 
-  darwin-amd64:
-    name: darwin-amd64
+  next-version:
+    name: Next Version
     runs-on: ubuntu-latest
     outputs:
-      VERSION: ${{ steps.go.outputs.version }}
-    env:
-          GOARCH: amd64
-          GOOS: darwin
+      VERSION: ${{ steps.dependencies.outputs.version }}
     steps:
-
 
       - name: "Check out code into the Go module directory"
         uses: actions/checkout@v3
@@ -30,12 +26,6 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-
-      - id: go
-        name: "Set up Go 1.20"
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.20
 
       - name: "Get dependencies"
         id: dependencies
@@ -46,17 +36,37 @@ jobs:
             source VERSION.env
             echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
+
+  darwin-amd64:
+    name: darwin-amd64
+    needs: ["next-version"]
+    runs-on: ubuntu-latest
+    env:
+          GOARCH: amd64
+          GOOS: darwin
+    steps:
+
+
+      - name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
+
+      - id: go
+        name: "Set up Go 1.20"
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20
+
+
       - name: create
         run: |
-          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
 
 
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v ${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v$ ${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
       - uses: actions/upload-artifact@v1
         with:
           name: VERSION.env
@@ -65,9 +75,8 @@ jobs:
 
   darwin-arm64:
     name: darwin-arm64
+    needs: ["next-version"]
     runs-on: ubuntu-latest
-    outputs:
-      VERSION: ${{ steps.go.outputs.version }}
     env:
           GOARCH: arm64
           GOOS: darwin
@@ -75,11 +84,6 @@ jobs:
       - name: "Check out code into the Go module directory"
         uses: actions/checkout@v3
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
 
       - id: go
         name: "Set up Go 1.20"
@@ -88,30 +92,20 @@ jobs:
           go-version: 1.20
          
       -
-        name: "Get dependencies"
-        id: dependencies
-        run: |
-            npm ci
-            npx semantic-release --dry-run
-            cat VERSION.env
-            source VERSION.env
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-      -
         name: create
         run: |
-          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v ${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v ${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
 
   linux-386:
     name: linux-386
+    needs: ["next-version"]
     runs-on: ubuntu-latest
-    outputs:
-      VERSION: ${{ steps.go.outputs.version }}
+
     env:
       GOARCH: "386"
       GOOS: linux
@@ -119,11 +113,6 @@ jobs:
       - name: "Check out code into the Go module directory"
         uses: actions/checkout@v3
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
 
       - id: go
         name: "Set up Go 1.20"
@@ -132,30 +121,19 @@ jobs:
           go-version: 1.20
 
       -
-        name: "Get dependencies"
-        id: dependencies
-        run: |
-            npm ci
-            npx semantic-release --dry-run
-            cat VERSION.env
-            source VERSION.env
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-      -
         name: create
         run: |
-          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v ${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v ${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
 
   linux-amd64:
     name: linux-amd64
+    needs: ["next-version"]
     runs-on: ubuntu-latest
-    outputs:
-      VERSION: ${{ steps.go.outputs.version }}
     env:
       GOARCH: amd64
       GOOS: linux
@@ -176,28 +154,19 @@ jobs:
           go-version: 1.20
 
       -
-        name: "Get dependencies"
-        id: dependencies
-        run: |
-            npm ci
-            npx semantic-release --dry-run
-            cat VERSION.env
-            source VERSION.env
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-      -
         name: create
         run: |
-          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
 
 
   windows-amd64:
     name: windows-amd64
+    needs: ["next-version"]
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.go.outputs.version }}
@@ -208,43 +177,27 @@ jobs:
       - name: "Check out code into the Go module directory"
         uses: actions/checkout@v3
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-
       - id: go
         name: "Set up Go 1.20"
         uses: actions/setup-go@v4
         with:
           go-version: 1.20
 
-      - name: "Get dependencies"
-        id: dependencies
+      - name: create
         run: |
-            npm ci
-            npx semantic-release --dry-run
-            cat VERSION.env
-            source VERSION.env
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-      -
-        name: create
-        run: |
-          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc.exe
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v${{ steps.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
 
   docker:
     name: "Release Docker image"
-    needs: ["darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64"]
+    needs: ["next-version","darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64"]
     runs-on: ubuntu-latest
     outputs:
-      VERSION: ${{ steps.get-version.outputs.version }}
+      VERSION: ${{ steps.next-version.outputs.version }}
     steps:
 
     - name: Set up Go
@@ -253,42 +206,27 @@ jobs:
         go-version: '1.20'
         check-latest: true
       id: go
-
-
-    - name: Setup Node.js environment
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'      
+   
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v3
 
-    -
-      name: "Get dependencies"
-      id: dependencies
-      run: |
-          npm ci
-          npx semantic-release --dry-run
-          cat VERSION.env
-          source VERSION.env
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-
+      
     - name: Generate AWS region file
       run: |
         aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-
+  
     - name: Set up QEMU
-      if: ${{ steps.dependencies.outputs.VERSION != ''}}
+      if: ${{ steps.next-version.outputs.version != ''}}
       uses: docker/setup-qemu-action@v2
 
     -  name: Set up Docker Buildx
-       if: ${{ steps.dependencies.outputs.VERSION != ''}}
+       if: ${{ steps.next-version.outputs.version != ''}}
        uses: docker/setup-buildx-action@v2
 
 
     - name: Login to GHCR
-      if: ${{ steps.dependencies.outputs.VERSION != ''}}
+      if: ${{ steps.next-version.outputs.version != ''}}
       uses: docker/login-action@v1
       with:
         registry: ghcr.io
@@ -297,21 +235,21 @@ jobs:
 
 
     - name: Build and push
-      if: ${{ steps.dependencies.outputs.VERSION != ''}}
+      if: ${{ steps.next-version.outputs.version != ''}}
       uses: docker/build-push-action@v4
       with:
         context: .
-        build-args: VERSION=${{steps.dependencies.outputs.VERSION}}
+        build-args: VERSION=${{steps.next-version.outputs.version}}
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: ghcr.io/${{ github.repository }}:${{steps.dependencies.outputs.VERSION}}
+        tags: ghcr.io/${{ github.repository }}:${{steps.next-version.outputs.version}}
 
   release:
     name: "Create a release"
-    needs: ["darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64", "docker"]
+    needs: ["next-version", "darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64", "docker"]
     runs-on: ubuntu-latest
     outputs:
-      VERSION: ${{ steps.get-version.outputs.version }}
+      VERSION: ${{ steps.next-version.outputs.version }}
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
@@ -337,29 +275,29 @@ jobs:
       
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-darwin-amd64.zip
+            name: go-lambda-cleanup-v${{ steps.next-version.outputs.version }}-darwin-amd64.zip
             path: ./
 
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-linux-386.zip
+            name: go-lambda-cleanup-v${{ steps.next-version.outputs.version }}-linux-386.zip
             path: ./
 
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-darwin-arm64.zip
+            name: go-lambda-cleanup-v${{ steps.next-version.outputs.version }}-darwin-arm64.zip
             path: ./
 
 
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-linux-amd64.zip
+            name: go-lambda-cleanup-v${{ steps.next-version.outputs.version }}-linux-amd64.zip
             path: ./
 
             
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.get-version.outputs.version }}-windows-amd64.zip
+            name: go-lambda-cleanup-v${{ steps.next-version.outputs.version }}-windows-amd64.zip
             path: ./
 
 
