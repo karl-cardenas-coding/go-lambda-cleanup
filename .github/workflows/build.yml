@@ -26,9 +26,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20
-      -
-        name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
 
 
       - name: Setup Node.js environment
@@ -36,6 +33,10 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+
+
+      - name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
 
       - name: create
         run: |
@@ -66,10 +67,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20
-      -
-        name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
-
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
@@ -77,6 +74,10 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+
+      - name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
+         
       -
         name: "Get dependencies"
         id: dependencies
@@ -111,15 +112,15 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20
-      -
-        name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
+        
+      - name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
 
       -
         name: "Get dependencies"
@@ -155,16 +156,18 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20
-      -
-        name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
-      
+
+      -
+        name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
+
       -
         name: "Get dependencies"
         id: dependencies
@@ -200,15 +203,17 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20
-      -
-        name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
+    
+      -
+        name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
 
       -
         name: "Get dependencies"
@@ -244,14 +249,15 @@ jobs:
         check-latest: true
       id: go
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v3
 
     - name: Setup Node.js environment
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-        cache: 'npm'
+        cache: 'npm'      
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
 
     -
       name: "Get dependencies"
