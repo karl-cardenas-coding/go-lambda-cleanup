@@ -37,10 +37,22 @@ jobs:
         with:
           go-version: 1.20
 
+      - name: "Get dependencies"
+        id: dependencies
+        run: |
+            npm ci
+            npx semantic-release --dry-run
+            cat VERSION.env
+            source VERSION.env
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
       - name: create
         run: |
+          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+
+
       - uses: actions/upload-artifact@v1
         with:
           name: go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -74,10 +86,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20
-
-
-      - name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
          
       -
         name: "Get dependencies"
@@ -91,6 +99,7 @@ jobs:
       -
         name: create
         run: |
+          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
@@ -134,6 +143,7 @@ jobs:
       -
         name: create
         run: |
+          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
@@ -177,6 +187,7 @@ jobs:
       -
         name: create
         run: |
+          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{steps.dependencies.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
@@ -209,8 +220,7 @@ jobs:
         with:
           go-version: 1.20
 
-      -
-        name: "Get dependencies"
+      - name: "Get dependencies"
         id: dependencies
         run: |
             npm ci
@@ -221,6 +231,7 @@ jobs:
       -
         name: create
         run: |
+          export GOPATH=$(go env GOPATH)/bin
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
           go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{steps.dependencies.outputs.VERSION}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{steps.dependencies.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc.exe
       - uses: actions/upload-artifact@v1
