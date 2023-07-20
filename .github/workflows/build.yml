@@ -20,13 +20,10 @@ jobs:
           GOARCH: amd64
           GOOS: darwin
     steps:
-      -
-        id: go
-        name: "Set up Go 1.20"
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.20
 
+
+      - name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
@@ -34,9 +31,11 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-
-      - name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+      - id: go
+        name: "Set up Go 1.20"
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20
 
       - name: create
         run: |
@@ -61,18 +60,20 @@ jobs:
           GOARCH: arm64
           GOOS: darwin
     steps:
-      -
-        id: go
-        name: "Set up Go 1.20"
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.20
+      - name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
+
+      - id: go
+        name: "Set up Go 1.20"
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20
 
 
       - name: "Check out code into the Go module directory"
@@ -106,21 +107,20 @@ jobs:
       GOARCH: "386"
       GOOS: linux
     steps:
-      -
-        id: go
-        name: "Set up Go"
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.20
+      - name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
-        
-      - name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+
+      - id: go
+        name: "Set up Go 1.20"
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20
 
       -
         name: "Get dependencies"
@@ -150,13 +150,8 @@ jobs:
       GOARCH: amd64
       GOOS: linux
     steps:
-      -
-        id: go
-        name: "Set up Go"
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.20
-
+      - name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
@@ -164,9 +159,11 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      -
-        name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+      - id: go
+        name: "Set up Go 1.20"
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20
 
       -
         name: "Get dependencies"
@@ -197,23 +194,20 @@ jobs:
       GOARCH: amd64
       GOOS: windows
     steps:
-      -
-        id: go
-        name: "Set up Go"
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.20
-
+      - name: "Check out code into the Go module directory"
+        uses: actions/checkout@v3
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
-    
-      -
-        name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+
+      - id: go
+        name: "Set up Go 1.20"
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20
 
       -
         name: "Get dependencies"
