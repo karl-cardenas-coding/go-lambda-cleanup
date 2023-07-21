@@ -15,7 +15,7 @@ jobs:
     name: Next Version
     runs-on: ubuntu-latest
     outputs:
-      VERSION: ${{ steps.dependencies.outputs.version }}
+      version: ${{ steps.dependencies.outputs.version }}
     steps:
 
       - name: "Check out code into the Go module directory"
@@ -39,7 +39,7 @@ jobs:
 
   darwin-amd64:
     name: darwin-amd64
-    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
+    if: ${{ needs.next-version.outputs.version != ''}}
     needs: ["next-version"]
     runs-on: ubuntu-latest
     env:
@@ -61,13 +61,13 @@ jobs:
       - name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.jobs.next-version.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.jobs.next-version.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
 
 
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v ${{ needs.jobs.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v$ ${{ needs.jobs.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v ${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v$ ${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
       - uses: actions/upload-artifact@v1
         with:
           name: VERSION.env
@@ -76,7 +76,7 @@ jobs:
 
   darwin-arm64:
     name: darwin-arm64
-    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
+    if: ${{ needs.next-version.outputs.version != ''}}
     needs: ["next-version"]
     runs-on: ubuntu-latest
     env:
@@ -97,15 +97,15 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.jobs.next-version.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.jobs.next-version.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v ${{ steps.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v ${{ steps.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v ${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v ${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
 
   linux-386:
     name: linux-386
-    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
+    if: ${{ needs.next-version.outputs.version != ''}}
     needs: ["next-version"]
     runs-on: ubuntu-latest
 
@@ -127,15 +127,15 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.jobs.next-version.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.jobs.next-version.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v ${{ steps.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v ${{ steps.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v ${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v ${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
 
   linux-amd64:
     name: linux-amd64
-    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
+    if: ${{ needs.next-version.outputs.version != ''}}
     needs: ["next-version"]
     runs-on: ubuntu-latest
     env:
@@ -161,16 +161,16 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{needs.jobs.next-version.outputs.VERSION}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.jobs.next-version.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v${{ steps.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v${{ steps.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
 
 
   windows-amd64:
     name: windows-amd64
-    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
+    if: ${{ needs.next-version.outputs.version != ''}}
     needs: ["next-version"]
     runs-on: ubuntu-latest
     outputs:
@@ -191,19 +191,19 @@ jobs:
       - name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.jobs.next-version.outputs.VERSION}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{needs.jobs.next-version.outputs.VERSION}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc.exe
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc.exe
       - uses: actions/upload-artifact@v1
         with:
-          name: go-lambda-cleanup-v${{ steps.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
-          path: go-lambda-cleanup-v${{ steps.next-version.outputs.VERSION }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
+          path: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
 
   docker:
     name: "Release Docker image"
-    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
+    if: ${{ needs.next-version.outputs.version != ''}}
     needs: ["next-version","darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64"]
     runs-on: ubuntu-latest
     outputs:
-      VERSION: ${{ steps.next-version.outputs.VERSION }}
+      VERSION: ${{ needs.next-version.outputs.version }}
     steps:
 
     - name: Set up Go
@@ -223,16 +223,16 @@ jobs:
         aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
   
     - name: Set up QEMU
-      if: ${{ steps.next-version.outputs.VERSION != ''}}
+      if: ${{ needs.next-version.outputs.version != ''}}
       uses: docker/setup-qemu-action@v2
 
     -  name: Set up Docker Buildx
-       if: ${{ steps.next-version.outputs.VERSION != ''}}
+       if: ${{ needs.next-version.outputs.version != ''}}
        uses: docker/setup-buildx-action@v2
 
 
     - name: Login to GHCR
-      if: ${{ steps.next-version.outputs.VERSION != ''}}
+      if: ${{ needs.next-version.outputs.version != ''}}
       uses: docker/login-action@v1
       with:
         registry: ghcr.io
@@ -241,21 +241,21 @@ jobs:
 
 
     - name: Build and push
-      if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
+      if: ${{ needs.next-version.outputs.version != ''}}
       uses: docker/build-push-action@v4
       with:
         context: .
-        build-args: VERSION=${{steps.next-version.outputs.VERSION}}
+        build-args: VERSION=${{needs.next-version.outputs.version}}
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: ghcr.io/${{ github.repository }}:${{steps.next-version.outputs.VERSION}}
+        tags: ghcr.io/${{ github.repository }}:${{needs.next-version.outputs.version}}
 
   release:
     name: "Create a release"
     needs: ["next-version", "darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64", "docker"]
     runs-on: ubuntu-latest
     outputs:
-      VERSION: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
+      VERSION: ${{ needs.next-version.outputs.version != ''}}
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
@@ -281,29 +281,29 @@ jobs:
       
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-darwin-amd64.zip
+            name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-darwin-amd64.zip
             path: ./
 
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-linux-386.zip
+            name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-linux-386.zip
             path: ./
 
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-darwin-arm64.zip
+            name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-darwin-arm64.zip
             path: ./
 
 
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-linux-amd64.zip
+            name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-linux-amd64.zip
             path: ./
 
             
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-windows-amd64.zip
+            name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-windows-amd64.zip
             path: ./
 
 
