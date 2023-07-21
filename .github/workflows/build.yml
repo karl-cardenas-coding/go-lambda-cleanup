@@ -15,7 +15,7 @@ jobs:
     name: Next Version
     runs-on: ubuntu-latest
     outputs:
-      VERSION: ${{ steps.dependencies.outputs.VERSION }}
+      VERSION: ${{ steps.dependencies.outputs.version }}
     steps:
 
       - name: "Check out code into the Go module directory"
@@ -76,6 +76,7 @@ jobs:
 
   darwin-arm64:
     name: darwin-arm64
+    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
     needs: ["next-version"]
     runs-on: ubuntu-latest
     env:
@@ -104,6 +105,7 @@ jobs:
 
   linux-386:
     name: linux-386
+    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
     needs: ["next-version"]
     runs-on: ubuntu-latest
 
@@ -133,6 +135,7 @@ jobs:
 
   linux-amd64:
     name: linux-amd64
+    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
     needs: ["next-version"]
     runs-on: ubuntu-latest
     env:
@@ -167,6 +170,7 @@ jobs:
 
   windows-amd64:
     name: windows-amd64
+    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
     needs: ["next-version"]
     runs-on: ubuntu-latest
     outputs:
@@ -195,6 +199,7 @@ jobs:
 
   docker:
     name: "Release Docker image"
+    if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
     needs: ["next-version","darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64"]
     runs-on: ubuntu-latest
     outputs:
@@ -236,7 +241,7 @@ jobs:
 
 
     - name: Build and push
-      if: ${{ steps.next-version.outputs.VERSION != ''}}
+      if: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
       uses: docker/build-push-action@v4
       with:
         context: .
@@ -250,7 +255,7 @@ jobs:
     needs: ["next-version", "darwin-amd64", "linux-386", "linux-amd64", "windows-amd64", "darwin-arm64", "docker"]
     runs-on: ubuntu-latest
     outputs:
-      VERSION: ${{ steps.next-version.outputs.VERSION }}
+      VERSION: ${{ needs.jobs.next-version.outputs.VERSION != ''}}
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
@@ -276,29 +281,29 @@ jobs:
       
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.next-version.outputs.VERSION }}-darwin-amd64.zip
+            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-darwin-amd64.zip
             path: ./
 
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.next-version.outputs.VERSION }}-linux-386.zip
+            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-linux-386.zip
             path: ./
 
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.next-version.outputs.VERSION }}-darwin-arm64.zip
+            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-darwin-arm64.zip
             path: ./
 
 
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.next-version.outputs.VERSION }}-linux-amd64.zip
+            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-linux-amd64.zip
             path: ./
 
             
       - uses: actions/download-artifact@v1
         with:
-            name: go-lambda-cleanup-v${{ steps.next-version.outputs.VERSION }}-windows-amd64.zip
+            name: go-lambda-cleanup-v${{ needs.jobs.next-version.outputs.VERSION }}-windows-amd64.zip
             path: ./
 
 
