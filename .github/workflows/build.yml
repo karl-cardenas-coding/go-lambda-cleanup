@@ -262,18 +262,6 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-    
-      - uses: actions/download-artifact@v1
-        with:
-          name: VERSION.env
-          path: ./       
-
-      - name: Get Version
-        id: get-version
-        run: |
-             source VERSION.env
-             echo $VERSION
-             echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
       
       - uses: actions/download-artifact@v1
         with:
