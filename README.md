@@ -10,7 +10,7 @@
 <p align="center">A Go based CLI for removing unused versions of AWS Lambdas. One binary, no additional dependencies required. </p>
 
 <p align="center">
-<img src="/static/demo.gif" alt="drawing" width="400"/>
+<img src="/static/glc.gif" alt="drawing" width="800"/>
 </p>
 
 
