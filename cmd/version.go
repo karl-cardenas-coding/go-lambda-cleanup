@@ -17,6 +17,10 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 }
 
+const (
+	url = "https://api.github.com/repos/karl-cardenas-coding/go-lambda-cleanup/releases/latest"
+)
+
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the current version number of go-lambda-cleanup",
@@ -24,7 +28,7 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		version := fmt.Sprintf("go-lambda-cleanup v%s", VersionString)
 		log.Info(version)
-		_, message, err := checkForNewRelease(GlobalHTTPClient, VersionString, UserAgent)
+		_, message, err := checkForNewRelease(GlobalHTTPClient, VersionString, UserAgent, url)
 		if err != nil {
 			log.Error(err)
 			log.Fatal("unable to check for new releases. " + IssueMSG)
@@ -33,8 +37,7 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-func checkForNewRelease(client *http.Client, currentVersion, useragent string) (bool, string, error) {
-	const url string = "https://api.github.com/repos/karl-cardenas-coding/go-lambda-cleanup/releases/latest"
+func checkForNewRelease(client *http.Client, currentVersion, useragent, url string) (bool, string, error) {
 	var (
 		output  bool
 		message string
@@ -69,6 +72,18 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent string) (
 		return output, message, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.WithFields(log.Fields{
+			"package":         "cmd",
+			"file":            "version.go",
+			"parent_function": "checkForNewRelease",
+			"function":        "client.Do",
+			"error":           err,
+			"data":            nil,
+		}).Debug("Error initaiting connection to, ", url, IssueMSG)
+		return output, message, fmt.Errorf("error connecting to %s", url)
+	}
 
 	// Unmarshal the JSON to the Github Release strcut
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
