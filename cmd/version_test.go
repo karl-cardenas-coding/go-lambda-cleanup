@@ -68,7 +68,10 @@ func TestErrorPathJSON(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 
 		// Write an invalid JSON payload to the response writer
-		w.Write([]byte("invalid-json-payload"))
+		_, err := w.Write([]byte("invalid-json-payload"))
+		if err != nil {
+			t.Fatalf("Error writing to response writer: %s", err)
+		}
 	}))
 	defer mockServer.Close()
 
