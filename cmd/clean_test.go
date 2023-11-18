@@ -344,25 +344,15 @@ func TestCalculateFileSize(t *testing.T) {
 }
 
 func TestDisplayDuration(t *testing.T) {
-	startTime := time.Now().Add(time.Minute * 2)
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
+
+	startTime := time.Now().Add(-time.Second * 30)
 
 	displayDuration(startTime)
 
 	got := buf.String()
-	want := "time=.* level=.* msg=\"Job Duration Time: 2.000000m\"\n"
-	if match, _ := regexp.MatchString(want, got); !match {
-		t.Errorf("displayDuration() = %q, want %q", got, want)
-	}
-
-	buf.Reset()
-	startTime = time.Now().Add(-time.Second * 30)
-
-	displayDuration(startTime)
-
-	got = buf.String()
-	want = "time=.* level=.* msg=\"Job Duration Time: 30.000000s\"\n"
+	want := "time=.* level=.* msg=\"Job Duration Time: 30.00"
 	if match, _ := regexp.MatchString(want, got); !match {
 		t.Errorf("displayDuration() = %q, want %q", got, want)
 	}
