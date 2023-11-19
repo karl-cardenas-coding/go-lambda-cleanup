@@ -43,20 +43,21 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(cleanCmd)
+	rootCmd.AddCommand(CleanCmd)
 }
 
-var cleanCmd = &cobra.Command{
+var CleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "Removes all former versions of AWS lambdas except for the $LATEST version",
 	Long:  `Removes all former versions of AWS lambdas except for the $LATEST version. The user also has the ability specify n-? version to retain.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx = context.Background()
 
 		var (
 			awsEnvRegion  string
 			awsEnvProfile string
 			config        cliConfig
+			err           error
 		)
 
 		config = GlobalCliConfig
@@ -64,12 +65,19 @@ var cleanCmd = &cobra.Command{
 		awsEnvProfile = os.Getenv("AWS_PROFILE")
 		if *config.RegionFlag == "" {
 			if awsEnvRegion != "" {
-				*config.RegionFlag = validateRegion(f, awsEnvRegion)
+				*config.RegionFlag, err = validateRegion(f, awsEnvRegion)
+				if err != nil {
+					return err
+				}
+
 			} else {
-				log.Fatal("ERROR: Missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region.")
+				return errors.New("missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region")
 			}
 		} else {
-			*config.RegionFlag = validateRegion(f, *config.RegionFlag)
+			*config.RegionFlag, err = validateRegion(f, *config.RegionFlag)
+			if err != nil {
+				return err
+			}
 		}
 
 		// Create a list of AWS Configurations Options
@@ -115,15 +123,15 @@ var cleanCmd = &cobra.Command{
 
 		cfg, err := awsConfig.LoadDefaultConfig(ctx, awsConfigOptions...)
 		if err != nil {
-			log.Fatal("ERROR ESTABLISHING AWS SESSION")
+			return errors.New("ERROR ESTABLISHING AWS SESSION")
 		}
 
 		creds, err := cfg.Credentials.Retrieve(ctx)
 		if err != nil {
-			log.Fatal("ERROR RETRIEVING AWS CREDENTIALS")
+			return errors.New("ERROR RETRIEVING AWS CREDENTIALS")
 		}
 		if creds.Expired() {
-			log.Fatal("AWS CREDENTIALS EXPIRED")
+			return errors.New("AWS CREDENTIALS EXPIRED")
 		}
 
 		// svc = lambda.NewFromConfig(cfg)
@@ -133,8 +141,10 @@ var cleanCmd = &cobra.Command{
 		})
 		err = executeClean(&config)
 		if err != nil {
-			log.Fatal("ERROR: ", err)
+			return err
 		}
+
+		return err
 	},
 }
 
@@ -542,8 +552,9 @@ func getLambdaStorage(list []types.FunctionConfiguration) (int64, error) {
 }
 
 // Validates that the user passed in a valid AWS Region
-func validateRegion(f embed.FS, input string) string {
+func validateRegion(f embed.FS, input string) (string, error) {
 	var output string
+	var err error
 
 	rawData, _ := f.ReadFile(regionFile)
 	regionsList := strings.Split(string(rawData), "	")
@@ -555,10 +566,11 @@ func validateRegion(f embed.FS, input string) string {
 	}
 
 	if output == "" {
-		log.Fatal(input, " is an invalid AWS region. If this is an error please")
+		err = errors.New(input + " is an invalid AWS region. If this is an error please report it")
+		return "", err
 	}
 
-	return output
+	return output, err
 }
 
 // calculateFileSize returns the size of a file in bytes. The function takes a cliConfig parameter to determine the number format type to return
