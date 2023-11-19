@@ -561,7 +561,7 @@ func validateRegion(f embed.FS, input string) string {
 	return output
 }
 
-// calculateFileSize returns the size of a file in bytes. The function takes a cliConfig paramter to determine the number format type to return
+// calculateFileSize returns the size of a file in bytes. The function takes a cliConfig parameter to determine the number format type to return
 func calculateFileSize(value uint64, config *cliConfig) string {
 	if *config.SizeIEC {
 		return humanize.IBytes(value)
