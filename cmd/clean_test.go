@@ -5,7 +5,9 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"embed"
+	"fmt"
 	"os"
 	"regexp"
 	"sort"
@@ -15,9 +17,13 @@ import (
 	_ "embed"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/docker/go-connections/nat"
 	log "github.com/sirupsen/logrus"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/localstack"
 )
 
 var (
@@ -414,3 +420,219 @@ func TestEnteryMissingEnvRegion(t *testing.T) {
 	}
 
 }
+
+func TestDeleteLambdaVersionError(t *testing.T) {
+
+	ctx := context.Background()
+	networkName := "localstack-network-v2"
+
+	localstackContainer, err := localstack.RunContainer(ctx,
+		localstack.WithNetwork(networkName, "localstack"),
+		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image: "localstack/localstack:latest",
+				Env:   map[string]string{"SERVICES": "lambda"},
+			},
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Clean up the container
+	defer func() {
+		if err := localstackContainer.Terminate(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	lambdaClient, err := lambdaClient(ctx, localstackContainer)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	GlobalCliConfig = cliConfig{
+		RegionFlag:        aws.String("us-east-1"),
+		ProfileFlag:       aws.String(""),
+		DryRun:            aws.Bool(true),
+		Verbose:           aws.Bool(true),
+		LambdaListFile:    aws.String(""),
+		MoreLambdaDetails: aws.Bool(true),
+		SizeIEC:           aws.Bool(false),
+		SkipAliases:       aws.Bool(false),
+		Retain:            aws.Int8(2),
+	}
+
+	deleteList := []lambda.DeleteFunctionInput{
+		{
+			FunctionName: aws.String("test"),
+			Qualifier:    aws.String("1"),
+		},
+	}
+
+	err = deleteLambdaVersion(ctx, lambdaClient, deleteList)
+	if err == nil {
+		t.Errorf("expected an error to be returned but received %v", err)
+	}
+
+}
+
+// func TestDeleteLambdaVersion(t *testing.T) {
+
+// 	ctx := context.Background()
+// 	networkName := "localstack-network-v2"
+
+// 	localstackContainer, err := localstack.RunContainer(ctx,
+// 		localstack.WithNetwork(networkName, "localstack"),
+// 		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
+// 			ContainerRequest: testcontainers.ContainerRequest{
+// 				Image: "localstack/localstack:latest",
+// 				Env:   map[string]string{"SERVICES": "lambda"},
+// 			},
+// 		}),
+// 	)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	// Clean up the container
+// 	defer func() {
+// 		if err := localstackContainer.Terminate(ctx); err != nil {
+// 			panic(err)
+// 		}
+// 	}()
+
+// 	lambdaClient, err := lambdaClient(ctx, localstackContainer)
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+
+// 	GlobalCliConfig = cliConfig{
+// 		RegionFlag:        aws.String("us-east-1"),
+// 		ProfileFlag:       aws.String(""),
+// 		DryRun:            aws.Bool(true),
+// 		Verbose:           aws.Bool(true),
+// 		LambdaListFile:    aws.String(""),
+// 		MoreLambdaDetails: aws.Bool(true),
+// 		SizeIEC:           aws.Bool(false),
+// 		SkipAliases:       aws.Bool(false),
+// 		Retain:            aws.Int8(2),
+// 	}
+
+// 	// verify file existis
+// 	zipFile := "../tests/archive.zip"
+// 	if _, err := os.Stat(zipFile); os.IsNotExist(err) {
+// 		t.Fatalf("zip file does not exist, %v", err)
+// 	}
+
+// 	zipContent, err := decodeZipFile(zipFile)
+// 	if err != nil {
+// 		t.Fatalf("failed to decode zip file, %v", err)
+// 	}
+
+// 	fnCode := []byte(zipContent)
+
+// 	deleteList := []lambda.DeleteFunctionInput{
+// 		{
+// 			FunctionName: aws.String("test"),
+// 			Qualifier:    aws.String("1"),
+// 		},
+// 	}
+
+// 	err = deleteLambdaVersion(ctx, lambdaClient, deleteList)
+// 	if err != nil {
+// 		t.Errorf("expected no error to be returned but received %v", err)
+// 	}
+
+// }
+
+// lambdaClient returns a lambda client configured to use the localstack containers
+func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lambda.Client, error) {
+	mappedPort, err := l.MappedPort(ctx, nat.Port("4566/tcp"))
+	if err != nil {
+		return nil, err
+	}
+
+	provider, err := testcontainers.NewDockerProvider()
+	if err != nil {
+		return nil, err
+	}
+	defer provider.Close()
+
+	host, err := provider.DaemonHost(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	customResolver := aws.EndpointResolverWithOptionsFunc(
+		func(service, region string, opts ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:   "aws",
+				URL:           fmt.Sprintf("http://%s:%d", host, mappedPort.Int()),
+				SigningRegion: region,
+			}, nil
+		})
+
+	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"),
+		config.WithEndpointResolverWithOptions(customResolver),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	client := lambda.NewFromConfig(awsCfg, func(o *lambda.Options) {})
+
+	return client, nil
+}
+
+// // decodeZipFile returns a slice of base64 encoded strings from the provided zip file
+// func decodeZipFile(zipFilePath string) (string, error) {
+// 	// Open the zip file
+// 	r, err := zip.OpenReader(zipFilePath)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	defer r.Close()
+
+// 	var base64Content string
+
+// 	// Iterate over the files in the zip file
+// 	for _, file := range r.File {
+// 		// Get the file's content
+// 		content, err := file.Open()
+// 		if err != nil {
+// 			return "", err
+// 		}
+// 		defer content.Close()
+
+// 		// Read the file's content
+// 		fileContent, err := io.ReadAll(content)
+// 		if err != nil {
+// 			return "", err
+// 		}
+
+// 		base64Content = base64.StdEncoding.EncodeToString(fileContent)
+// 	}
+
+// 	return base64Content, nil
+// }
+
+// func createLambdaFunction(scope *awscdk.Construct, id string, handler string, runtime awscdk.LambdaRuntime) awslambda.Function {
+// 	// Create a new lambda function
+// 	function := awslambda.NewFunction(scope, id, handler, runtime)
+
+// 	// Add a trigger to the lambda function
+// 	function.AddEventSource(awslambda.NewEventSource(
+// 		awslambda.EventSourceType.S3,
+// 		awslambda.S3Config{
+// 			bucket: aws.String("my-bucket"),
+// 			events: []string{
+// 				"s3:ObjectCreated:*",
+// 			},
+// 		},
+// 	))
+
+// 	// Return the lambda function
+// 	return function
+// }

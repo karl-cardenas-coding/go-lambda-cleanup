@@ -37,7 +37,6 @@ const (
 var (
 	ctx               context.Context
 	CustomeDeleteList []string
-	svc               *lambda.Client
 	//go:embed aws-regions.txt
 	f embed.FS
 )
@@ -135,11 +134,11 @@ var CleanCmd = &cobra.Command{
 		}
 
 		// svc = lambda.NewFromConfig(cfg)
-		svc = lambda.NewFromConfig(cfg, func(o *lambda.Options) {
+		initSvc := lambda.NewFromConfig(cfg, func(o *lambda.Options) {
 			// Set the User-Agent for all AWS with the Lambda client
 			o.APIOptions = append(o.APIOptions, middleware.AddUserAgentKeyValue("go-lambda-cleanup", VersionString))
 		})
-		err = executeClean(&config)
+		err = ExecuteClean(&config, initSvc)
 		if err != nil {
 			return err
 		}
@@ -149,7 +148,7 @@ var CleanCmd = &cobra.Command{
 }
 
 // An action function that removes Lambda versions
-func executeClean(config *cliConfig) error {
+func ExecuteClean(config *cliConfig, svc *lambda.Client) error {
 	startTime := time.Now()
 
 	var (
@@ -448,7 +447,9 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string)
 				}
 				returnError = err
 			}
-			lambdasListOutput = append(lambdasListOutput, *result.Configuration)
+			if result != nil && result.Configuration != nil {
+				lambdasListOutput = append(lambdasListOutput, *result.Configuration)
+			}
 		}
 	}
 

@@ -31,3 +31,8 @@ tests-coverage: ## Start Go Test with code coverage
 view-coverage: ## View the code coverage
 	@echo "Viewing the code coverage"
 	go tool cover -html=coverage.out
+
+
+nil: ## Check for nil errors
+	@echo "Checking for nil errors"
+	~/go/bin/nilaway ./...
