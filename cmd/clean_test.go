@@ -678,16 +678,16 @@ func addFunctions(ctx context.Context, svc *lambda.Client, zipPackage *bytes.Buf
 	return fmt.Sprintf("Result: %v", result), nil
 }
 
-func listFunctions(ctx context.Context, svc *lambda.Client) (int, error) {
+// func listFunctions(ctx context.Context, svc *lambda.Client) (int, error) {
 
-	output, err := svc.ListFunctions(ctx, &lambda.ListFunctionsInput{})
-	if err != nil {
-		return 0, err
-	}
+// 	output, err := svc.ListFunctions(ctx, &lambda.ListFunctionsInput{})
+// 	if err != nil {
+// 		return 0, err
+// 	}
 
-	return len(output.Functions), err
+// 	return len(output.Functions), err
 
-}
+// }
 
 func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (*lambda.Client, error) {
 
