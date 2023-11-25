@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -477,74 +478,89 @@ func TestDeleteLambdaVersionError(t *testing.T) {
 
 }
 
-// func TestDeleteLambdaVersion(t *testing.T) {
+func TestDeleteLambdaVersion(t *testing.T) {
 
-// 	ctx := context.Background()
-// 	networkName := "localstack-network-v2"
+	ctx := context.Background()
+	networkName := "localstack-network-v2"
 
-// 	localstackContainer, err := localstack.RunContainer(ctx,
-// 		localstack.WithNetwork(networkName, "localstack"),
-// 		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-// 			ContainerRequest: testcontainers.ContainerRequest{
-// 				Image: "localstack/localstack:latest",
-// 				Env:   map[string]string{"SERVICES": "lambda"},
-// 			},
-// 		}),
-// 	)
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	localstackContainer, err := localstack.RunContainer(ctx,
+		localstack.WithNetwork(networkName, "localstack"),
+		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image: "localstack/localstack:latest",
+				Env:   map[string]string{"SERVICES": "lambda"},
+			},
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
 
-// 	// Clean up the container
-// 	defer func() {
-// 		if err := localstackContainer.Terminate(ctx); err != nil {
-// 			panic(err)
-// 		}
-// 	}()
+	// Clean up the container
+	defer func() {
+		if err := localstackContainer.Terminate(ctx); err != nil {
+			panic(err)
+		}
+	}()
 
-// 	lambdaClient, err := lambdaClient(ctx, localstackContainer)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
+	svc, err := getAWSCredentials(ctx, localstackContainer)
+	if err != nil {
+		panic(err)
+	}
 
-// 	GlobalCliConfig = cliConfig{
-// 		RegionFlag:        aws.String("us-east-1"),
-// 		ProfileFlag:       aws.String(""),
-// 		DryRun:            aws.Bool(true),
-// 		Verbose:           aws.Bool(true),
-// 		LambdaListFile:    aws.String(""),
-// 		MoreLambdaDetails: aws.Bool(true),
-// 		SizeIEC:           aws.Bool(false),
-// 		SkipAliases:       aws.Bool(false),
-// 		Retain:            aws.Int8(2),
-// 	}
+	GlobalCliConfig = cliConfig{
+		RegionFlag:        aws.String("us-east-1"),
+		ProfileFlag:       aws.String(""),
+		DryRun:            aws.Bool(true),
+		Verbose:           aws.Bool(true),
+		LambdaListFile:    aws.String(""),
+		MoreLambdaDetails: aws.Bool(true),
+		SizeIEC:           aws.Bool(false),
+		SkipAliases:       aws.Bool(false),
+		Retain:            aws.Int8(2),
+	}
 
-// 	// verify file existis
-// 	zipFile := "../tests/archive.zip"
-// 	if _, err := os.Stat(zipFile); os.IsNotExist(err) {
-// 		t.Fatalf("zip file does not exist, %v", err)
-// 	}
+	bf, err := getZipPackage("../tests/handler.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
 
-// 	zipContent, err := decodeZipFile(zipFile)
-// 	if err != nil {
-// 		t.Fatalf("failed to decode zip file, %v", err)
-// 	}
+	_, err = addFunctions(ctx, svc, bf)
+	if err != nil {
+		panic(err)
+	}
 
-// 	fnCode := []byte(zipContent)
+	bf2, err := getZipPackage("../tests/handler2.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
 
-// 	deleteList := []lambda.DeleteFunctionInput{
-// 		{
-// 			FunctionName: aws.String("test"),
-// 			Qualifier:    aws.String("1"),
-// 		},
-// 	}
+	_, err = updateFunctions(ctx, svc, *bf2)
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
 
-// 	err = deleteLambdaVersion(ctx, lambdaClient, deleteList)
-// 	if err != nil {
-// 		t.Errorf("expected no error to be returned but received %v", err)
-// 	}
+	deleteList := []lambda.DeleteFunctionInput{
+		{
+			FunctionName: aws.String("func1"),
+			Qualifier:    aws.String("2"),
+		},
+	}
 
-// }
+	err = deleteLambdaVersion(ctx, svc, deleteList)
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
+
+	result, err := listFunctionVersions(ctx, svc, "func1")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+	if result != 2 {
+		t.Errorf("expected 2 functions to be returned but received %v", result)
+	}
+
+}
 
 // lambdaClient returns a lambda client configured to use the localstack containers
 func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lambda.Client, error) {
@@ -586,53 +602,215 @@ func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lamb
 	return client, nil
 }
 
-// // decodeZipFile returns a slice of base64 encoded strings from the provided zip file
-// func decodeZipFile(zipFilePath string) (string, error) {
-// 	// Open the zip file
-// 	r, err := zip.OpenReader(zipFilePath)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	defer r.Close()
+/*
 
-// 	var base64Content string
+THE CODE BELOW IS FOR TESTING PURPOSES ONLY
 
-// 	// Iterate over the files in the zip file
-// 	for _, file := range r.File {
-// 		// Get the file's content
-// 		content, err := file.Open()
-// 		if err != nil {
-// 			return "", err
-// 		}
-// 		defer content.Close()
 
-// 		// Read the file's content
-// 		fileContent, err := io.ReadAll(content)
-// 		if err != nil {
-// 			return "", err
-// 		}
+*/
 
-// 		base64Content = base64.StdEncoding.EncodeToString(fileContent)
-// 	}
+func addFunctions(ctx context.Context, svc *lambda.Client, zipPackage *bytes.Buffer) (string, error) {
 
-// 	return base64Content, nil
-// }
+	list := []lambda.CreateFunctionInput{
+		{
+			Code: &types.FunctionCode{
+				ZipFile: zipPackage.Bytes(),
+			},
+			Description:  aws.String("func1"),
+			FunctionName: aws.String("func1"),
+			Handler:      aws.String("index.handler"),
+			Role:         aws.String("arn:aws:iam::123456789012:role/lambda-role"),
+			Runtime:      types.RuntimeNodejs18x,
+			Publish:      true,
+		},
+		{
+			Code: &types.FunctionCode{
+				ZipFile: zipPackage.Bytes(),
+			},
+			Description:  aws.String("func2"),
+			FunctionName: aws.String("func2"),
+			Handler:      aws.String("index.handler"),
+			Role:         aws.String("arn:aws:iam::123456789012:role/lambda-role"),
+			Runtime:      types.RuntimeNodejs18x,
+			Publish:      true,
+		},
+		{
+			Code: &types.FunctionCode{
+				ZipFile: zipPackage.Bytes(),
+			},
+			Description:  aws.String("func3"),
+			FunctionName: aws.String("func3"),
+			Handler:      aws.String("index.handler"),
+			Role:         aws.String("arn:aws:iam::123456789012:role/lambda-role"),
+			Runtime:      types.RuntimeNodejs18x,
+			Publish:      true,
+		},
+	}
 
-// func createLambdaFunction(scope *awscdk.Construct, id string, handler string, runtime awscdk.LambdaRuntime) awslambda.Function {
-// 	// Create a new lambda function
-// 	function := awslambda.NewFunction(scope, id, handler, runtime)
+	var result string
 
-// 	// Add a trigger to the lambda function
-// 	function.AddEventSource(awslambda.NewEventSource(
-// 		awslambda.EventSourceType.S3,
-// 		awslambda.S3Config{
-// 			bucket: aws.String("my-bucket"),
-// 			events: []string{
-// 				"s3:ObjectCreated:*",
-// 			},
-// 		},
-// 	))
+	for _, input := range list {
+		var state types.State
+		item := input
+		_, err := svc.CreateFunction(ctx, &item)
+		if err != nil {
+			var resConflict *types.ResourceConflictException
+			if errors.As(err, &resConflict) {
+				log.Printf("Function %v already exists.\n", "test")
+				state = types.StateActive
+			} else {
+				log.Panicf("Couldn't create function %v. Here's why: %v\n", "test", err)
+			}
+		} else {
+			waiter := lambda.NewFunctionActiveV2Waiter(svc)
+			funcOutput, err := waiter.WaitForOutput(context.TODO(), &lambda.GetFunctionInput{
+				FunctionName: aws.String(*input.FunctionName)}, 2*time.Minute)
+			if err != nil {
+				log.Panicf("Couldn't wait for function %v to be active. Here's why: %v\n", "test", err)
+			} else {
+				state = funcOutput.Configuration.State
+			}
+		}
 
-// 	// Return the lambda function
-// 	return function
-// }
+		result += fmt.Sprintf("Function %v is %v\n", *input.FunctionName, state)
+	}
+
+	return fmt.Sprintf("Result: %v", result), nil
+}
+
+func listFunctions(ctx context.Context, svc *lambda.Client) (int, error) {
+
+	output, err := svc.ListFunctions(ctx, &lambda.ListFunctionsInput{})
+	if err != nil {
+		return 0, err
+	}
+
+	return len(output.Functions), err
+
+}
+
+func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (*lambda.Client, error) {
+
+	provider, err := testcontainers.NewDockerProvider()
+	if err != nil {
+		return nil, err
+	}
+
+	host, err := provider.DaemonHost(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	mappedPort, err := l.MappedPort(ctx, nat.Port("4566/tcp"))
+	if err != nil {
+		return nil, err
+	}
+
+	customResolver := aws.EndpointResolverWithOptionsFunc(
+		func(service, region string, opts ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:   "aws",
+				URL:           fmt.Sprintf("http://%s:%d", host, mappedPort.Int()),
+				SigningRegion: region,
+			}, nil
+		})
+
+	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"),
+		config.WithEndpointResolverWithOptions(customResolver),
+		// config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accesskey, secretkey, token)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return lambda.NewFromConfig(awsCfg), nil
+
+}
+
+func updateFunctions(ctx context.Context, svc *lambda.Client, zipPackage bytes.Buffer) (string, error) {
+
+	list := []lambda.UpdateFunctionCodeInput{
+		{
+			FunctionName: aws.String("func1"),
+			ZipFile:      zipPackage.Bytes(),
+			Publish:      true,
+		},
+		{
+			FunctionName: aws.String("func2"),
+			ZipFile:      zipPackage.Bytes(),
+			Publish:      true,
+		},
+		{
+			FunctionName: aws.String("func3"),
+			ZipFile:      zipPackage.Bytes(),
+			Publish:      true,
+		},
+	}
+
+	var result string
+
+	for _, input := range list {
+		var state types.State
+		item := input
+		_, err := svc.UpdateFunctionCode(ctx, &item)
+		if err != nil {
+			var resConflict *types.ResourceConflictException
+			if errors.As(err, &resConflict) {
+				log.Printf("Function %v already exists.\n", "test")
+				state = types.StateActive
+			} else {
+				log.Panicf("Couldn't create function %v. Here's why: %v\n", "test", err)
+			}
+		} else {
+			waiter := lambda.NewFunctionActiveV2Waiter(svc)
+			funcOutput, err := waiter.WaitForOutput(context.TODO(), &lambda.GetFunctionInput{
+				FunctionName: aws.String(*input.FunctionName)}, 2*time.Minute)
+			if err != nil {
+				log.Panicf("Couldn't wait for function %v to be active. Here's why: %v\n", "test", err)
+			} else {
+				state = funcOutput.Configuration.State
+			}
+		}
+
+		result += fmt.Sprintf("Function %v was updated and the state is  %v\n", *input.FunctionName, state)
+	}
+
+	return fmt.Sprintf("Result: %v", result), nil
+}
+
+func getZipPackage(zipFile string) (*bytes.Buffer, error) {
+	_, err := os.Stat(zipFile)
+	if err != nil {
+		return nil, err
+	}
+
+	zipPackage, err := os.Open(zipFile)
+	if err != nil {
+		return nil, err
+	}
+
+	defer zipPackage.Close()
+
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(zipPackage)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf, err
+
+}
+
+func listFunctionVersions(ctx context.Context, svc *lambda.Client, funcName string) (int, error) {
+
+	output, err := svc.ListVersionsByFunction(ctx, &lambda.ListVersionsByFunctionInput{
+		FunctionName: aws.String(funcName),
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return len(output.Versions), nil
+}
