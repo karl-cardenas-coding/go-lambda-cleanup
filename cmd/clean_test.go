@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/docker/go-connections/nat"
@@ -718,7 +719,7 @@ func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (
 	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion("us-east-1"),
 		config.WithEndpointResolverWithOptions(customResolver),
-		// config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accesskey, secretkey, token)),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("aaaa", "bbbb", "cccc")),
 	)
 	if err != nil {
 		return nil, err
