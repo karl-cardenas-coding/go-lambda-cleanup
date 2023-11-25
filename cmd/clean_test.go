@@ -511,6 +511,7 @@ func TestDeleteLambdaVersion(t *testing.T) {
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
+		CredentialsFile:   aws.Bool(false),
 		ProfileFlag:       aws.String(""),
 		DryRun:            aws.Bool(true),
 		Verbose:           aws.Bool(true),
@@ -593,6 +594,7 @@ func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lamb
 	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion("us-east-1"),
 		config.WithEndpointResolverWithOptions(customResolver),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("aaaa", "bbbb", "cccc")),
 	)
 	if err != nil {
 		return nil, err
@@ -707,11 +709,12 @@ func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (
 		return nil, err
 	}
 
-	os.Setenv("AWS_SDK_LOAD_CONFIG", "true")
-	os.Setenv("AWS_CONFIG_FILE", "/tests/config")
-	os.Setenv("AWS_SHARED_CREDENTIALS_FILE", "/tests/config")
-	os.Setenv("AWS_ACCESS_KEY_ID", "aaaa")
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "bbbb")
+	// os.Setenv("AWS_SDK_LOAD_CONFIG", "true")
+	// os.Setenv("AWS_CONFIG_FILE", "/tests/config")
+	// os.Setenv("AWS_SHARED_CREDENTIALS_FILE", "/tests/config")
+	// os.Setenv("AWS_ACCESS_KEY_ID", "aaaa")
+	// os.Setenv("AWS_SECRET_ACCESS_KEY", "bbbb")
+	// os.Setenv("AWS_SESSION_TOKEN", "cccc")
 
 	customResolver := aws.EndpointResolverWithOptionsFunc(
 		func(service, region string, opts ...interface{}) (aws.Endpoint, error) {
