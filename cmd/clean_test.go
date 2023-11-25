@@ -707,6 +707,12 @@ func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (
 		return nil, err
 	}
 
+	os.Setenv("AWS_SDK_LOAD_CONFIG", "true")
+	os.Setenv("AWS_CONFIG_FILE", "/tests/config")
+	os.Setenv("AWS_SHARED_CREDENTIALS_FILE", "/tests/config")
+	os.Setenv("AWS_ACCESS_KEY_ID", "aaaa")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "bbbb")
+
 	customResolver := aws.EndpointResolverWithOptionsFunc(
 		func(service, region string, opts ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
@@ -715,8 +721,8 @@ func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (
 				SigningRegion: region,
 			}, nil
 		})
-
 	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithSharedConfigFiles([]string{"/tests/config"}),
 		config.WithRegion("us-east-1"),
 		config.WithEndpointResolverWithOptions(customResolver),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("aaaa", "bbbb", "cccc")),
