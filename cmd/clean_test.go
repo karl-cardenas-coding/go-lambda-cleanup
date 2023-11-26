@@ -964,6 +964,8 @@ func TestCleanCMD(t *testing.T) {
 
 	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
 	os.Setenv("AWS_EC2_METADATA_DISABLED", "true")
+	os.Setenv("AWS_ACCESS_KEY_ID", "test")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
 
 	err = CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run", "--region", "us-east-1"})
 	if err != nil {
