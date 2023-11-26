@@ -138,7 +138,7 @@ var CleanCmd = &cobra.Command{
 			// Set the User-Agent for all AWS with the Lambda client
 			o.APIOptions = append(o.APIOptions, middleware.AddUserAgentKeyValue("go-lambda-cleanup", VersionString))
 		})
-		err = ExecuteClean(&config, initSvc)
+		err = ExecuteClean(ctx, &config, initSvc)
 		if err != nil {
 			return err
 		}
@@ -148,7 +148,7 @@ var CleanCmd = &cobra.Command{
 }
 
 // An action function that removes Lambda versions
-func ExecuteClean(config *cliConfig, svc *lambda.Client) error {
+func ExecuteClean(ctx context.Context, config *cliConfig, svc *lambda.Client) error {
 	startTime := time.Now()
 
 	var (

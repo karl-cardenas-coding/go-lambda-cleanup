@@ -39,11 +39,6 @@ jobs:
     - name: Execute Go tests
       run:  make tests-coverage
 
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
     - name: Test CLI
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

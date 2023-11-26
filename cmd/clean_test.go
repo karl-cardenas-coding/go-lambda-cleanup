@@ -810,6 +810,14 @@ func TestGetAllLambdaVersionWithAlias(t *testing.T) {
 		t.Errorf("expected 2 versions to be returned but received %v", len(versions))
 	}
 
+	_, err = getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
+		FunctionName: aws.String("func22"),
+		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func22"),
+	}, GlobalCliConfig)
+	if err == nil {
+		t.Errorf("expected an error to be returned but received %v", err)
+	}
+
 	t.Cleanup(func() {
 		GlobalCliConfig = cliConfig{
 			RegionFlag:        aws.String(""),
@@ -826,6 +834,79 @@ func TestGetAllLambdaVersionWithAlias(t *testing.T) {
 
 	})
 
+}
+
+func TestExecuteClean(t *testing.T) {
+	ctx := context.TODO()
+	networkName := "localstack-network-v2"
+
+	localstackContainer, err := localstack.RunContainer(ctx,
+		localstack.WithNetwork(networkName, "localstack"),
+		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image: "localstack/localstack:latest",
+				Env:   map[string]string{"SERVICES": "lambda"},
+			},
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Clean up the container
+	defer func() {
+		if err := localstackContainer.Terminate(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	svc, err := getAWSCredentials(ctx, localstackContainer)
+	if err != nil {
+		panic(err)
+	}
+
+	GlobalCliConfig = cliConfig{
+		RegionFlag:        aws.String(""),
+		CredentialsFile:   aws.Bool(false),
+		ProfileFlag:       aws.String(""),
+		DryRun:            aws.Bool(true),
+		Verbose:           aws.Bool(true),
+		LambdaListFile:    aws.String(""),
+		MoreLambdaDetails: aws.Bool(true),
+		SizeIEC:           aws.Bool(false),
+		SkipAliases:       aws.Bool(false),
+		Retain:            aws.Int8(0),
+	}
+
+	bf, err := getZipPackage("../tests/handler.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = addFunctions(ctx, svc, bf)
+	if err != nil {
+		panic(err)
+	}
+
+	bf2, err := getZipPackage("../tests/handler2.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = updateFunctions(ctx, svc, *bf2)
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = publishAlias(ctx, svc, "func1", "DEMO", "2")
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
+
+	err = ExecuteClean(ctx, &GlobalCliConfig, svc)
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
 }
 
 func TestAWSEnteryMissingEnvRegion(t *testing.T) {
