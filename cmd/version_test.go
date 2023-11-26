@@ -341,3 +341,20 @@ func TestCheckForNewReleaseNoNewRelease(t *testing.T) {
 		t.Fatalf("Error checking for new release: %s", msg)
 	}
 }
+
+func TestVersionCMD(t *testing.T) {
+
+	VersionString = "1.0.0"
+
+	err := VersionCmd.RunE(VersionCmd, []string{})
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
+
+	VersionString = "aaaa"
+	err = VersionCmd.RunE(VersionCmd, []string{})
+	if err == nil {
+		t.Errorf("expected an error to be returned but received %v", err)
+	}
+
+}

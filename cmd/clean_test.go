@@ -972,6 +972,27 @@ func TestCleanCMD(t *testing.T) {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
 
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(2),
+		}
+
+		os.Unsetenv("AWS_ENDPOINT_URL")
+		os.Unsetenv("AWS_EC2_METADATA_DISABLED")
+		os.Unsetenv("AWS_ACCESS_KEY_ID")
+		os.Unsetenv("AWS_SECRET_ACCESS_KEY")
+
+	})
+
 }
 
 func TestAWSEnteryMissingEnvRegion(t *testing.T) {

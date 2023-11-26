@@ -14,26 +14,27 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(VersionCmd)
 }
 
 const (
 	url = "https://api.github.com/repos/karl-cardenas-coding/go-lambda-cleanup/releases/latest"
 )
 
-var versionCmd = &cobra.Command{
+var VersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the current version number of go-lambda-cleanup",
 	Long:  `Prints the current version number of go-lambda-cleanup`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		version := fmt.Sprintf("go-lambda-cleanup v%s", VersionString)
 		log.Info(version)
 		_, message, err := checkForNewRelease(GlobalHTTPClient, VersionString, UserAgent, url)
 		if err != nil {
 			log.Error(err)
-			log.Fatal("unable to check for new releases. " + IssueMSG)
+			return err
 		}
 		log.Info(message)
+		return err
 	},
 }
 
