@@ -616,6 +616,200 @@ func TestGetAllLambdas(t *testing.T) {
 		t.Errorf("Scenario 2: expected 1 functions to be returned but received %v", len(lambdaListResult2))
 	}
 
+	_, err = getAllLambdas(ctx, svc, []string{"func22"})
+	if err != nil {
+		t.Errorf("expected an error to be returned but received %v", err)
+	}
+
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(0),
+		}
+
+	})
+
+}
+
+func TestGetAllLambdaVersion(t *testing.T) {
+
+	ctx := context.Background()
+	networkName := "localstack-network-v2"
+
+	localstackContainer, err := localstack.RunContainer(ctx,
+		localstack.WithNetwork(networkName, "localstack"),
+		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image: "localstack/localstack:latest",
+				Env:   map[string]string{"SERVICES": "lambda"},
+			},
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Clean up the container
+	defer func() {
+		if err := localstackContainer.Terminate(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	svc, err := getAWSCredentials(ctx, localstackContainer)
+	if err != nil {
+		panic(err)
+	}
+
+	GlobalCliConfig = cliConfig{
+		RegionFlag:        aws.String("us-east-1"),
+		CredentialsFile:   aws.Bool(false),
+		ProfileFlag:       aws.String(""),
+		DryRun:            aws.Bool(true),
+		Verbose:           aws.Bool(true),
+		LambdaListFile:    aws.String(""),
+		MoreLambdaDetails: aws.Bool(true),
+		SizeIEC:           aws.Bool(false),
+		SkipAliases:       aws.Bool(false),
+		Retain:            aws.Int8(0),
+	}
+
+	bf, err := getZipPackage("../tests/handler.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = addFunctions(ctx, svc, bf)
+	if err != nil {
+		panic(err)
+	}
+
+	bf2, err := getZipPackage("../tests/handler2.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = updateFunctions(ctx, svc, *bf2)
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
+		FunctionName: aws.String("func1"),
+	}, GlobalCliConfig)
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
+
+	if len(versions) != 3 {
+		t.Errorf("expected 3 versions to be returned but received %v", len(versions))
+	}
+
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(true),
+			Retain:            aws.Int8(0),
+		}
+
+	})
+
+}
+func TestGetAllLambdaVersionWithAlias(t *testing.T) {
+
+	ctx := context.Background()
+	networkName := "localstack-network-v2"
+
+	localstackContainer, err := localstack.RunContainer(ctx,
+		localstack.WithNetwork(networkName, "localstack"),
+		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image: "localstack/localstack:latest",
+				Env:   map[string]string{"SERVICES": "lambda"},
+			},
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Clean up the container
+	defer func() {
+		if err := localstackContainer.Terminate(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	svc, err := getAWSCredentials(ctx, localstackContainer)
+	if err != nil {
+		panic(err)
+	}
+
+	GlobalCliConfig = cliConfig{
+		RegionFlag:        aws.String("us-east-1"),
+		CredentialsFile:   aws.Bool(false),
+		ProfileFlag:       aws.String(""),
+		DryRun:            aws.Bool(true),
+		Verbose:           aws.Bool(true),
+		LambdaListFile:    aws.String(""),
+		MoreLambdaDetails: aws.Bool(true),
+		SizeIEC:           aws.Bool(false),
+		SkipAliases:       aws.Bool(true),
+		Retain:            aws.Int8(0),
+	}
+
+	bf, err := getZipPackage("../tests/handler.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = addFunctions(ctx, svc, bf)
+	if err != nil {
+		panic(err)
+	}
+
+	bf2, err := getZipPackage("../tests/handler2.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = updateFunctions(ctx, svc, *bf2)
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = publishAlias(ctx, svc, "func1", "DEMO", "2")
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
+
+	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
+		FunctionName: aws.String("func1"),
+		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
+	}, GlobalCliConfig)
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
+
+	if len(versions) != 2 {
+		t.Errorf("expected 2 versions to be returned but received %v", len(versions))
+	}
+
 	t.Cleanup(func() {
 		GlobalCliConfig = cliConfig{
 			RegionFlag:        aws.String(""),
@@ -873,7 +1067,7 @@ func addFunctions(ctx context.Context, svc *lambda.Client, zipPackage *bytes.Buf
 	for _, input := range list {
 		var state types.State
 		item := input
-		_, err := svc.CreateFunction(ctx, &item)
+		output, err := svc.CreateFunction(ctx, &item)
 		if err != nil {
 			var resConflict *types.ResourceConflictException
 			if errors.As(err, &resConflict) {
@@ -892,6 +1086,8 @@ func addFunctions(ctx context.Context, svc *lambda.Client, zipPackage *bytes.Buf
 				state = funcOutput.Configuration.State
 			}
 		}
+
+		fmt.Println("Function ARN: ", *output.FunctionArn)
 
 		result += fmt.Sprintf("Function %v is %v\n", *input.FunctionName, state)
 	}
@@ -998,6 +1194,24 @@ func updateFunctions(ctx context.Context, svc *lambda.Client, zipPackage bytes.B
 	}
 
 	return fmt.Sprintf("Result: %v", result), nil
+}
+
+func publishAlias(ctx context.Context, svc *lambda.Client, functionName string, aliasName string, version string) (string, error) {
+
+	input := lambda.CreateAliasInput{
+		FunctionName:    aws.String(functionName),
+		FunctionVersion: aws.String(version),
+		Name:            aws.String(aliasName),
+		Description:     aws.String("Alias Test"),
+	}
+
+	_, err := svc.CreateAlias(ctx, &input)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
+	return fmt.Sprintf("Alias %v was created for function %v", aliasName, functionName), nil
 }
 
 func getZipPackage(zipFile string) (*bytes.Buffer, error) {
