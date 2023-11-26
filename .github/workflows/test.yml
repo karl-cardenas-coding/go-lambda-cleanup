@@ -46,8 +46,6 @@ jobs:
 
     - name: Test CLI
       run: |
-        go get
-        go test -coverprofile=go.txt -v ./...
         go run main.go clean -r us-west-2
         go run main.go version
   
