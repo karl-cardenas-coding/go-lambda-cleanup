@@ -339,6 +339,7 @@ func TestCalculateFileSize(t *testing.T) {
 	if got2 != want2 {
 		t.Fatalf("Expected the size output to be %s but received %s instead", want2, got2)
 	}
+
 }
 
 func TestDisplayDuration(t *testing.T) {
@@ -411,6 +412,22 @@ func TestDeleteLambdaVersionError(t *testing.T) {
 		t.Errorf("expected an error to be returned but received %v", err)
 	}
 
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(0),
+		}
+
+	})
+
 }
 
 func TestDeleteLambdaVersion(t *testing.T) {
@@ -453,7 +470,7 @@ func TestDeleteLambdaVersion(t *testing.T) {
 		MoreLambdaDetails: aws.Bool(true),
 		SizeIEC:           aws.Bool(false),
 		SkipAliases:       aws.Bool(false),
-		Retain:            aws.Int8(2),
+		Retain:            aws.Int8(0),
 	}
 
 	bf, err := getZipPackage("../tests/handler.zip")
@@ -496,22 +513,25 @@ func TestDeleteLambdaVersion(t *testing.T) {
 		t.Errorf("expected 2 functions to be returned but received %v", result)
 	}
 
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(0),
+		}
+
+	})
+
 }
 
 func TestAWSEnteryMissingEnvRegion(t *testing.T) {
-
-	GlobalCliConfig = cliConfig{
-		RegionFlag:        aws.String(""),
-		CredentialsFile:   aws.Bool(false),
-		ProfileFlag:       aws.String(""),
-		DryRun:            aws.Bool(true),
-		Verbose:           aws.Bool(true),
-		LambdaListFile:    aws.String(""),
-		MoreLambdaDetails: aws.Bool(true),
-		SizeIEC:           aws.Bool(false),
-		SkipAliases:       aws.Bool(false),
-		Retain:            aws.Int8(2),
-	}
 
 	expectedErr := "Missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
 
@@ -520,22 +540,25 @@ func TestAWSEnteryMissingEnvRegion(t *testing.T) {
 		t.Fatalf("Expected an error to be returned but received %v", err.Error())
 	}
 
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(2),
+		}
+
+	})
+
 }
 
 func TestAWSValidateRegion(t *testing.T) {
-
-	GlobalCliConfig = cliConfig{
-		RegionFlag:        aws.String(""),
-		CredentialsFile:   aws.Bool(false),
-		ProfileFlag:       aws.String(""),
-		DryRun:            aws.Bool(true),
-		Verbose:           aws.Bool(true),
-		LambdaListFile:    aws.String(""),
-		MoreLambdaDetails: aws.Bool(true),
-		SizeIEC:           aws.Bool(false),
-		SkipAliases:       aws.Bool(false),
-		Retain:            aws.Int8(2),
-	}
 
 	input := "us-east-1"
 	want := "us-east-1"
@@ -544,22 +567,25 @@ func TestAWSValidateRegion(t *testing.T) {
 		t.Fatalf("The provided input is valid, %s is a valid region", input)
 	}
 
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(0),
+		}
+
+	})
+
 }
 
 func TestValidateRegionWithEnv(t *testing.T) {
-
-	GlobalCliConfig = cliConfig{
-		RegionFlag:        aws.String(""),
-		CredentialsFile:   aws.Bool(false),
-		ProfileFlag:       aws.String(""),
-		DryRun:            aws.Bool(true),
-		Verbose:           aws.Bool(true),
-		LambdaListFile:    aws.String(""),
-		MoreLambdaDetails: aws.Bool(true),
-		SizeIEC:           aws.Bool(false),
-		SkipAliases:       aws.Bool(false),
-		Retain:            aws.Int8(2),
-	}
 
 	os.Setenv("AWS_DEFAULT_REGION", "not-valid")
 	expectedErr := "not-valid is an invalid AWS region. If this is an error please report it"
@@ -583,44 +609,50 @@ func TestValidateRegionWithEnv(t *testing.T) {
 		t.Fatalf("Expected an error to be returned but received %v", err.Error())
 	}
 
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(false),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(0),
+		}
+
+	})
+
 }
 
 func TestAWSValidateRegionWithFlag(t *testing.T) {
-
-	GlobalCliConfig = cliConfig{
-		RegionFlag:        aws.String(""),
-		CredentialsFile:   aws.Bool(false),
-		ProfileFlag:       aws.String(""),
-		DryRun:            aws.Bool(true),
-		Verbose:           aws.Bool(true),
-		LambdaListFile:    aws.String(""),
-		MoreLambdaDetails: aws.Bool(true),
-		SizeIEC:           aws.Bool(false),
-		SkipAliases:       aws.Bool(false),
-		Retain:            aws.Int8(2),
-	}
 
 	expectedErr := "missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
 	err := CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--region", "not-valid", "--retain", "2", "--dry-run"})
 	if err == nil || err.Error() != expectedErr {
 		t.Fatalf("Expected an error to be returned but received %v", err.Error())
 	}
+
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(0),
+		}
+
+	})
 }
 
 func TestAWSInvalidRegion(t *testing.T) {
-
-	GlobalCliConfig = cliConfig{
-		RegionFlag:        aws.String(""),
-		CredentialsFile:   aws.Bool(false),
-		ProfileFlag:       aws.String(""),
-		DryRun:            aws.Bool(true),
-		Verbose:           aws.Bool(true),
-		LambdaListFile:    aws.String(""),
-		MoreLambdaDetails: aws.Bool(true),
-		SizeIEC:           aws.Bool(false),
-		SkipAliases:       aws.Bool(false),
-		Retain:            aws.Int8(2),
-	}
 
 	input := "not-valid"
 	want := "not-valid is an invalid AWS region. If this is an error please report it"
@@ -631,7 +663,18 @@ func TestAWSInvalidRegion(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		// Clear all AWS credentials
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(0),
+		}
 
 	})
 }

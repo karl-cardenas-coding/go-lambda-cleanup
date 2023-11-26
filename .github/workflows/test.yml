@@ -60,8 +60,3 @@ jobs:
         echo "--------------------------------------------------"
         go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=0.0.0'" -o=glc -v
         ./glc clean -r us-west-2
-
-    - uses: actions/upload-artifact@v1
-      with:
-        name: test-results
-        path: go.txt
