@@ -949,10 +949,10 @@ func TestCleanCMD(t *testing.T) {
 		panic(err)
 	}
 
-	_, err = getAWSCredentials(ctx, localstackContainer)
-	if err != nil {
-		panic(err)
-	}
+	// _, err = getAWSCredentials(ctx, localstackContainer)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
