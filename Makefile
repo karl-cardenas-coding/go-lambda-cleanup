@@ -21,12 +21,12 @@ build: ## Build the binary file
 
 tests: ## Run tests
 	@echo "Running tests"
-	go test -race -shuffle on ./...
+	go test -race ./...
 
 
 tests-coverage: ## Start Go Test with code coverage
 	@echo "Running Go Tests with code coverage"
-	go test -race -shuffle on -cover -coverprofile=coverage.out  ./...
+	go test -race -cover -coverprofile=coverage.out  ./...
 
 view-coverage: ## View the code coverage
 	@echo "Viewing the code coverage"

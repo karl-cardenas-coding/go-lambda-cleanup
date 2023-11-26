@@ -1,6 +1,8 @@
 // Copyright (c) karl-cardenas-coding
 // SPDX-License-Identifier: MIT
 
+//go:build integration
+
 package cmd
 
 import (
@@ -16,6 +18,8 @@ import (
 	"time"
 
 	_ "embed"
+
+	"aws/aws-sdk-go/awstesting"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -57,61 +61,6 @@ func TestGetLambdaStorage(t *testing.T) {
 	got, err := getLambdaStorage(lambdaList)
 	if got != want || err != nil {
 		t.Fatalf("Lambda storage calculation invalid. Expected %d but received %d", want, got)
-	}
-}
-
-func TestValidateRegion(t *testing.T) {
-	input := "us-east-1"
-	want := "us-east-1"
-	got, err := validateRegion(rr, input)
-	if err != nil || got != want {
-		t.Fatalf("The provided input is valid, %s is a valid region", input)
-	}
-
-}
-
-func TestValidateRegionWithEnv(t *testing.T) {
-
-	os.Setenv("AWS_DEFAULT_REGION", "not-valid")
-	expectedErr := "not-valid is an invalid AWS region. If this is an error please report it"
-	err := CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run"})
-	if err == nil || err.Error() != expectedErr {
-		t.Fatalf("Expected an error to be returned but received %v", err.Error())
-	}
-
-	os.Setenv("AWS_DEFAULT_REGION", "")
-	expectedErr = "missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
-	err = CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run"})
-	if err == nil || err.Error() != expectedErr {
-		t.Fatalf("Expected an error to be returned but received %v", err.Error())
-	}
-
-	// Set rootCmd to use the region flag
-	RegionFlag = "not-valid"
-	expectedErr = "not-valid is an invalid AWS region. If this is an error please report it"
-	err = CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run"})
-	if err == nil || err.Error() != expectedErr {
-		t.Fatalf("Expected an error to be returned but received %v", err.Error())
-	}
-
-}
-
-func TestValidateRegionWithFlag(t *testing.T) {
-
-	expectedErr := "missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
-	err := CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--region", "not-valid", "--retain", "2", "--dry-run"})
-	if err == nil || err.Error() != expectedErr {
-		t.Fatalf("Expected an error to be returned but received %v", err.Error())
-	}
-}
-
-func TestInvalidRegion(t *testing.T) {
-	input := "not-valid"
-	want := "not-valid is an invalid AWS region. If this is an error please report it"
-	got, err := validateRegion(rr, input)
-
-	if err == nil || err.Error() != want {
-		t.Fatalf("The provided input is invalid, %s is not a valid region", got)
 	}
 }
 
@@ -412,17 +361,6 @@ func TestDisplayDuration(t *testing.T) {
 	buf.Reset()
 }
 
-func TestEnteryMissingEnvRegion(t *testing.T) {
-
-	expectedErr := "Missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
-
-	err := CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run"})
-	if err == nil && err.Error() != expectedErr {
-		t.Fatalf("Expected an error to be returned but received %v", err.Error())
-	}
-
-}
-
 func TestDeleteLambdaVersionError(t *testing.T) {
 
 	ctx := context.Background()
@@ -476,6 +414,12 @@ func TestDeleteLambdaVersionError(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected an error to be returned but received %v", err)
 	}
+
+	t.Cleanup(func() {
+		// Clear all AWS credentials
+		awstesting.ClearAllProviders()
+
+	})
 
 }
 
@@ -564,6 +508,103 @@ func TestDeleteLambdaVersion(t *testing.T) {
 
 }
 
+func TestAWSEnteryMissingEnvRegion(t *testing.T) {
+
+	expectedErr := "Missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
+
+	err := CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run"})
+	if err == nil && err.Error() != expectedErr {
+		t.Fatalf("Expected an error to be returned but received %v", err.Error())
+	}
+
+	t.Cleanup(func() {
+		// Clear all AWS credentials
+		awstesting.ClearAllProviders()
+
+	})
+
+}
+
+func TestAWSValidateRegion(t *testing.T) {
+	input := "us-east-1"
+	want := "us-east-1"
+	got, err := validateRegion(rr, input)
+	if err != nil || got != want {
+		t.Fatalf("The provided input is valid, %s is a valid region", input)
+	}
+
+	t.Cleanup(func() {
+		// Clear all AWS credentials
+		awstesting.ClearAllProviders()
+
+	})
+
+}
+
+func TestValidateRegionWithEnv(t *testing.T) {
+
+	os.Setenv("AWS_DEFAULT_REGION", "not-valid")
+	expectedErr := "not-valid is an invalid AWS region. If this is an error please report it"
+	err := CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run"})
+	if err == nil || err.Error() != expectedErr {
+		t.Fatalf("Expected an error to be returned but received %v", err.Error())
+	}
+
+	os.Setenv("AWS_DEFAULT_REGION", "")
+	expectedErr = "missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
+	err = CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run"})
+	if err == nil || err.Error() != expectedErr {
+		t.Fatalf("Expected an error to be returned but received %v", err.Error())
+	}
+
+	// Set rootCmd to use the region flag
+	RegionFlag = "not-valid"
+	expectedErr = "not-valid is an invalid AWS region. If this is an error please report it"
+	err = CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run"})
+	if err == nil || err.Error() != expectedErr {
+		t.Fatalf("Expected an error to be returned but received %v", err.Error())
+	}
+
+	t.Cleanup(func() {
+		// Clear all AWS credentials
+		awstesting.ClearAllProviders()
+
+	})
+
+}
+
+func TestAWSValidateRegionWithFlag(t *testing.T) {
+
+	expectedErr := "missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
+	err := CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--region", "not-valid", "--retain", "2", "--dry-run"})
+	if err == nil || err.Error() != expectedErr {
+		t.Fatalf("Expected an error to be returned but received %v", err.Error())
+	}
+}
+
+func TestAWSInvalidRegion(t *testing.T) {
+	input := "not-valid"
+	want := "not-valid is an invalid AWS region. If this is an error please report it"
+	got, err := validateRegion(rr, input)
+
+	if err == nil || err.Error() != want {
+		t.Fatalf("The provided input is invalid, %s is not a valid region", got)
+	}
+
+	t.Cleanup(func() {
+		// Clear all AWS credentials
+		awstesting.ClearAllProviders()
+
+	})
+}
+
+/*
+
+THE CODE BELOW IS FOR TESTING PURPOSES ONLY
+
+
+*/
+
 // lambdaClient returns a lambda client configured to use the localstack containers
 func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lambda.Client, error) {
 	mappedPort, err := l.MappedPort(ctx, nat.Port("4566/tcp"))
@@ -604,13 +645,6 @@ func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lamb
 
 	return client, nil
 }
-
-/*
-
-THE CODE BELOW IS FOR TESTING PURPOSES ONLY
-
-
-*/
 
 func addFunctions(ctx context.Context, svc *lambda.Client, zipPackage *bytes.Buffer) (string, error) {
 
@@ -708,13 +742,6 @@ func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (
 	if err != nil {
 		return nil, err
 	}
-
-	// os.Setenv("AWS_SDK_LOAD_CONFIG", "true")
-	// os.Setenv("AWS_CONFIG_FILE", "/tests/config")
-	// os.Setenv("AWS_SHARED_CREDENTIALS_FILE", "/tests/config")
-	// os.Setenv("AWS_ACCESS_KEY_ID", "aaaa")
-	// os.Setenv("AWS_SECRET_ACCESS_KEY", "bbbb")
-	// os.Setenv("AWS_SESSION_TOKEN", "cccc")
 
 	customResolver := aws.EndpointResolverWithOptionsFunc(
 		func(service, region string, opts ...interface{}) (aws.Endpoint, error) {
