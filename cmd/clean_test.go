@@ -934,6 +934,21 @@ func TestCleanCMD(t *testing.T) {
 		}
 	}()
 
+	provider, err := testcontainers.NewDockerProvider()
+	if err != nil {
+		panic(err)
+	}
+
+	host, err := provider.DaemonHost(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	mappedPort, err := localstackContainer.MappedPort(ctx, nat.Port("4566/tcp"))
+	if err != nil {
+		panic(err)
+	}
+
 	_, err = getAWSCredentials(ctx, localstackContainer)
 	if err != nil {
 		panic(err)
@@ -951,6 +966,8 @@ func TestCleanCMD(t *testing.T) {
 		SkipAliases:       aws.Bool(false),
 		Retain:            aws.Int8(0),
 	}
+
+	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
 
 	err = CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run", "--region", "us-east-1"})
 	if err != nil {
