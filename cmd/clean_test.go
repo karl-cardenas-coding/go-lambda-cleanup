@@ -949,11 +949,6 @@ func TestCleanCMD(t *testing.T) {
 		panic(err)
 	}
 
-	// _, err = getAWSCredentials(ctx, localstackContainer)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
 		CredentialsFile:   aws.Bool(false),
@@ -968,6 +963,7 @@ func TestCleanCMD(t *testing.T) {
 	}
 
 	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	os.Setenv("AWS_EC2_METADATA_DISABLED", "true")
 
 	err = CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run", "--region", "us-east-1"})
 	if err != nil {
