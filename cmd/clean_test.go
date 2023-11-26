@@ -909,6 +909,56 @@ func TestExecuteClean(t *testing.T) {
 	}
 }
 
+func TestCleanCMD(t *testing.T) {
+
+	ctx := context.TODO()
+	networkName := "localstack-network-v2"
+
+	localstackContainer, err := localstack.RunContainer(ctx,
+		localstack.WithNetwork(networkName, "localstack"),
+		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image: "localstack/localstack:latest",
+				Env:   map[string]string{"SERVICES": "lambda"},
+			},
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Clean up the container
+	defer func() {
+		if err := localstackContainer.Terminate(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	_, err = getAWSCredentials(ctx, localstackContainer)
+	if err != nil {
+		panic(err)
+	}
+
+	GlobalCliConfig = cliConfig{
+		RegionFlag:        aws.String("us-east-1"),
+		CredentialsFile:   aws.Bool(false),
+		ProfileFlag:       aws.String(""),
+		DryRun:            aws.Bool(true),
+		Verbose:           aws.Bool(true),
+		LambdaListFile:    aws.String(""),
+		MoreLambdaDetails: aws.Bool(true),
+		SizeIEC:           aws.Bool(false),
+		SkipAliases:       aws.Bool(false),
+		Retain:            aws.Int8(0),
+	}
+
+	err = CleanCmd.RunE(CleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run", "--region", "us-east-1"})
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
+
+}
+
 func TestAWSEnteryMissingEnvRegion(t *testing.T) {
 
 	expectedErr := "Missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"

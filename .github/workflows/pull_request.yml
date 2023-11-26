@@ -43,7 +43,7 @@ jobs:
         args: -v
     
     - name: Execute Go tests
-      run: make test-coverage
+      run: make tests-coverage
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
