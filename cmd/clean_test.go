@@ -530,6 +530,109 @@ func TestDeleteLambdaVersion(t *testing.T) {
 	})
 
 }
+func TestGetAllLambdas(t *testing.T) {
+
+	ctx := context.Background()
+	networkName := "localstack-network-v2"
+
+	localstackContainer, err := localstack.RunContainer(ctx,
+		localstack.WithNetwork(networkName, "localstack"),
+		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image: "localstack/localstack:latest",
+				Env:   map[string]string{"SERVICES": "lambda"},
+			},
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Clean up the container
+	defer func() {
+		if err := localstackContainer.Terminate(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	svc, err := getAWSCredentials(ctx, localstackContainer)
+	if err != nil {
+		panic(err)
+	}
+
+	GlobalCliConfig = cliConfig{
+		RegionFlag:        aws.String("us-east-1"),
+		CredentialsFile:   aws.Bool(false),
+		ProfileFlag:       aws.String(""),
+		DryRun:            aws.Bool(true),
+		Verbose:           aws.Bool(true),
+		LambdaListFile:    aws.String(""),
+		MoreLambdaDetails: aws.Bool(true),
+		SizeIEC:           aws.Bool(false),
+		SkipAliases:       aws.Bool(false),
+		Retain:            aws.Int8(0),
+	}
+
+	bf, err := getZipPackage("../tests/handler.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = addFunctions(ctx, svc, bf)
+	if err != nil {
+		panic(err)
+	}
+
+	bf2, err := getZipPackage("../tests/handler2.zip")
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	_, err = updateFunctions(ctx, svc, *bf2)
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	lambdaListResult, err := getAllLambdas(ctx, svc, []string{})
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
+
+	result, err := listFunctions(ctx, svc)
+	if err != nil {
+		t.Logf("expected no error to be returned but received %v", err)
+	}
+
+	if len(lambdaListResult) != result {
+		t.Errorf("expected 3 functions to be returned but received %v", result)
+	}
+
+	lambdaListResult2, err := getAllLambdas(ctx, svc, []string{"func1"})
+	if err != nil {
+		t.Errorf("expected no error to be returned but received %v", err)
+	}
+
+	if len(lambdaListResult2) != 1 {
+		t.Errorf("Scenario 2: expected 1 functions to be returned but received %v", len(lambdaListResult2))
+	}
+
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(0),
+		}
+
+	})
+
+}
 
 func TestAWSEnteryMissingEnvRegion(t *testing.T) {
 
@@ -796,16 +899,16 @@ func addFunctions(ctx context.Context, svc *lambda.Client, zipPackage *bytes.Buf
 	return fmt.Sprintf("Result: %v", result), nil
 }
 
-// func listFunctions(ctx context.Context, svc *lambda.Client) (int, error) {
+func listFunctions(ctx context.Context, svc *lambda.Client) (int, error) {
 
-// 	output, err := svc.ListFunctions(ctx, &lambda.ListFunctionsInput{})
-// 	if err != nil {
-// 		return 0, err
-// 	}
+	output, err := svc.ListFunctions(ctx, &lambda.ListFunctionsInput{})
+	if err != nil {
+		return 0, err
+	}
 
-// 	return len(output.Functions), err
+	return len(output.Functions), err
 
-// }
+}
 
 func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (*lambda.Client, error) {
 
