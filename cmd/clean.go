@@ -37,8 +37,6 @@ const (
 var (
 	//go:embed aws-regions.txt
 	f embed.FS
-
-	a string
 )
 
 func init() {
