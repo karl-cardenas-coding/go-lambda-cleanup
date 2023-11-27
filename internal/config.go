@@ -6,7 +6,6 @@ package internal
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"os"
 	"strings"
 
@@ -53,14 +52,16 @@ func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 
 	fileContent, err := os.ReadFile(file)
 	if err != nil {
-		log.Fatal("unable to read the input file")
+		return list, errors.New("unable to read the input file")
 	}
 
 	err = yaml.Unmarshal(fileContent, &list)
 	if err != nil {
-		err = errors.New("unable to unmarshall the YAML file")
+		return list, errors.New("unable to unmarshall the YAML file")
 	}
+
 	return list, err
+
 }
 
 // readConfigFileJson is a function that takes a file path as input and returns a list of Lambdas to be deleted. A JSON file is expected.
@@ -71,12 +72,12 @@ func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 
 	fileContent, err := os.ReadFile(file)
 	if err != nil {
-		log.Fatal("unable to read the input file")
+		return list, errors.New("unable to read the input file")
 	}
 
 	err = json.Unmarshal(fileContent, &list)
 	if err != nil {
-		err = errors.New("unable to unmarshall the json file")
+		return list, errors.New("unable to unmarshall the json file")
 	}
 
 	return list, err

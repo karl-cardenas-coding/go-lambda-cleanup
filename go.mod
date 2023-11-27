@@ -1,4 +1,4 @@
-module github.com/karl-cardenas-coding/go-lambda-cleanup
+module github.com/karl-cardenas-coding/go-lambda-cleanup/v2
 
 go 1.21
 
