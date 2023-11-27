@@ -1,3 +1,5 @@
+.PHONY: license
+
 aws-regions:
 	aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text > cmd/aws-regions.txt
 
