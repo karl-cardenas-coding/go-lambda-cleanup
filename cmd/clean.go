@@ -35,28 +35,29 @@ const (
 )
 
 var (
-	ctx               context.Context
-	CustomeDeleteList []string
 	//go:embed aws-regions.txt
 	f embed.FS
+
+	a string
 )
 
 func init() {
-	rootCmd.AddCommand(CleanCmd)
+	rootCmd.AddCommand(cleanCmd)
 }
 
-var CleanCmd = &cobra.Command{
+var cleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "Removes all former versions of AWS lambdas except for the $LATEST version",
 	Long:  `Removes all former versions of AWS lambdas except for the $LATEST version. The user also has the ability specify n-? version to retain.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx = context.Background()
+		ctx := context.Background()
 
 		var (
-			awsEnvRegion  string
-			awsEnvProfile string
-			config        cliConfig
-			err           error
+			awsEnvRegion      string
+			awsEnvProfile     string
+			config            cliConfig
+			err               error
+			customeDeleteList []string
 		)
 
 		config = GlobalCliConfig
@@ -113,11 +114,12 @@ var CleanCmd = &cobra.Command{
 
 		if *config.LambdaListFile != "" {
 			log.Info("******** CUSTOM LAMBDA LIST PROVIDED ********")
-			customList, err := internal.GenerateLambdaDeleteList(LambdaListFile)
+			list, err := internal.GenerateLambdaDeleteList(*config.LambdaListFile)
 			if err != nil {
+				log.Infof("an issue occurred while processing %s", *config.LambdaListFile)
 				log.Info(err.Error())
 			}
-			CustomeDeleteList = customList
+			customeDeleteList = list
 		}
 
 		cfg, err := awsConfig.LoadDefaultConfig(ctx, awsConfigOptions...)
@@ -138,7 +140,7 @@ var CleanCmd = &cobra.Command{
 			// Set the User-Agent for all AWS with the Lambda client
 			o.APIOptions = append(o.APIOptions, middleware.AddUserAgentKeyValue("go-lambda-cleanup", VersionString))
 		})
-		err = ExecuteClean(ctx, &config, initSvc)
+		err = executeClean(ctx, &config, initSvc, customeDeleteList)
 		if err != nil {
 			return err
 		}
@@ -147,8 +149,10 @@ var CleanCmd = &cobra.Command{
 	},
 }
 
-// An action function that removes Lambda versions
-func ExecuteClean(ctx context.Context, config *cliConfig, svc *lambda.Client) error {
+// executeClean is the main function that executes the clean-up process
+// It takes a context, a pointer to a cliConfig struct, a pointer to a lambda client, and a list of custom lambdas to delete
+// An error is returned if the function fails to execute
+func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, customList []string) error {
 	startTime := time.Now()
 
 	var (
@@ -160,7 +164,7 @@ func ExecuteClean(ctx context.Context, config *cliConfig, svc *lambda.Client) er
 	)
 
 	log.Info("Scanning AWS environment in " + *config.RegionFlag)
-	lambdaList, err := getAllLambdas(ctx, svc, CustomeDeleteList)
+	lambdaList, err := getAllLambdas(ctx, svc, customList)
 	if err != nil {
 		log.Error("ERROR: ", err)
 		log.Fatal("ERROR: Failed to retrieve Lambda list.")
@@ -214,7 +218,7 @@ func ExecuteClean(ctx context.Context, config *cliConfig, svc *lambda.Client) er
 
 		log.Info("............")
 
-		if DryRun {
+		if *config.DryRun {
 			numVerDeleted := countDeleteVersions(globalLambdaDeleteInputStructs)
 			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
 			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
@@ -232,7 +236,7 @@ func ExecuteClean(ctx context.Context, config *cliConfig, svc *lambda.Client) er
 		}
 
 		// Recalculate storage size
-		updatedLambdaList, err := getAllLambdas(ctx, svc, CustomeDeleteList)
+		updatedLambdaList, err := getAllLambdas(ctx, svc, customList)
 		if err != nil {
 			log.Error("ERROR: ", err)
 			log.Fatal("ERROR: Failed to retrieve Lambda list.")
@@ -294,7 +298,8 @@ func displayDuration(startTime time.Time) {
 	log.Infof("Job Duration Time: %f%s", elapsedTime, timeUnit)
 }
 
-// Generates a list of Lambda version delete structs
+// generateDeleteInputStructs takes a list of lambda.DeleteFunctionInput and a boolean value to determine if the user wants more details. The function returns a list of lambda.DeleteFunctionInput
+// An error is returned if the function fails to execute
 func generateDeleteInputStructs(versionsList [][]types.FunctionConfiguration, details bool) ([][]lambda.DeleteFunctionInput, error) {
 	var (
 		returnError error
@@ -330,7 +335,8 @@ func generateDeleteInputStructs(versionsList [][]types.FunctionConfiguration, de
 	return output, returnError
 }
 
-// Returns a count of versions in a slice of lambda.DeleteFunctionInput
+// calculateSpaceRemoval returns the total size of all the versions to be deleted.
+// The function takes a list of lambda.DeleteFunctionInput and returns an int
 func calculateSpaceRemoval(deleteList [][]types.FunctionConfiguration) int {
 	var (
 		size int
@@ -347,7 +353,8 @@ func calculateSpaceRemoval(deleteList [][]types.FunctionConfiguration) int {
 	return size
 }
 
-// Returns a count of versions in a slice of lambda.DeleteFunctionInput
+// countDeleteVersions returns the total number of versions to be deleted.
+// The function takes a list of lambda.DeleteFunctionInput and returns an int
 func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
 	var (
 		versionsCount int
@@ -360,7 +367,9 @@ func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
 	return versionsCount
 }
 
-// Deletes all Lambda versions specified in the input list
+// deleteLambdaVersion takes a list of lambda.DeleteFunctionInput and deletes all the versions in the list
+// The function takes a context, a pointer to a lambda client, and a list of lambda.DeleteFunctionInput. A variadic operator is used to allow the user to pass in multiple lists of lambda.DeleteFunctionInput
+// Use this function with caution as it will delete all the versions in the list.
 func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, deleteList ...[]lambda.DeleteFunctionInput) error {
 	var (
 		returnError error
@@ -385,7 +394,7 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, deleteList ...
 	return returnError
 }
 
-// Generate a list of Lambdas to remove based on the desired retain value
+// getLambdasToDeleteList takes a list of lambda.FunctionConfiguration and a int8 value to determine how many versions to retain. The function returns a list of lambda.FunctionConfiguration
 func getLambdasToDeleteList(list []types.FunctionConfiguration, retainCount int8) []types.FunctionConfiguration {
 	var retainNumber int
 	// Ensure the passed in parameter is greater than zero
@@ -406,7 +415,7 @@ func getLambdasToDeleteList(list []types.FunctionConfiguration, retainCount int8
 	}
 }
 
-// Return a list of all Lambdas in the respective AWS account
+// getAllLambdas returns a list of all available lambdas in the AWS environment. The function takes a context, a pointer to a lambda client, and a list of custom lambdas function names to delete
 func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string) ([]types.FunctionConfiguration, error) {
 	var (
 		lambdasListOutput []types.FunctionConfiguration
@@ -456,7 +465,7 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string)
 	return lambdasListOutput, returnError
 }
 
-// A function that returns all the version of a Lambda
+// getAllLambdaVersion returns a list of all available versions for a given lambda. The function takes a context, a pointer to a lambda client, and a lambda.FunctionConfiguration
 func getAllLambdaVersion(
 	ctx context.Context,
 	svc *lambda.Client,
@@ -538,7 +547,7 @@ func (a byVersion) Less(i, j int) bool {
 	return one > two
 }
 
-// A function that calculates the aggregate sum of all the functions' size
+// getLambdaStorage calculates the aggregate sum of all the functions' size
 func getLambdaStorage(list []types.FunctionConfiguration) (int64, error) {
 	var (
 		sizeCounter int64
@@ -552,7 +561,9 @@ func getLambdaStorage(list []types.FunctionConfiguration) (int64, error) {
 	return sizeCounter, returnError
 }
 
-// Validates that the user passed in a valid AWS Region
+// validateRegion validates the user input to ensure it is a valid AWS region. The function takes a embed.FS and a string. The function returns a string and an error
+// An embedded file is used to validate the user input. The embedded file contains a list of all the AWS regions
+// Example of the embedded file: ap-south-2	ap-south-1	eu-south-1	eu-south-2	me-central-1	ca-central-1	eu-central-1	eu-central-2
 func validateRegion(f embed.FS, input string) (string, error) {
 	var output string
 	var err error

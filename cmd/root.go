@@ -77,8 +77,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Set to true to enable debugging (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&DryRun, "dryrun", "d", false, "Executes a dry run (bool)")
 	rootCmd.PersistentFlags().BoolVarP(&SizeIEC, "size-iec", "i", false, "Displays file sizes in IEC units (bool)")
-	CleanCmd.Flags().Int8VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST-(n)")
-	CleanCmd.Flags().BoolVarP(&SkipAliases, "skip-aliases", "s", false, "Skip trying to delete versions with aliases attached")
+	cleanCmd.Flags().Int8VarP(&Retain, "count", "c", 1, "The number of versions to retain from $LATEST-(n)")
+	cleanCmd.Flags().BoolVarP(&SkipAliases, "skip-aliases", "s", false, "Skip trying to delete versions with aliases attached")
 
 	GlobalCliConfig.RegionFlag = &RegionFlag
 	GlobalCliConfig.ProfileFlag = &ProfileFlag

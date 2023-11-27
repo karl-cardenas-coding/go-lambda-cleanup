@@ -13,7 +13,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// This returns a list of Lambda names that are read from an input file.
+// GenerateLambdaDeleteList is a function that takes a file path as input and returns a list of Lambdas to be deleted
 func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 	var (
 		deleteListYaml CustomDeleteListYaml
@@ -45,7 +45,7 @@ func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 	return output, err
 }
 
-// This function reads a yaml input file and returns a list of Lambdas
+// readConfigFileYaml is a function that takes a file path as input and returns a list of Lambdas to be deleted. A YAML file is expected.
 func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 	var (
 		list CustomDeleteListYaml
@@ -63,7 +63,7 @@ func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 	return list, err
 }
 
-// This function reads a json input file and returns a list of Lambdas
+// readConfigFileJson is a function that takes a file path as input and returns a list of Lambdas to be deleted. A JSON file is expected.
 func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 	var (
 		list CustomDeleteListJson
@@ -82,7 +82,7 @@ func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 	return list, err
 }
 
-// This function validates the existence of an input file and ensures its prefix is json | yaml | yml
+// determineFileType validates the existence of an input file and ensures its prefix is json | yaml | yml
 func determineFileType(file string) (string, error) {
 	f, err := os.Stat(file)
 	var fileType string
