@@ -100,19 +100,8 @@ func init() {
 
 // Execute is the main execution function
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		if Verbose {
-			log.WithFields(log.Fields{
-				"package":  "cmd",
-				"file":     "root.go",
-				"function": "Execute",
-				"error":    err,
-				"data":     nil,
-			}).Fatal("Error executing the CLI!", IssueMSG)
-		} else {
-			log.Fatal("Error executing the CLI!", IssueMSG)
-		}
-	}
+	rootCmd.Execute()
+
 }
 
 // createHTTPClient creates an HTTP client with TLS
