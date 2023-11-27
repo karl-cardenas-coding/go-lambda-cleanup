@@ -54,18 +54,14 @@ var rootCmd = &cobra.Command{
 	Use:   "glc",
 	Short: "A CLI tool for cleaning up AWS Lambda versions",
 	Long:  `A CLI tool for cleaning up AWS Lambda versions`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		err := cmd.Help()
 		if err != nil {
-			log.WithFields(log.Fields{
-				"package":         "cmd",
-				"file":            "root.go",
-				"parent_function": "generateDocFlag",
-				"function":        "cmd.Help",
-				"error":           err,
-				"data":            nil,
-			}).Fatal("Error outputting help!", IssueMSG)
+			log.Info("Error executing the CLI!")
+			return err
 		}
+
+		return err
 	},
 }
 
