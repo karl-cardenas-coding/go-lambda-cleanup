@@ -7,11 +7,11 @@ comment:
 coverage:
   precision: 2
   range:
-  - 60.0
+  - 70.0
   - 100.0
   round: down
   status:
-    changes: false
+    changes: true
     default_rules:
       flag_coverage_not_uploaded_behavior: include
     patch: true
