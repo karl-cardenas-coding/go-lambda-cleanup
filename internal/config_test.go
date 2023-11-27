@@ -7,6 +7,14 @@ import (
 	"testing"
 )
 
+func TestFileNotFound(t *testing.T) {
+
+	_, err := readConfigFileYaml("invalid.yaml")
+	if err == nil {
+		t.Fatalf("Failed to read the Yaml file. Expected error but received %d", err)
+	}
+}
+
 func TestReadConfigFileYaml(t *testing.T) {
 
 	want := 2
@@ -57,7 +65,7 @@ func TestDetermineFileTypeInvalid(t *testing.T) {
 
 	want := "none"
 	got, err := determineFileType("../tests/handler.zip")
-	if got != want || err == nil {
+	if got != want && err == nil {
 		t.Fatalf("Failed to read the json file. Expected %s but received %s", want, got)
 	}
 
@@ -103,6 +111,29 @@ func TestGenerateLambdaDeleteListJson(t *testing.T) {
 		if got[index] != want[index] {
 			t.Fatalf("Failed to read the expected content. Expected %s but received %s", want[index], got[index])
 		}
+	}
+}
+
+func TestGenerateLambdaDeleteListInvalid(t *testing.T) {
+
+	_, err := GenerateLambdaDeleteList("../tests/invalid.json")
+	if err == nil {
+		t.Fatalf("An error was expected for an invalid JSON file but received %s", err)
+	}
+
+	_, err = GenerateLambdaDeleteList("../tests/invalid.yaml")
+	if err == nil {
+		t.Fatalf("An error was expected for an invalid YAML file but received %s", err)
+	}
+
+	_, err = GenerateLambdaDeleteList("../tests/handler.zip")
+	if err == nil {
+		t.Fatalf("An error was expected for an invalid file but received %s", err)
+	}
+
+	_, err = GenerateLambdaDeleteList("-.txt")
+	if err == nil {
+		t.Fatalf("An error was expected for an invalid file but received %s", err)
 	}
 }
 

@@ -86,22 +86,24 @@ func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 // determineFileType validates the existence of an input file and ensures its prefix is json | yaml | yml
 func determineFileType(file string) (string, error) {
 	f, err := os.Stat(file)
+	if err != nil {
+		return "none", errors.New("unable to read the input file")
+	}
 	var fileType string
-	if err == nil {
-		switch {
-		case strings.HasSuffix(f.Name(), "yaml"):
-			fileType = "yaml"
 
-		case strings.HasSuffix(f.Name(), "json"):
-			fileType = "json"
+	switch {
+	case strings.HasSuffix(f.Name(), "yaml"):
+		fileType = "yaml"
 
-		case strings.HasSuffix(f.Name(), "yml"):
-			fileType = "yaml"
+	case strings.HasSuffix(f.Name(), "json"):
+		fileType = "json"
 
-		default:
-			fileType = "none"
-			err = errors.New("invalid file type provided. Must be of type json, yaml or yml")
-		}
+	case strings.HasSuffix(f.Name(), "yml"):
+		fileType = "yaml"
+
+	default:
+		fileType = "none"
+		err = errors.New("invalid file type provided. Must be of type json, yaml or yml")
 	}
 
 	return fileType, err
