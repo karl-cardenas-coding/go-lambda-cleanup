@@ -1,4 +1,4 @@
-name: PR-Review
+name: Pull Request Checks
 
 on:
   pull_request:
@@ -12,7 +12,21 @@ permissions:
   packages: write
 
 jobs:
+
+  run-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      # If the condition above is not met, aka, the PR is not in draft status, then this step is skipped.
+      # Because this step is part of the critical path, omission of this step will result in remaining CI steps not gettinge executed.
+      # As of 8/8/2022 there is now way to enforce this beahvior in GitHub Actions CI.
+      - run: exit 0
+
   test:
+    needs: [run-ci]
     outputs:
       VERSION: ${{ steps.go.outputs.version }}
     name: Test

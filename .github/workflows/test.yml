@@ -1,4 +1,4 @@
-name: Test & Validate
+name: Branch Tests
 
 on:
   push:
