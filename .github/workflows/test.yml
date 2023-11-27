@@ -1,12 +1,10 @@
-name: Test & Validate
+name: Branch Tests
 
 on:
   push:
     branches-ignore: [ main ]
 env:
   GITHUB_TOKEN: ${{ github.token }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   LINT_VERSION: "1.25.1"
 
 
@@ -27,6 +25,9 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Generate AWS region file
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
       run: |
         aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 
@@ -35,24 +36,22 @@ jobs:
       with:  
         args: -v
 
-    
     - name: Execute Go tests
-      run: go test -v ./...
+      run:  make tests-coverage
 
     - name: Test CLI
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
       run: |
-        go get
-        go test -coverprofile=go.txt -v ./...
         go run main.go clean -r us-west-2
         go run main.go version
   
     - name: build & execute
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
       run: |
         echo "--------------------------------------------------"
         go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=0.0.0'" -o=glc -v
         ./glc clean -r us-west-2
-
-    - uses: actions/upload-artifact@v1
-      with:
-        name: test-results
-        path: go.txt

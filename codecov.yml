@@ -1,0 +1,23 @@
+# Copyright (c) karl-cardenas-coding
+# SPDX-License-Identifier: MIT
+
+codecov:
+  require_ci_to_pass: true
+comment:
+  behavior: default
+  layout: reach,diff,flags,tree,reach
+  show_carryforward_flags: false
+coverage:
+  precision: 2
+  range:
+  - 60.0
+  - 85.0
+  round: down
+  status:
+    changes: true
+    default_rules:
+      flag_coverage_not_uploaded_behavior: include
+    patch: true
+    project: true
+github_checks:
+  annotations: true

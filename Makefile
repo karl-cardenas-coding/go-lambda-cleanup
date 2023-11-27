@@ -1,4 +1,6 @@
-aws-regions.txt:
+.PHONY: license
+
+aws-regions:
 	aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text > cmd/aws-regions.txt
 
 license:
@@ -21,4 +23,18 @@ build: ## Build the binary file
 
 tests: ## Run tests
 	@echo "Running tests"
-	go test -race -shuffle on ./...
+	go test -race ./...
+
+
+tests-coverage: ## Start Go Test with code coverage
+	@echo "Running Go Tests with code coverage"
+	go test -race -shuffle on -cover -coverprofile=coverage.out -covermode=atomic  ./...
+
+view-coverage: ## View the code coverage
+	@echo "Viewing the code coverage"
+	go tool cover -html=coverage.out
+
+
+nil: ## Check for nil errors
+	@echo "Checking for nil errors"
+	~/go/bin/nilaway ./...

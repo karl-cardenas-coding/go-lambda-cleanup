@@ -1,12 +1,11 @@
-name: PR-Review
+name: Pull Request Checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [ main ]
 env:
   GITHUB_TOKEN: ${{ github.token }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   LINT_VERSION: "1.25.1"
 
 permissions: 
@@ -14,7 +13,21 @@ permissions:
   packages: write
 
 jobs:
+
+  run-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      # If the condition above is not met, aka, the PR is not in draft status, then this step is skipped.
+      # Because this step is part of the critical path, omission of this step will result in remaining CI steps not gettinge executed.
+      # As of 8/8/2022 there is now way to enforce this beahvior in GitHub Actions CI.
+      - run: exit 0
+
   test:
+    needs: [run-ci]
     outputs:
       VERSION: ${{ steps.go.outputs.version }}
     name: Test
@@ -33,6 +46,9 @@ jobs:
 
 
     - name: Generate AWS region file
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 
@@ -42,15 +58,25 @@ jobs:
         args: -v
     
     - name: Execute Go tests
-      run: go get && go test -v ./...
+      run: make tests-coverage
+
+    - name: Codecov Upload
+      uses: codecov/codecov-action@v3.1.4
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Test CLI
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        go test -coverprofile=go.txt -v ./...
         go run main.go clean -r us-west-2
         go run main.go version
   
     - name: build & execute
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         echo "--------------------------------------------------"
         go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=0.0.0'" -o=glc -v
@@ -80,8 +106,3 @@ jobs:
         platforms: linux/amd64,linux/arm64
         push: true
         tags: ghcr.io/${{ github.repository }}:test
-
-    - uses: actions/upload-artifact@v1
-      with:
-        name: test-results
-        path: go.txt

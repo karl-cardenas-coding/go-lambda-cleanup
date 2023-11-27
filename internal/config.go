@@ -6,14 +6,13 @@ package internal
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"os"
 	"strings"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
-// This returns a list of Lambda names that are read from an input file.
+// GenerateLambdaDeleteList is a function that takes a file path as input and returns a list of Lambdas to be deleted
 func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 	var (
 		deleteListYaml CustomDeleteListYaml
@@ -45,7 +44,7 @@ func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 	return output, err
 }
 
-// This function reads a yaml input file and returns a list of Lambdas
+// readConfigFileYaml is a function that takes a file path as input and returns a list of Lambdas to be deleted. A YAML file is expected.
 func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 	var (
 		list CustomDeleteListYaml
@@ -53,17 +52,19 @@ func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 
 	fileContent, err := os.ReadFile(file)
 	if err != nil {
-		log.Fatal("unable to read the input file")
+		return list, errors.New("unable to read the input file")
 	}
 
 	err = yaml.Unmarshal(fileContent, &list)
 	if err != nil {
-		err = errors.New("unable to unmarshall the YAML file")
+		return list, errors.New("unable to unmarshall the YAML file")
 	}
+
 	return list, err
+
 }
 
-// This function reads a json input file and returns a list of Lambdas
+// readConfigFileJson is a function that takes a file path as input and returns a list of Lambdas to be deleted. A JSON file is expected.
 func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 	var (
 		list CustomDeleteListJson
@@ -71,36 +72,38 @@ func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 
 	fileContent, err := os.ReadFile(file)
 	if err != nil {
-		log.Fatal("unable to read the input file")
+		return list, errors.New("unable to read the input file")
 	}
 
 	err = json.Unmarshal(fileContent, &list)
 	if err != nil {
-		err = errors.New("unable to unmarshall the json file")
+		return list, errors.New("unable to unmarshall the json file")
 	}
 
 	return list, err
 }
 
-// This function validates the existence of an input file and ensures its prefix is json | yaml | yml
+// determineFileType validates the existence of an input file and ensures its prefix is json | yaml | yml
 func determineFileType(file string) (string, error) {
 	f, err := os.Stat(file)
+	if err != nil {
+		return "none", errors.New("unable to read the input file")
+	}
 	var fileType string
-	if err == nil {
-		switch {
-		case strings.HasSuffix(f.Name(), "yaml"):
-			fileType = "yaml"
 
-		case strings.HasSuffix(f.Name(), "json"):
-			fileType = "json"
+	switch {
+	case strings.HasSuffix(f.Name(), "yaml"):
+		fileType = "yaml"
 
-		case strings.HasSuffix(f.Name(), "yml"):
-			fileType = "yaml"
+	case strings.HasSuffix(f.Name(), "json"):
+		fileType = "json"
 
-		default:
-			fileType = "none"
-			err = errors.New("invalid file type provided. Must be of type json, yaml or yml")
-		}
+	case strings.HasSuffix(f.Name(), "yml"):
+		fileType = "yaml"
+
+	default:
+		fileType = "none"
+		err = errors.New("invalid file type provided. Must be of type json, yaml or yml")
 	}
 
 	return fileType, err

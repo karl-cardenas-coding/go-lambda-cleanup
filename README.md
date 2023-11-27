@@ -1,7 +1,10 @@
 # go-lambda-cleanup
-[![Main](https://github.com/karl-cardenas-coding/go-lambda-cleanup/actions/workflows/build.yml/badge.svg)](https://github.com/karl-cardenas-coding/go-lambda-cleanup/actions/workflows/build.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/karl-cardenas-coding/go-lambda-cleanup.svg)](https://pkg.go.dev/github.com/karl-cardenas-coding/go-lambda-cleanup)
 [![Go version](https://img.shields.io/github/go-mod/go-version/karl-cardenas-coding/go-lambda-cleanup)](https://golang.org/dl/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+[![codecov](https://codecov.io/gh/karl-cardenas-coding/go-lambda-cleanup/graph/badge.svg?token=S8SY4ZA2ZA)](https://codecov.io/gh/karl-cardenas-coding/go-lambda-cleanup)
+ [![Go Report Card](https://goreportcard.com/badge/github.com/karl-cardenas-coding/go-lambda-cleanup)](https://goreportcard.com/report/github.com/karl-cardenas-coding/go-lambda-cleanup)
+
 
 <p align="center">
   <img src="/static/logo.png" alt="drawing" width="400"/>
@@ -18,7 +21,7 @@
 go-lambda-cleanup is distributed as a single binary. [Download](https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases) the binary and install go-lambda-cleanup in a directory in your system's [PATH](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them). `/usr/local/bin` is the recommended path for UNIX/LINUX environments. 
 
 ```shell
-VERSION=2.0.9
+VERSION=2.0.10
 wget https://github.com/karl-cardenas-coding/go-lambda-cleanup/releases/download/v$VERSION/go-lambda-cleanup-v$VERSION-linux-amd64.zip
 unzip go-lambda-cleanup-v$VERSION-linux-amd64.zip 
 sudo mv glc /usr/local/bin/
@@ -29,7 +32,7 @@ sudo mv glc /usr/local/bin/
 go-lambda-cleanup is also available as a Docker image. Check out the [GitHub Packages](https://github.com/karl-cardenas-coding/go-lambda-cleanup/pkgs/container/go-lambda-cleanup) page for this repository to learn more about the available images.
 
 ```
-VERSION=2.0.9
+VERSION=2.0.10
 docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION
 ```
 
@@ -253,7 +256,7 @@ on:
     # At 04:00 on every day
     - cron: '0 04 * * *'
 env:
-  VERSION: 2.0.9
+  VERSION: 2.0.10
 
 jobs:
   build:
