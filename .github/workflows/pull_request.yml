@@ -97,7 +97,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        build-args: VERSION="0.0.0"
+        build-args: VERSION="99.99.99"
         platforms: linux/amd64,linux/arm64
         push: true
         tags: ghcr.io/${{ github.repository }}:test
