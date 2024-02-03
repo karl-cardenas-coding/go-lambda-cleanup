@@ -295,3 +295,89 @@ func TestRootExecute(t *testing.T) {
 
 	})
 }
+
+func TestNoLambdas(t *testing.T) {
+	ctx := context.TODO()
+	networkName := "localstack-network-v2"
+
+	localstackContainer, err := localstack.RunContainer(ctx,
+		localstack.WithNetwork(networkName, "localstack"),
+		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image: "localstack/localstack:latest",
+				Env:   map[string]string{"SERVICES": "lambda"},
+			},
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Clean up the container
+	defer func() {
+		if err := localstackContainer.Terminate(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	provider, err := testcontainers.NewDockerProvider()
+	if err != nil {
+		panic(err)
+	}
+
+	host, err := provider.DaemonHost(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	mappedPort, err := localstackContainer.MappedPort(ctx, nat.Port("4566/tcp"))
+	if err != nil {
+		panic(err)
+	}
+
+	// svc, err := getAWSCredentials(ctx, localstackContainer)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	GlobalCliConfig = cliConfig{
+		RegionFlag:        aws.String("us-east-1"),
+		CredentialsFile:   aws.Bool(false),
+		ProfileFlag:       aws.String(""),
+		DryRun:            aws.Bool(true),
+		Verbose:           aws.Bool(false),
+		LambdaListFile:    aws.String(""),
+		MoreLambdaDetails: aws.Bool(true),
+		SizeIEC:           aws.Bool(false),
+		SkipAliases:       aws.Bool(false),
+		Retain:            aws.Int8(0),
+	}
+
+	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	os.Setenv("AWS_EC2_METADATA_DISABLED", "true")
+	os.Setenv("AWS_ACCESS_KEY_ID", "test")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
+
+	Execute()
+
+	t.Cleanup(func() {
+		GlobalCliConfig = cliConfig{
+			RegionFlag:        aws.String(""),
+			CredentialsFile:   aws.Bool(false),
+			ProfileFlag:       aws.String(""),
+			DryRun:            aws.Bool(true),
+			Verbose:           aws.Bool(true),
+			LambdaListFile:    aws.String(""),
+			MoreLambdaDetails: aws.Bool(true),
+			SizeIEC:           aws.Bool(false),
+			SkipAliases:       aws.Bool(false),
+			Retain:            aws.Int8(2),
+		}
+
+		os.Unsetenv("AWS_ENDPOINT_URL")
+		os.Unsetenv("AWS_EC2_METADATA_DISABLED")
+		os.Unsetenv("AWS_ACCESS_KEY_ID")
+		os.Unsetenv("AWS_SECRET_ACCESS_KEY")
+
+	})
+}

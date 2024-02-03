@@ -263,13 +263,17 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 			updatedCounter = updatedCounter + v
 		}
 
-		log.Info("Total space freed up: ", (calculateFileSize(uint64(counter-updatedCounter), config)))
-		log.Info("Post clean-up storage size: ", calculateFileSize(uint64(updatedCounter), config))
-		log.Info("*********************************************")
-	}
+		if len(lambdaList) == 0 {
+			log.Info("No lambdas found in ", *config.RegionFlag)
+		} else {
 
-	if len(lambdaList) == 0 {
-		log.Info("No lambdas found in ", *config.RegionFlag)
+			log.Info("Total versions removed: ", countDeleteVersions(globalLambdaDeleteInputStructs))
+			log.Info("Total space freed up: ", (calculateFileSize(uint64(counter-updatedCounter), config)))
+			log.Info("Post clean-up storage size: ", calculateFileSize(uint64(updatedCounter), config))
+			log.Info("*********************************************")
+
+		}
+
 	}
 
 	displayDuration(startTime)
@@ -381,7 +385,7 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, deleteList ...
 				defer wg.Done()
 				_, err := svc.DeleteFunction(ctx, &version)
 				if err != nil {
-					log.Error(err)
+					err = errors.New("Failed to delete version " + *version.Qualifier + " of " + *version.FunctionName + ". \n Additional details: " + err.Error())
 					returnError = err
 				}
 			}()
@@ -493,25 +497,31 @@ func getAllLambdaVersion(
 
 	if *flags.SkipAliases {
 		// fetch the list of aliases for this function
-		aliasesOut, err := svc.ListAliases(ctx, &lambda.ListAliasesInput{
+
+		pg := lambda.NewListAliasesPaginator(svc, &lambda.ListAliasesInput{
 			FunctionName: aws.String(*item.FunctionArn),
+			MaxItems:     aws.Int32(maxItems),
 		})
-		if err != nil {
-			log.Error(err)
-			return lambdasLisOutput, err
+
+		var aliasesOut []types.AliasConfiguration
+		for pg.HasMorePages() {
+			page, err := pg.NextPage(ctx)
+			if err != nil {
+				log.Error(err)
+				return lambdasLisOutput, err
+			}
+			aliasesOut = append(aliasesOut, page.Aliases...)
 		}
+
+		log.Debug(fmt.Sprintf("Lamba function %s has %d aliases \n", *item.FunctionName, len(aliasesOut)))
 
 		// produce a new slice that includes only versions for which there is no alias
 		var result []types.FunctionConfiguration
 
-		// iterate over the list of versions and check if there is an alias for each
-		// if there is no alias, add the version to the result
-		// if there is an alias, skip the version
-		// this is done to avoid deleting versions that are in use by an alias
 		for _, funConf := range lambdasLisOutput {
 			isAlias := false
 
-			for _, alias := range aliasesOut.Aliases {
+			for _, alias := range aliasesOut {
 				if alias.FunctionVersion != nil && *alias.FunctionVersion == *funConf.Version {
 					isAlias = true
 					break

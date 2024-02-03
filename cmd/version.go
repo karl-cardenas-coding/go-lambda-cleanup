@@ -26,7 +26,7 @@ var VersionCmd = &cobra.Command{
 	Short: "Print the current version number of go-lambda-cleanup",
 	Long:  `Prints the current version number of go-lambda-cleanup`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		version := fmt.Sprintf("go-lambda-cleanup v%s", VersionString)
+		version := fmt.Sprintf("go-lambda-cleanup %s", VersionString)
 		log.Info(version)
 		_, message, err := checkForNewRelease(GlobalHTTPClient, VersionString, UserAgent, url)
 		if err != nil {
