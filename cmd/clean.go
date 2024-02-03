@@ -381,7 +381,7 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, deleteList ...
 				defer wg.Done()
 				_, err := svc.DeleteFunction(ctx, &version)
 				if err != nil {
-					log.Error(err)
+					err = errors.New("Failed to delete version " + *version.Qualifier + " of " + *version.FunctionName + ". \n Additional details: " + err.Error())
 					returnError = err
 				}
 			}()
