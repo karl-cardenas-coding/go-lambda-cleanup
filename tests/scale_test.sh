@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Replace these variables with your own values
-BASE_FUNCTION_NAME="function1"
-AWS_REGION="us-east-1"
+BASE_FUNCTION_NAME=$1
+AWS_REGION=$2
+PROFILE=$3
 
 export AWS_PAGER=""
 
@@ -20,19 +21,19 @@ for ((i=1; i<=2000; i++)); do
 
     # Update Lambda function code
     FUNCTION_NAME="${BASE_FUNCTION_NAME}"
-    aws lambda update-function-code --function-name $FUNCTION_NAME --zip-file fileb://$ZIP_FILE_PATH --region $AWS_REGION --profile automation
+    aws lambda update-function-code --function-name $FUNCTION_NAME --zip-file fileb://$ZIP_FILE_PATH --region $AWS_REGION --profile $PROFILE
 
     # Wait for the update to complete
-    aws lambda wait function-updated --function-name $FUNCTION_NAME --region $AWS_REGION --profile automation
+    aws lambda wait function-updated --function-name $FUNCTION_NAME --region $AWS_REGION --profile $PROFILE
 
     # Publish a new version
-    NEW_VERSION=$(aws lambda publish-version --function-name $FUNCTION_NAME --region $AWS_REGION --profile automation --query 'Version' --output text)
+    NEW_VERSION=$(aws lambda publish-version --function-name $FUNCTION_NAME --region $AWS_REGION --profile $PROFILE --query 'Version' --output text)
 
     echo "Updated and published version $NEW_VERSION"
 
     # Create an alias for the new version
     ALIAS_NAME="alias_$i"
-    aws lambda create-alias --function-name $FUNCTION_NAME --name $ALIAS_NAME --function-version $NEW_VERSION --region $AWS_REGION --profile automation
+    aws lambda create-alias --function-name $FUNCTION_NAME --name $ALIAS_NAME --function-version $NEW_VERSION --region $AWS_REGION --profile $PROFILE
 
     # Check if the alias is created successfully
     if [ $? -ne 0 ]; then
