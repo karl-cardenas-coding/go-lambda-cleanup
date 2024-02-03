@@ -19,7 +19,7 @@ jobs:
     steps:
 
       - name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
@@ -49,7 +49,7 @@ jobs:
 
 
       - name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - id: go
         name: "Set up Go 1.21"
@@ -61,10 +61,10 @@ jobs:
       - name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
 
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v4
         with:
           name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
           path: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -93,8 +93,8 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
-      - uses: actions/upload-artifact@v1
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+      - uses: actions/upload-artifact@v4
         with:
           name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
           path: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -110,7 +110,7 @@ jobs:
       GOOS: linux
     steps:
       - name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
 
       - id: go
@@ -123,8 +123,8 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
-      - uses: actions/upload-artifact@v1
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+      - uses: actions/upload-artifact@v4
         with:
           name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
           path: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -139,7 +139,7 @@ jobs:
       GOOS: linux
     steps:
       - name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
@@ -157,8 +157,8 @@ jobs:
         name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=v${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
-      - uses: actions/upload-artifact@v1
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString=v${{needs.next-version.outputs.version}}'" -o=glc -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc
+      - uses: actions/upload-artifact@v4
         with:
           name: go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip
           path: go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -176,7 +176,7 @@ jobs:
       GOOS: windows
     steps:
       - name: "Check out code into the Go module directory"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - id: go
         name: "Set up Go 1.21"
@@ -187,8 +187,8 @@ jobs:
       - name: create
         run: |
           aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
-          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc.exe
-      - uses: actions/upload-artifact@v1
+          go get && go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString=${{needs.next-version.outputs.version}}'" -o=glc.exe -v && zip go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip glc.exe
+      - uses: actions/upload-artifact@v4
         with:
           name: go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip
           path: go-lambda-cleanup-v${{needs.next-version.outputs.version}}-${{env.GOOS}}-${{env.GOARCH}}.zip
@@ -211,7 +211,7 @@ jobs:
    
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
       
     - name: Generate AWS region file
@@ -254,7 +254,7 @@ jobs:
       VERSION: ${{ needs.next-version.outputs.version != ''}}
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
 
       - name: Setup Node.js environment
@@ -263,29 +263,29 @@ jobs:
           node-version: '18'
           cache: 'npm'
       
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
             name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-darwin-amd64.zip
             path: ./
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
             name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-linux-386.zip
             path: ./
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
             name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-darwin-arm64.zip
             path: ./
 
 
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
             name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-linux-amd64.zip
             path: ./
 
             
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v4
         with:
             name: go-lambda-cleanup-v${{ needs.next-version.outputs.version }}-windows-amd64.zip
             path: ./
