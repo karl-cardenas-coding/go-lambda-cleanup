@@ -1,3 +1,10 @@
+## [2.0.12](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v2.0.11...v2.0.12) (2024-02-04)
+
+
+### Bug Fixes
+
+* skip alias flag not catching all instances ([07c6875](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/07c687500c2a49b786025bed751400e4b1073d1b))
+
 ## [2.0.11](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v2.0.10...v2.0.11) (2023-11-27)
 
 
