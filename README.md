@@ -183,6 +183,38 @@ $ glc clean -r us-east-1 -p myProfile -l custom_list.yaml
 glc clean -r us-east-1 -p myProfile -l custom_list.json
 ```
 
+
+### IAM Permissions
+
+go-lambda-cleanup requires the following policies to operate. 
+
+- `lambda:ListFunctions`
+- `lambda:ListVersionsByFunction`
+- `lambda:ListAliases`
+- `lambda:DeleteFunction`
+
+The following is code snippet is an IAM policy you may assign to the IAM User or IAM Role used by go-lambda-cleanup.
+
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "goLambdaCleanup",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:ListFunctions",
+                "lambda:ListVersionsByFunction",
+                "lambda:ListAliases",
+                "lambda:DeleteFunction"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
 ### Authentication
 go-lambda-clean utilizes the default AWS Go SDK credentials provider to find AWS credentials. The default provider chain looks for credentials in the following order:
 
