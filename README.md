@@ -186,7 +186,7 @@ glc clean -r us-east-1 -p myProfile -l custom_list.json
 
 ### IAM Permissions
 
-go-lambda-cleanup requires the following policies to operate. 
+go-lambda-cleanup requires the following IAM permissions to operate. 
 
 - `lambda:ListFunctions`
 - `lambda:ListVersionsByFunction`
@@ -262,7 +262,7 @@ $ glc clean -r us-west-2
 ## Proxy
 The tool supports network proxy configurations and will honor the following proxy environment variables.
 
-* `HTTP_PROXY`,
+* `HTTP_PROXY`
 * `HTTPS_PROXY`
 * `NO_PROXY`
 
