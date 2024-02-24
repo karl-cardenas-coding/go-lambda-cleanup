@@ -193,7 +193,7 @@ go-lambda-cleanup requires the following policies to operate.
 - `lambda:ListAliases`
 - `lambda:DeleteFunction`
 
-The following is code snippet is an IAM policy you may assign to the IAM User or IAM Role used by go-lambda-cleanup.
+The following code snippet is an IAM policy you may assign to the IAM User or IAM Role used by go-lambda-cleanup.
 
 
 ```json
