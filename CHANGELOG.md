@@ -1,3 +1,10 @@
+## [2.0.13](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v2.0.12...v2.0.13) (2024-05-04)
+
+
+### Bug Fixes
+
+* update Go version ([#124](https://github.com/karl-cardenas-coding/go-lambda-cleanup/issues/124)) ([d23a0a7](https://github.com/karl-cardenas-coding/go-lambda-cleanup/commit/d23a0a7da422b26675688b20d071beac6e7628b1))
+
 ## [2.0.12](https://github.com/karl-cardenas-coding/go-lambda-cleanup/compare/v2.0.11...v2.0.12) (2024-02-04)
 
 
