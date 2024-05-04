@@ -229,7 +229,7 @@ jobs:
 
     - name: Login to GHCR
       if: ${{ needs.next-version.outputs.version != ''}}
-      uses: docker/login-action@v1
+      uses: docker/login-action@v3.1.0
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}

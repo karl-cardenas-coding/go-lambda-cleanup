@@ -37,7 +37,7 @@ jobs:
       id: go
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
 
     - name: Generate AWS region file
@@ -48,7 +48,7 @@ jobs:
         aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v5.2.0
       with:  
         args: -v
     
@@ -56,7 +56,7 @@ jobs:
       run: make tests-coverage
 
     - name: Codecov Upload
-      uses: codecov/codecov-action@v3.1.4
+      uses: codecov/codecov-action@v4.3.1
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -86,7 +86,7 @@ jobs:
 
 
     - name: Login to GHCR
-      uses: docker/login-action@v1
+      uses: docker/login-action@v3.1.0
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
