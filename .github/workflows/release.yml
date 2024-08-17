@@ -81,7 +81,7 @@ jobs:
 
       - run: git fetch --force --tags
 
-      - uses: actions/setup-go@v5.0.2
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
@@ -116,7 +116,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: "1.22"
           check-latest: true
@@ -133,6 +133,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get AWS Regions
+        run:  aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+  
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
