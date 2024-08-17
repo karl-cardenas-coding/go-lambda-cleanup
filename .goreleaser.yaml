@@ -11,6 +11,7 @@ builds:
   - id: primary
     ldflags:
       - -s -w -X github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString={{.Version}}
+    binary: glc
     env:
       - CGO_ENABLED=0
     goos:
