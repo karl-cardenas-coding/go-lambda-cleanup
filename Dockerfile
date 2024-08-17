@@ -1,10 +1,10 @@
 # Copyright (c) karl-cardenas-coding
 # SPDX-License-Identifier: MIT
 
-FROM golang:1.23.0-alpine3.20 as builder
+FROM golang:1.23.0-alpine3.20 AS builder
 
 LABEL org.opencontainers.image.source="http://github.com/karl-cardenas-coding/go-lambda-cleanup"
-LABEL org.opencontainers.image.description "A solution for removing previous versions of AWS Lambdas"
+LABEL org.opencontainers.image.description="A solution for removing previous versions of AWS Lambdas"
 
 ARG VERSION
 
