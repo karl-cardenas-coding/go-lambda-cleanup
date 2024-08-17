@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (c) karl-cardenas-coding
+# SPDX-License-Identifier: MIT
+
 
 # Replace these variables with your own values
 BASE_FUNCTION_NAME=$1

@@ -1,4 +1,4 @@
-.PHONY: license
+.PHONY: license tests
 
 aws-regions:
 	aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text > cmd/aws-regions.txt
@@ -9,7 +9,7 @@ license:
 
 opensource:
 	@echo "Checking for open source licenses"
-	~/go/bin/go-licenses report github.com/karl-cardenas-coding/go-lambda-cleanup --template=documentation/open-source.tpl > documentation/open-source.md 
+	~/go/bin/go-licenses report github.com/karl-cardenas-coding/go-lambda-cleanup/v2 --template=documentation/open-source.tpl > documentation/open-source.md
 
 
 lint: ## Start Go Linter
@@ -19,7 +19,7 @@ lint: ## Start Go Linter
 
 build: ## Build the binary file
 	@echo "Building lambda function and adding version number 1.0.0"
-	 go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=1.0.0'" -o=glc -v 
+	 go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString=1.0.0'" -o=glc -v 
 
 tests: ## Run tests
 	@echo "Running tests"

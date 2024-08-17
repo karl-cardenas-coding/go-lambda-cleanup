@@ -1,0 +1,146 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GO_VERSION: '1.23'
+  UPX_VERSION: "4.2.4"
+  SVU_VERSION: "2.0.1"
+
+jobs:
+  tag:
+    name: Determine Version
+    runs-on: ubuntu-latest
+
+    outputs:
+        VERSION: ${{ steps.tag.outputs.VERSION }}
+        PREV_VERSION: ${{ steps.tag.outputs.PREV_VERSION }}
+        SAME_VERSION: ${{ steps.tag.outputs.SAME_VERSION }}
+
+
+    steps:
+     - uses: actions/checkout@v4
+       with:
+        fetch-depth: 0
+
+     - name: get-tags
+       run: git fetch --force --tags
+
+     - name: Get svu
+       run: |
+         URL="https://github.com/caarlos0/svu/releases/download/v${SVU_VERSION}/svu_${SVU_VERSION}_linux_amd64.tar.gz"
+         wget --quiet $URL --output-document svu.tar.gz
+         tar -xzf svu.tar.gz
+         chmod +x svu
+         sudo mv svu /usr/local/bin/
+         svu --version
+
+     - id: tag
+       run: |
+           VERSION=$(svu next --tag-mode all-branches)
+           PREV_VERSION=$(svu current --tag-mode all-branches)
+ 
+           if [ "$VERSION" = "$PREV_VERSION" ]; then
+             echo "no new version detected"
+             SAME_VERSION=true
+             echo "SAME_VERSION=true" >> $GITHUB_OUTPUT
+           else
+             echo "new version detected"
+             SAME_VERSION=false
+             echo "SAME_VERSION=false" >> $GITHUB_OUTPUT
+ 
+             # Check if the tag already exists before creating it
+             if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+               echo "Tag v$VERSION already exists, skipping tag creation."
+             else
+               git tag "$VERSION"
+               git push --tags
+             fi
+           fi
+ 
+           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+           echo "PREV_VERSION=$PREV_VERSION" >> $GITHUB_OUTPUT
+
+  goreleaser:
+    name: Release
+    needs: [tag]
+    if: ${{ needs.tag.outputs.SAME_VERSION == 'false' }}
+    runs-on: ubuntu-latest
+    env:
+      GORELEASER_CURRENT_TAG: ${{ needs.tag.outputs.VERSION }}
+      GORELEASER_PREVIOUS_TAG: ${{ needs.tag.outputs.PREV_VERSION }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+         fetch-depth: 0
+
+      - run: git fetch --force --tags
+
+      - uses: actions/setup-go@v5.0.2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+
+      - name: Get AWS Regions
+        run:  aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+
+      - name: Get UPX
+        run: |
+            URL="https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz"
+            wget --quiet $URL --output-document upx.tar.xz
+            tar -xf upx.tar.xz
+            chmod +x upx-${UPX_VERSION}-amd64_linux/upx
+            sudo mv upx-${UPX_VERSION}-amd64_linux/upx /usr/local/bin/
+            rm -rf upx.tar.xz upx-${UPX_VERSION}-amd64_linux
+            upx --version
+      
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          args: release --clean
+          version: '~> v2'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  Docker:
+    name: Docker Image Build and Push
+    needs: [tag, goreleaser]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.22"
+          check-latest: true
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        id: build-and-push
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ needs.tag.outputs.VERSION }}
+          build-args: |
+            VERSION=${{ needs.tag.outputs.VERSION }}

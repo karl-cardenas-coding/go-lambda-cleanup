@@ -26,6 +26,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/localstack"
+	"github.com/testcontainers/testcontainers-go/network"
 )
 
 var (
@@ -361,25 +362,24 @@ func TestDisplayDuration(t *testing.T) {
 func TestDeleteLambdaVersionError(t *testing.T) {
 
 	ctx := context.Background()
-	networkName := "localstack-network-v2"
 
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -425,7 +425,6 @@ func TestDeleteLambdaVersionError(t *testing.T) {
 			SkipAliases:       aws.Bool(false),
 			Retain:            aws.Int8(0),
 		}
-
 	})
 
 }
@@ -433,25 +432,24 @@ func TestDeleteLambdaVersionError(t *testing.T) {
 func TestDeleteLambdaVersion(t *testing.T) {
 
 	ctx := context.Background()
-	networkName := "localstack-network-v2"
 
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -526,32 +524,29 @@ func TestDeleteLambdaVersion(t *testing.T) {
 			SkipAliases:       aws.Bool(false),
 			Retain:            aws.Int8(0),
 		}
-
 	})
 
 }
 func TestGetAllLambdas(t *testing.T) {
 
 	ctx := context.Background()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -642,25 +637,23 @@ func TestGetAllLambdas(t *testing.T) {
 func TestGetAllLambdasAlias(t *testing.T) {
 
 	ctx := context.Background()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -756,25 +749,23 @@ func TestGetAllLambdasAlias(t *testing.T) {
 func TestGetAllLambdaVersion(t *testing.T) {
 
 	ctx := context.Background()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -847,25 +838,23 @@ func TestGetAllLambdaVersion(t *testing.T) {
 func TestGetAllLambdaVersionWithAliasError(t *testing.T) {
 
 	ctx := context.Background()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -953,25 +942,23 @@ func TestGetAllLambdaVersionWithAliasError(t *testing.T) {
 func TestGetAllLambdaVersionWithAlias(t *testing.T) {
 
 	ctx := context.Background()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -1058,25 +1045,23 @@ func TestGetAllLambdaVersionWithAlias(t *testing.T) {
 
 func TestExecuteClean(t *testing.T) {
 	ctx := context.TODO()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -1132,25 +1117,23 @@ func TestExecuteClean(t *testing.T) {
 func TestCleanCMDDryRun(t *testing.T) {
 
 	ctx := context.TODO()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -1281,25 +1264,23 @@ func TestCleanCMDDryRun(t *testing.T) {
 func TestCleanCMD(t *testing.T) {
 
 	ctx := context.TODO()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -1430,25 +1411,23 @@ func TestCleanCMD(t *testing.T) {
 func TestCleanCMDWithCustomList(t *testing.T) {
 
 	ctx := context.TODO()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -1610,11 +1589,15 @@ func TestCleanCMDWithCustomList(t *testing.T) {
 
 func TestAWSEnteryMissingEnvRegion(t *testing.T) {
 
-	expectedErr := "Missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
+	expectedErr := "missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region"
 
 	err := cleanCmd.RunE(cleanCmd, []string{"--profile", "default", "--retain", "2", "--dry-run"})
-	if err == nil && err.Error() != expectedErr {
-		t.Fatalf("Expected an error to be returned but received %v", err.Error())
+	if err == nil {
+		t.Fatalf("Expected an error to be returned but received %v", err)
+	}
+
+	if err != nil && err.Error() != expectedErr {
+		t.Fatalf("Expected an error to be returned with matching message to %s %v", expectedErr, err.Error())
 	}
 
 	t.Cleanup(func() {
@@ -1781,25 +1764,18 @@ func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lamb
 		return nil, err
 	}
 
-	customResolver := aws.EndpointResolverWithOptionsFunc(
-		func(service, region string, opts ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           fmt.Sprintf("http://%s:%d", host, mappedPort.Int()),
-				SigningRegion: region,
-			}, nil
-		})
-
-	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
+	awsCfg, err := config.LoadDefaultConfig(
+		context.TODO(),
 		config.WithRegion("us-east-1"),
-		config.WithEndpointResolverWithOptions(customResolver),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("aaaa", "bbbb", "cccc")),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	client := lambda.NewFromConfig(awsCfg, func(o *lambda.Options) {})
+	client := lambda.NewFromConfig(awsCfg, func(o *lambda.Options) {
+		o.BaseEndpoint = aws.String(fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	})
 
 	return client, nil
 }
@@ -1903,25 +1879,18 @@ func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (
 		return nil, err
 	}
 
-	customResolver := aws.EndpointResolverWithOptionsFunc(
-		func(service, region string, opts ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           fmt.Sprintf("http://%s:%d", host, mappedPort.Int()),
-				SigningRegion: region,
-			}, nil
-		})
 	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithSharedConfigFiles([]string{"/tests/config"}),
 		config.WithRegion("us-east-1"),
-		config.WithEndpointResolverWithOptions(customResolver),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("aaaa", "bbbb", "cccc")),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return lambda.NewFromConfig(awsCfg), nil
+	return lambda.NewFromConfig(awsCfg, func(o *lambda.Options) {
+		o.BaseEndpoint = aws.String(fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	}), nil
 
 }
 

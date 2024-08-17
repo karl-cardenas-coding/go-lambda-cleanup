@@ -9,3 +9,11 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/" 
+    schedule:
+      interval: "monthly"
+    target-branch: "main"
+    commit-message:
+      prefix: "chore:"

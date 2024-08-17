@@ -1,0 +1,64 @@
+# Copyright (c) karl-cardenas-coding
+# SPDX-License-Identifier: MIT
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: primary
+    ldflags:
+      - -s -w -X github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString={{.Version}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - '6'
+      - '7'
+upx:
+  - 
+    enabled: true
+    compress: best
+    goos: [linux, darwin]
+
+
+archives:
+  - format: zip
+    name_template: >-
+      {{ .ProjectName }}-
+      {{- trim .Tag }}-
+      {{- tolower .Os }}-
+      {{- if eq .Arch "amd64" }}amd64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+    format_overrides:
+      - goos: windows
+        format: zip
+
+    files:
+        - none*
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+  split: false
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^dist:"
+      
+report_sizes: true
