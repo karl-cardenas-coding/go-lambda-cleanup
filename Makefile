@@ -1,4 +1,4 @@
-.PHONY: license
+.PHONY: license tests
 
 aws-regions:
 	aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text > cmd/aws-regions.txt
@@ -9,7 +9,7 @@ license:
 
 opensource:
 	@echo "Checking for open source licenses"
-	~/go/bin/go-licenses report github.com/karl-cardenas-coding/go-lambda-cleanup --template=documentation/open-source.tpl > documentation/open-source.md 
+	~/go/bin/go-licenses report github.com/karl-cardenas-coding/go-lambda-cleanup/v2 --template=documentation/open-source.tpl > documentation/open-source.md
 
 
 lint: ## Start Go Linter

@@ -9,6 +9,9 @@ permissions:
   contents: read
   packages: write
 
+env:
+  GO_VERSION: '1.23'
+
 jobs:
 
   run-ci:
@@ -30,9 +33,9 @@ jobs:
     steps:
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: '1.22'
+        go-version: ${{ env.GO_VERSION }}
         check-latest: true
       id: go
 
@@ -48,7 +51,7 @@ jobs:
         aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v5.2.0
+      uses: golangci/golangci-lint-action@v6.1.0
       with:  
         args: -v
     
@@ -86,7 +89,7 @@ jobs:
 
 
     - name: Login to GHCR
-      uses: docker/login-action@v3.1.0
+      uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}

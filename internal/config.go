@@ -6,10 +6,11 @@ package internal
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 // GenerateLambdaDeleteList is a function that takes a file path as input and returns a list of Lambdas to be deleted
@@ -55,9 +56,11 @@ func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 		return list, errors.New("unable to read the input file")
 	}
 
-	err = yaml.Unmarshal(fileContent, &list)
-	if err != nil {
-		return list, errors.New("unable to unmarshall the YAML file")
+	dc := yaml.NewDecoder(strings.NewReader(string(fileContent)))
+	dc.KnownFields(true)
+
+	if err := dc.Decode(&list); err != nil {
+		return list, fmt.Errorf("unable to decode the YAML file. Ensure the file is in the correct format and that all fields are correct. %s", err.Error())
 	}
 
 	return list, err

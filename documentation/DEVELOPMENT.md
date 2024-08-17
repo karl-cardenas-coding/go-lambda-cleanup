@@ -2,7 +2,7 @@
 
 ## Requirements
 * Node.js v18.0.0+
-* [Go](https://golang.org/doc/install) 1.20+
+* [Go](https://golang.org/doc/install) 1.23+
 
 ## Setup
 If you wish to work on the go-lambda-cleanup CLI, you'll first need Go installed on your machine (please check the requirements before proceeding).

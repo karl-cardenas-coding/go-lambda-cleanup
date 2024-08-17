@@ -14,6 +14,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/localstack"
+	"github.com/testcontainers/testcontainers-go/network"
 )
 
 func TestRoot(t *testing.T) {
@@ -27,25 +28,23 @@ func TestRoot(t *testing.T) {
 
 func TestRootCMD(t *testing.T) {
 	ctx := context.TODO()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -164,25 +163,23 @@ func TestRootCMD(t *testing.T) {
 
 func TestRootExecute(t *testing.T) {
 	ctx := context.TODO()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -298,25 +295,23 @@ func TestRootExecute(t *testing.T) {
 
 func TestNoLambdas(t *testing.T) {
 	ctx := context.TODO()
-	networkName := "localstack-network-v2"
-
-	localstackContainer, err := localstack.RunContainer(ctx,
-		localstack.WithNetwork(networkName, "localstack"),
-		testcontainers.CustomizeRequest(testcontainers.GenericContainerRequest{
-			ContainerRequest: testcontainers.ContainerRequest{
-				Image: "localstack/localstack:latest",
-				Env:   map[string]string{"SERVICES": "lambda"},
-			},
-		}),
+	newNetwork, err := network.New(ctx)
+	if err != nil {
+		t.Errorf("failed to create network: %s", err)
+	}
+	localstackContainer, err := localstack.Run(ctx,
+		"localstack/localstack:3.6",
+		testcontainers.WithEnv(map[string]string{
+			"SERVICES": "lambda"}),
+		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
-		panic(err)
+		t.Errorf("failed to start localstack container: %s", err)
 	}
 
-	// Clean up the container
 	defer func() {
 		if err := localstackContainer.Terminate(ctx); err != nil {
-			panic(err)
+			t.Error(err)
 		}
 	}()
 
@@ -334,11 +329,6 @@ func TestNoLambdas(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-
-	// svc, err := getAWSCredentials(ctx, localstackContainer)
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
