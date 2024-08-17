@@ -1,7 +1,6 @@
 # Development Environment
 
 ## Requirements
-* Node.js v18.0.0+
 * [Go](https://golang.org/doc/install) 1.23+
 
 ## Setup
@@ -15,10 +14,6 @@ $ mkdir -p $HOME/projects/go-lambda-cleanup/; cd $HOME/projects/go-lambda-cleanu
 $ git clone git@github.com:karl-cardenas-coding/go-lambda-cleanup.git
 ```
 
-Issue the command `npm install`. This will setup the commit hooks for the project through [Husky](https://github.com/typicode/husky) v4
-```
-$ npm install
-```
 
 The `clean` command expects the file `cmd/aws-regions.txt` to be present. Otherwise binary builds or `go run main.go clean` will fail. Issue the command below from the root of the project namespace. This assumes you have your local aws credentials configured.
 ```shell

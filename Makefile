@@ -19,7 +19,7 @@ lint: ## Start Go Linter
 
 build: ## Build the binary file
 	@echo "Building lambda function and adding version number 1.0.0"
-	 go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/cmd.VersionString=1.0.0'" -o=glc -v 
+	 go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString=1.0.0'" -o=glc -v 
 
 tests: ## Run tests
 	@echo "Running tests"
