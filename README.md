@@ -33,7 +33,7 @@ sudo mv glc /usr/local/bin/
 go-lambda-cleanup is also available as a Docker image. Check out the [GitHub Packages](https://github.com/karl-cardenas-coding/go-lambda-cleanup/pkgs/container/go-lambda-cleanup) page for this repository to learn more about the available images.
 
 ```
-VERSION=2.0.15
+VERSION=v2.0.15
 docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:$VERSION
 ```
 
@@ -289,7 +289,7 @@ on:
     # At 04:00 on every day
     - cron: '0 04 * * *'
 env:
-  VERSION: 2.0.15
+  VERSION: 'v2.0.15'
 
 jobs:
   build:
