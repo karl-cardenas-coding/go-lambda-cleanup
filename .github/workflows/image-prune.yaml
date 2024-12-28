@@ -22,16 +22,19 @@ jobs:
         account-type: personal
         org-name: karl-cardenas-coding
         keep-at-least: 1
-        skip-tags: nightly
+        skip-tags: "v*"
+        filter-tags: "nightly"
+        filter-include-untagged: true
         dry-run: false
         token-type: github-token
         token: ${{ secrets.GITHUB_TOKEN }}
 
 
     - name: Actions Ntfy
+      if: failure()
       run: |
         curl \
-        -u ${{ secrets.NTFY_TOKEN }} \
+        -H 'Authorization: ${{ secrets.NTFY_TOKEN }}' \
         -H "go-lambda-cleanup Nightly Release" \
         -H "X-Tags: warning" \
         -H "Markdown: yes" \
