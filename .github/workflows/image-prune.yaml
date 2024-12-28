@@ -25,7 +25,7 @@ jobs:
         skip-tags: "v*"
         filter-tags: "nightly"
         filter-include-untagged: true
-        dry-run: false
+        dry-run: true
         token-type: github-token
         token: ${{ secrets.GITHUB_TOKEN }}
 
