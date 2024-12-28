@@ -57,6 +57,16 @@ time=05/23/22 level=info msg="124 MB of storage space will be removed in an actu
 time=05/23/22 level=info msg="Job Duration Time: 1.454406s"
 ```
 
+### Nightly Release
+
+A nightly release is available as a Docker image. The nightly release is a snapshot of the main branch and automatically updated with the latest minor depedencies updates.  
+
+```shell
+docker pull ghcr.io/karl-cardenas-coding/go-lambda-cleanup:nightly
+```
+
+
+
 ## Usage
 
 ```shell

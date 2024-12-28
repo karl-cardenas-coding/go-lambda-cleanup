@@ -5,7 +5,9 @@ package cmd
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"os"
 	"testing"
 
@@ -370,4 +372,47 @@ func TestNoLambdas(t *testing.T) {
 		os.Unsetenv("AWS_SECRET_ACCESS_KEY")
 
 	})
+}
+
+func TestCreateHTTPClient(t *testing.T) {
+	// Set an environment variable for the proxy
+	os.Setenv("HTTP_PROXY", "http://proxy.example.com")
+	defer os.Unsetenv("HTTP_PROXY")
+
+	client := createHTTPClient()
+
+	// Check if the client is not nil
+	if client == nil {
+		t.Fatalf("Expected non-nil HTTP client")
+	}
+
+	// Check if the transport is of type *http.Transport
+	transport, ok := client.Transport.(*http.Transport)
+	if !ok {
+		t.Fatalf("Expected transport to be of type *http.Transport, got %T", client.Transport)
+	}
+
+	if transport != nil {
+		t.Fatalf("Expected non-nil transport")
+	}
+
+	// Check if the minimum TLS version is set to TLS 1.2
+	if transport.TLSClientConfig.MinVersion != tls.VersionTLS12 {
+		t.Errorf("Expected MinVersion to be TLS 1.2, got %v", transport.TLSClientConfig.MinVersion)
+	}
+
+	// Check if ForceAttemptHTTP2 is set to true
+	if !transport.ForceAttemptHTTP2 {
+		t.Errorf("Expected ForceAttemptHTTP2 to be true, got %v", transport.ForceAttemptHTTP2)
+	}
+
+	// Check if Proxy is set correctly from the environment
+	req, _ := http.NewRequest("GET", "http://example.com", nil)
+	proxyURL, err := transport.Proxy(req)
+	if err != nil {
+		t.Fatalf("Expected no error from Proxy function, got %v", err)
+	}
+	if proxyURL.String() != "http://proxy.example.com" {
+		t.Errorf("Expected proxy URL to be http://proxy.example.com, got %v", proxyURL)
+	}
 }
