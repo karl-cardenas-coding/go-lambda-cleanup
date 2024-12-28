@@ -1,0 +1,39 @@
+name: Container Image Cleanup
+
+on:
+  workflow_run:
+    workflows: ["Nightly Release"]
+    types: [completed]
+  workflow_dispatch:
+
+
+
+jobs:
+  prune:
+    name: Prune Container Images
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: snok/container-retention-policy@v2
+      with:
+        image-names: go-lambda-cleanup
+        cut-off: 1 day ago UTC
+        timestamp-to-use: created_at
+        account-type: personal
+        org-name: karl-cardenas-coding
+        keep-at-least: 1
+        skip-tags: nightly
+        dry-run: false
+        token-type: github-token
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+
+    - name: Actions Ntfy
+      run: |
+        curl \
+        -u ${{ secrets.NTFY_TOKEN }} \
+        -H "go-lambda-cleanup Nightly Release" \
+        -H "X-Tags: warning" \
+        -H "Markdown: yes" \
+        -d 'The Nightly Release job failed for go-lambda-cleanup. Check out the GitHub Actions logs for more details.' \
+        ${{ secrets.NTFY_URL }}    

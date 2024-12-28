@@ -1,0 +1,63 @@
+name: Nightly Release
+
+on:
+  schedule:
+    # Run every day at 11:00 UTC
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+
+
+env:
+    GO_VERSION: '1.23'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        check-latest: true
+      id: go
+
+    - name: Generate AWS region file
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
+
+    - name: Update Dependencies
+      run: go get -u ./...
+
+    - name: Execute Go tests
+      run: make tests
+      
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3.2.0
+
+    -  name: Set up Docker Buildx
+       uses: docker/setup-buildx-action@v3
+
+
+    - name: Login to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+          context: .
+          build-args: VERSION="nightly"
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}:nightly
