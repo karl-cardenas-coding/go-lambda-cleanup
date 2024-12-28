@@ -23,7 +23,7 @@ build: ## Build the binary file
 
 tests: ## Run tests
 	@echo "Running tests"
-	go test -race ./...
+	go test -shuffle on -race ./...
 
 
 tests-coverage: ## Start Go Test with code coverage

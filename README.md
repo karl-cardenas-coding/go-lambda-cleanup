@@ -5,6 +5,7 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![codecov](https://codecov.io/gh/karl-cardenas-coding/go-lambda-cleanup/graph/badge.svg?token=S8SY4ZA2ZA)](https://codecov.io/gh/karl-cardenas-coding/go-lambda-cleanup)
 [![Go Report Card](https://goreportcard.com/badge/github.com/karl-cardenas-coding/go-lambda-cleanup/v2)](https://goreportcard.com/report/github.com/karl-cardenas-coding/go-lambda-cleanup/v2)
+[![Nighly Build](https://github.com/karl-cardenas-coding/go-lambda-clean-up/actions/workflows/nightly.yaml/badge.svg)](https://github.com/karl-cardenas-coding/go-lambda-cleanup/actions/workflows/nightly.yaml)
 
 
 <p align="center">
