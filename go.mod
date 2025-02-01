@@ -12,8 +12,8 @@ require (
 	github.com/hashicorp/go-version v1.7.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
-	github.com/testcontainers/testcontainers-go v0.34.0
-	github.com/testcontainers/testcontainers-go/modules/localstack v0.34.0
+	github.com/testcontainers/testcontainers-go v0.35.0
+	github.com/testcontainers/testcontainers-go/modules/localstack v0.35.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
