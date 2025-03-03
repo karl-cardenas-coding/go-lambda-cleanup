@@ -30,3 +30,6 @@ main
 coverage.out
 
 dist/
+.vscode
+.cursorrules
+.cursorignore
