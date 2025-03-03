@@ -1,8 +1,6 @@
 module github.com/karl-cardenas-coding/go-lambda-cleanup/v2
 
-go 1.23.0
-
-toolchain go1.23.4
+go 1.24
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.3
@@ -49,7 +47,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20250224150550-a661cff19cfb // indirect
