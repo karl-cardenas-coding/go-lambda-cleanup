@@ -67,7 +67,7 @@ jobs:
       uses: github/codeql-action/analyze@v3
 
     - name: Upload CodeQL results
-      uses: actions/upload-artifact@v4.6.1
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: codeql-results
         path: /home/runner/work/go-lambda-cleanup/results/go.sarif
