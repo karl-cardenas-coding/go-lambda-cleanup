@@ -147,9 +147,11 @@ var cleanCmd = &cobra.Command{
 	},
 }
 
-// executeClean is the main function that executes the clean-up process
-// It takes a context, a pointer to a cliConfig struct, a pointer to a lambda client, and a list of custom lambdas to delete
-// An error is returned if the function fails to execute
+/*
+executeClean is the main function that executes the clean-up process
+It takes a context, a pointer to a cliConfig struct, a pointer to a lambda client, and a list of custom lambdas to delete
+An error is returned if the function fails to execute
+*/
 func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, customList []string) error {
 	startTime := time.Now()
 
@@ -162,17 +164,21 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 	)
 
 	log.Info("Scanning AWS environment in " + *config.RegionFlag)
+
 	lambdaList, err := getAllLambdas(ctx, svc, customList)
 	if err != nil {
 		log.Error("ERROR: ", err)
 		log.Fatal("ERROR: Failed to retrieve Lambda list.")
 	}
+
 	log.Info("............")
 
 	if len(lambdaList) > 0 {
 		tempCounter := 0
+
 		for _, lambda := range lambdaList {
 			lambdaItem := lambda
+
 			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem, *config)
 			if err != nil {
 				log.Error("ERROR: ", err)
@@ -192,6 +198,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		}
 
 		log.Info(tempCounter, " Lambdas identified")
+
 		for _, v := range globalLambdaStorage {
 			counter = counter + v
 		}
@@ -208,6 +215,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		}
 
 		log.Info("............")
+
 		globalLambdaDeleteInputStructs, err := generateDeleteInputStructs(globalLambdaDeleteList, *config.MoreLambdaDetails)
 		if err != nil {
 			log.Error("ERROR: ", err)
@@ -219,8 +227,9 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		if *config.DryRun {
 			numVerDeleted := countDeleteVersions(globalLambdaDeleteInputStructs)
 			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
+
 			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
-			log.Info(fmt.Sprintf("%s of storage space will be removed in an actual execution.", calculateFileSize(uint64(spaceRemovedPreview), config)))
+			log.Info(calculateFileSize(uint64(spaceRemovedPreview), config) + " of storage space will be removed in an actual execution.")
 
 			displayDuration(startTime)
 
@@ -239,6 +248,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 			log.Error("ERROR: ", err)
 			log.Fatal("ERROR: Failed to retrieve Lambda list.")
 		}
+
 		log.Info("............")
 
 		for _, lambda := range updatedLambdaList {
@@ -258,6 +268,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		}
 
 		log.Info("............")
+
 		var updatedCounter int64 = 0
 		for _, v := range updatedGlobalLambdaStorage {
 			updatedCounter = updatedCounter + v
@@ -266,14 +277,11 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		if len(lambdaList) == 0 {
 			log.Info("No lambdas found in ", *config.RegionFlag)
 		} else {
-
 			log.Info("Total versions removed: ", countDeleteVersions(globalLambdaDeleteInputStructs))
 			log.Info("Total space freed up: ", (calculateFileSize(uint64(counter-updatedCounter), config)))
 			log.Info("Post clean-up storage size: ", calculateFileSize(uint64(updatedCounter), config))
 			log.Info("*********************************************")
-
 		}
-
 	}
 
 	displayDuration(startTime)
@@ -281,6 +289,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 	return returnError
 }
 
+// displayDuration calculates the duration based on a provided start time.
 func displayDuration(startTime time.Time) {
 	var (
 		elapsedTime float64
@@ -288,6 +297,7 @@ func displayDuration(startTime time.Time) {
 	)
 
 	t1 := time.Now()
+
 	tempTime := t1.Sub(startTime)
 	if tempTime.Minutes() > 1 {
 		elapsedTime = tempTime.Minutes()
@@ -310,6 +320,7 @@ func generateDeleteInputStructs(versionsList [][]types.FunctionConfiguration, de
 
 	for _, version := range versionsList {
 		var tempList []lambda.DeleteFunctionInput
+
 		var functionName string
 
 		for _, entry := range version {
@@ -383,6 +394,7 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, deleteList ...
 			wg.Add(1)
 			func() {
 				defer wg.Done()
+
 				_, err := svc.DeleteFunction(ctx, &version)
 				if err != nil {
 					err = errors.New("Failed to delete version " + *version.Qualifier + " of " + *version.FunctionName + ". \n Additional details: " + err.Error())
@@ -393,10 +405,11 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, deleteList ...
 	}
 
 	wg.Wait()
+
 	return returnError
 }
 
-// getLambdasToDeleteList takes a list of lambda.FunctionConfiguration and a int8 value to determine how many versions to retain. The function returns a list of lambda.FunctionConfiguration
+// getLambdasToDeleteList takes a list of lambda.FunctionConfiguration and a int8 value to determine how many versions to retain. The function returns a list of lambda.FunctionConfiguration.
 func getLambdasToDeleteList(list []types.FunctionConfiguration, retainCount int8) []types.FunctionConfiguration {
 	var retainNumber int
 	// Ensure the passed in parameter is greater than zero
@@ -417,7 +430,7 @@ func getLambdasToDeleteList(list []types.FunctionConfiguration, retainCount int8
 	}
 }
 
-// getAllLambdas returns a list of all available lambdas in the AWS environment. The function takes a context, a pointer to a lambda client, and a list of custom lambdas function names to delete
+// getAllLambdas returns a list of all available lambdas in the AWS environment. The function takes a context, a pointer to a lambda client, and a list of custom lambdas function names to delete.
 func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string) ([]types.FunctionConfiguration, error) {
 	var (
 		lambdasListOutput []types.FunctionConfiguration
@@ -435,15 +448,16 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string)
 			page, err := p.NextPage(ctx)
 			if err != nil {
 				log.Error(err)
+
 				return lambdasListOutput, err
 			}
+
 			lambdasListOutput = append(lambdasListOutput, page.Functions...)
 		}
 	}
 
 	if len(customList) > 0 {
 		for _, item := range customList {
-
 			input := &lambda.GetFunctionInput{
 				FunctionName: aws.String(item),
 			}
@@ -453,11 +467,14 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string)
 				var rnf *types.ResourceNotFoundException
 				if errors.As(err, &rnf) {
 					log.Warn(fmt.Sprintf("The lambda function %s does not exist. Ensure you specified the correct name and that function exists and try again. ", item))
-					log.Warn(fmt.Sprintf("Skipping %s", item))
+					log.Warn("Skipping " + item)
+
 					continue
 				}
+
 				returnError = err
 			}
+
 			if result != nil && result.Configuration != nil {
 				lambdasListOutput = append(lambdasListOutput, *result.Configuration)
 			}
@@ -467,7 +484,7 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string)
 	return lambdasListOutput, returnError
 }
 
-// getAllLambdaVersion returns a list of all available versions for a given lambda. The function takes a context, a pointer to a lambda client, and a lambda.FunctionConfiguration
+// getAllLambdaVersion returns a list of all available versions for a given lambda. The function takes a context, a pointer to a lambda client, and a lambda.FunctionConfiguration.
 func getAllLambdaVersion(
 	ctx context.Context,
 	svc *lambda.Client,
@@ -490,26 +507,30 @@ func getAllLambdaVersion(
 		page, err := p.NextPage(ctx)
 		if err != nil {
 			log.Error(err)
+
 			return lambdasLisOutput, err
 		}
+
 		lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
 	}
 
 	if *flags.SkipAliases {
 		// fetch the list of aliases for this function
-
 		pg := lambda.NewListAliasesPaginator(svc, &lambda.ListAliasesInput{
 			FunctionName: aws.String(*item.FunctionArn),
 			MaxItems:     aws.Int32(maxItems),
 		})
 
 		var aliasesOut []types.AliasConfiguration
+
 		for pg.HasMorePages() {
 			page, err := pg.NextPage(ctx)
 			if err != nil {
 				log.Error(err)
+
 				return lambdasLisOutput, err
 			}
+
 			aliasesOut = append(aliasesOut, page.Aliases...)
 		}
 
@@ -524,6 +545,7 @@ func getAllLambdaVersion(
 			for _, alias := range aliasesOut {
 				if alias.FunctionVersion != nil && *alias.FunctionVersion == *funConf.Version {
 					isAlias = true
+
 					break
 				}
 			}
@@ -552,10 +574,11 @@ func (a byVersion) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a byVersion) Less(i, j int) bool {
 	one, _ := strconv.ParseInt(*a[i].Version, 10, 32)
 	two, _ := strconv.ParseInt(*a[j].Version, 10, 32)
+
 	return one > two
 }
 
-// getLambdaStorage calculates the aggregate sum of all the functions' size
+// getLambdaStorage calculates the aggregate sum of all the functions' size.
 func getLambdaStorage(list []types.FunctionConfiguration) (int64, error) {
 	var (
 		sizeCounter int64
@@ -574,6 +597,7 @@ func getLambdaStorage(list []types.FunctionConfiguration) (int64, error) {
 // Example of the embedded file: ap-south-2	ap-south-1	eu-south-1	eu-south-2	me-central-1	ca-central-1	eu-central-1	eu-central-2
 func validateRegion(f embed.FS, input string) (string, error) {
 	var output string
+
 	var err error
 
 	rawData, _ := f.ReadFile(regionFile)
@@ -587,16 +611,18 @@ func validateRegion(f embed.FS, input string) (string, error) {
 
 	if output == "" {
 		err = errors.New(input + " is an invalid AWS region. If this is an error please report it")
+
 		return "", err
 	}
 
 	return output, err
 }
 
-// calculateFileSize returns the size of a file in bytes. The function takes a cliConfig parameter to determine the number format type to return
+// calculateFileSize returns the size of a file in bytes. The function takes a cliConfig parameter to determine the number format type to return.
 func calculateFileSize(value uint64, config *cliConfig) string {
 	if *config.SizeIEC {
 		return humanize.IBytes(value)
 	}
+
 	return humanize.Bytes(value)
 }

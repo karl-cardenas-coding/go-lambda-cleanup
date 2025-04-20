@@ -18,7 +18,7 @@ type cliConfig struct {
 	SkipAliases       *bool
 }
 
-// Github Release Structure (v3)
+// Github Release Structure (v3).
 type Release struct {
 	URL             string    `json:"url"`
 	AssetsURL       string    `json:"assets_url"`
