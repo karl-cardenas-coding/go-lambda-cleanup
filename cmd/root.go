@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -15,38 +14,38 @@ import (
 )
 
 var (
-	// VersionString is the version of the CLI
+	// VersionString is the version of the CLI.
 	VersionString string = "0.0.0"
-	// ProfileFlag is the AWS crendentials profile passed in
+	// ProfileFlag is the AWS crendentials profile passed in.
 	ProfileFlag string
-	// CredentialsFile is a boolean for the credentials provider logic
+	// CredentialsFile is a boolean for the credentials provider logic.
 	CredentialsFile bool
-	// RegionFlag is the AWS Region to target for the execution
+	// RegionFlag is the AWS Region to target for the execution.
 	RegionFlag string
-	// Retain is the number of versions to retain excluding $LATEST
+	// Retain is the number of versions to retain excluding $LATEST.
 	Retain int8
-	// Verbose is to enable debug output
+	// Verbose is to enable debug output.
 	Verbose bool
-	// DryRun is to enable a preview of what an actual execution would do
+	// DryRun is to enable a preview of what an actual execution would do.
 	DryRun bool
-	// LambdaListFile points a file that contains a listof Lambdas to delete
+	// LambdaListFile points a file that contains a listof Lambdas to delete.
 	LambdaListFile string
-	// MoreLambdaDetails is to show information about the Lambda being worked on
+	// MoreLambdaDetails is to show information about the Lambda being worked on.
 	MoreLambdaDetails bool
-	// SizeIEC is used to display the size in IEC units
+	// SizeIEC is used to display the size in IEC units.
 	SizeIEC bool
-	// CliConfig is the struct that holds the CLI configuration
+	// CliConfig is the struct that holds the CLI configuration.
 	GlobalCliConfig cliConfig
-	// HTTPClient is the HTTP client to use for the AWS API calls
+	// HTTPClient is the HTTP client to use for the AWS API calls.
 	GlobalHTTPClient *http.Client
-	// UserAgent is the value to use for the User-Agent header
+	// UserAgent is the value to use for the User-Agent header.
 	UserAgent string
-	// SkipAliases indicates that lambda versions attached to an alias should be skipped from deletion
+	// SkipAliases indicates that lambda versions attached to an alias should be skipped from deletion.
 	SkipAliases bool
 )
 
 const (
-	// IssueMSG is a default message to pass to the user
+	// IssueMSG is a default message to pass to the user.
 	IssueMSG = " Please open up a Github issue to report this error! https://github.com/karl-cardenas-coding/go-clean-lambda"
 )
 
@@ -58,6 +57,7 @@ var rootCmd = &cobra.Command{
 		err := cmd.Help()
 		if err != nil {
 			log.Info("Error executing the CLI!")
+
 			return err
 		}
 
@@ -85,7 +85,7 @@ func init() {
 	GlobalCliConfig.SizeIEC = &SizeIEC
 	GlobalCliConfig.Retain = &Retain
 	GlobalCliConfig.SkipAliases = &SkipAliases
-	UserAgent = fmt.Sprintf("go-clean-lambda/%s", VersionString)
+	UserAgent = "go-clean-lambda/" + VersionString
 	// Establish logging default
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors:   false,
@@ -94,22 +94,20 @@ func init() {
 	})
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
-	GlobalHTTPClient = createHTTPClient()
 
+	GlobalHTTPClient = createHTTPClient()
 }
 
-// Execute is the main execution function
+// Execute is the main execution function.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Error(err)
 		os.Exit(1)
 	}
-
 }
 
-// createHTTPClient creates an HTTP client with TLS
+// createHTTPClient creates an HTTP client with TLS.
 func createHTTPClient() *http.Client {
-
 	// Setup client header to use TLS 1.2
 	tr := &http.Transport{
 		// Reads PROXY configuration from environment variables
