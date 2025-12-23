@@ -40,7 +40,7 @@ jobs:
       id: go
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
 
     - name: Generate AWS region file
@@ -82,7 +82,7 @@ jobs:
 
 
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3.3.0
+      uses: docker/setup-qemu-action@v3.7.0
 
     -  name: Set up Docker Buildx
        uses: docker/setup-buildx-action@v3
