@@ -1,0 +1,48 @@
+# https://taskfile.dev
+version: '3'
+
+tasks:
+  aws-regions:
+    desc: Generate AWS regions file
+    cmds:
+      - aws ec2 describe-regions --region us-east-1 --all-regions --query "Regions[].RegionName" --output text > cmd/aws-regions.txt
+
+  license:
+    desc: Apply license headers
+    cmds:
+      - copywrite headers
+
+  opensource:
+    desc: Check open source licenses
+    cmds:
+      - ~/go/bin/go-licenses report github.com/karl-cardenas-coding/go-lambda-cleanup/v2 --template=documentation/open-source.tpl > documentation/open-source.md
+
+  lint:
+    desc: Run Go linter
+    cmds:
+      - golangci-lint run ./...
+
+  build:
+    desc: Build the binary
+    cmds:
+      - go build -ldflags="-X 'github.com/karl-cardenas-coding/go-lambda-cleanup/v2/cmd.VersionString=1.0.0'" -o=glc -v
+
+  tests:
+    desc: Run tests
+    cmds:
+      - go test -shuffle on -race ./...
+
+  tests-coverage:
+    desc: Run tests with code coverage
+    cmds:
+      - go test -race -shuffle on -cover -coverprofile=coverage.out -covermode=atomic ./...
+
+  view-coverage:
+    desc: View code coverage report
+    cmds:
+      - go tool cover -html=coverage.out
+
+  nil:
+    desc: Check for nil errors
+    cmds:
+      - ~/go/bin/nilaway ./...

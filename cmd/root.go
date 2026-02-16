@@ -100,7 +100,8 @@ func init() {
 
 // Execute is the main execution function.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	err := rootCmd.Execute()
+	if err != nil {
 		log.Error(err)
 		os.Exit(1)
 	}

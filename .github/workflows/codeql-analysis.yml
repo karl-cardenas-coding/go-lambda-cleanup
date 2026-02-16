@@ -10,7 +10,7 @@ on:
     - cron: '0 10 * * 0'
 
 env:
-  GO_VERSION: '1.24'
+  GO_VERSION: '1.26'
 
 jobs:
   analyze:
@@ -67,7 +67,7 @@ jobs:
       uses: github/codeql-action/analyze@v4
 
     - name: Upload CodeQL results
-      uses: actions/upload-artifact@v5.0.0
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: codeql-results
         path: /home/runner/work/go-lambda-cleanup/results/go.sarif

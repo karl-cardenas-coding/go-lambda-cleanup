@@ -61,13 +61,13 @@ var cleanCmd = &cobra.Command{
 		config = GlobalCliConfig
 		awsEnvRegion = os.Getenv("AWS_DEFAULT_REGION")
 		awsEnvProfile = os.Getenv("AWS_PROFILE")
+
 		if *config.RegionFlag == "" {
 			if awsEnvRegion != "" {
 				*config.RegionFlag, err = validateRegion(f, awsEnvRegion)
 				if err != nil {
 					return err
 				}
-
 			} else {
 				return errors.New("missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region")
 			}
@@ -94,6 +94,7 @@ var cleanCmd = &cobra.Command{
 		} else {
 			log.Infof("The AWS Profile flag \"%s\" was passed in", *config.ProfileFlag)
 		}
+
 		awsConfigOptions = append(awsConfigOptions, awsConfig.WithSharedConfigProfile(*config.ProfileFlag))
 
 		if *config.Verbose {
@@ -112,11 +113,13 @@ var cleanCmd = &cobra.Command{
 
 		if *config.LambdaListFile != "" {
 			log.Info("******** CUSTOM LAMBDA LIST PROVIDED ********")
+
 			list, err := internal.GenerateLambdaDeleteList(*config.LambdaListFile)
 			if err != nil {
 				log.Infof("an issue occurred while processing %s", *config.LambdaListFile)
 				log.Info(err.Error())
 			}
+
 			customeDeleteList = list
 		}
 
@@ -129,6 +132,7 @@ var cleanCmd = &cobra.Command{
 		if err != nil {
 			return errors.New("ERROR RETRIEVING AWS CREDENTIALS")
 		}
+
 		if creds.Expired() {
 			return errors.New("AWS CREDENTIALS EXPIRED")
 		}
@@ -138,6 +142,7 @@ var cleanCmd = &cobra.Command{
 			// Set the User-Agent for all AWS with the Lambda client
 			o.APIOptions = append(o.APIOptions, middleware.AddUserAgentKeyValue("go-lambda-cleanup", VersionString))
 		})
+
 		err = executeClean(ctx, &config, initSvc, customeDeleteList)
 		if err != nil {
 			return err
@@ -150,7 +155,7 @@ var cleanCmd = &cobra.Command{
 /*
 executeClean is the main function that executes the clean-up process
 It takes a context, a pointer to a cliConfig struct, a pointer to a lambda client, and a list of custom lambdas to delete
-An error is returned if the function fails to execute
+An error is returned if the function fails to execute.
 */
 func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, customList []string) error {
 	startTime := time.Now()
@@ -311,7 +316,7 @@ func displayDuration(startTime time.Time) {
 }
 
 // generateDeleteInputStructs takes a list of lambda.DeleteFunctionInput and a boolean value to determine if the user wants more details. The function returns a list of lambda.DeleteFunctionInput
-// An error is returned if the function fails to execute
+// An error is returned if the function fails to execute.
 func generateDeleteInputStructs(versionsList [][]types.FunctionConfiguration, details bool) ([][]lambda.DeleteFunctionInput, error) {
 	var (
 		returnError error
@@ -349,7 +354,7 @@ func generateDeleteInputStructs(versionsList [][]types.FunctionConfiguration, de
 }
 
 // calculateSpaceRemoval returns the total size of all the versions to be deleted.
-// The function takes a list of lambda.DeleteFunctionInput and returns an int
+// The function takes a list of lambda.DeleteFunctionInput and returns an int.
 func calculateSpaceRemoval(deleteList [][]types.FunctionConfiguration) int {
 	var (
 		size int
@@ -367,7 +372,7 @@ func calculateSpaceRemoval(deleteList [][]types.FunctionConfiguration) int {
 }
 
 // countDeleteVersions returns the total number of versions to be deleted.
-// The function takes a list of lambda.DeleteFunctionInput and returns an int
+// The function takes a list of lambda.DeleteFunctionInput and returns an int.
 func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
 	var (
 		versionsCount int
@@ -594,16 +599,16 @@ func getLambdaStorage(list []types.FunctionConfiguration) (int64, error) {
 
 // validateRegion validates the user input to ensure it is a valid AWS region. The function takes a embed.FS and a string. The function returns a string and an error
 // An embedded file is used to validate the user input. The embedded file contains a list of all the AWS regions
-// Example of the embedded file: ap-south-2	ap-south-1	eu-south-1	eu-south-2	me-central-1	ca-central-1	eu-central-1	eu-central-2
+// Example of the embedded file: ap-south-2	ap-south-1	eu-south-1	eu-south-2	me-central-1	ca-central-1	eu-central-1	eu-central-2.
 func validateRegion(f embed.FS, input string) (string, error) {
 	var output string
 
 	var err error
 
 	rawData, _ := f.ReadFile(regionFile)
-	regionsList := strings.Split(string(rawData), "	")
+	regionsList := strings.SplitSeq(string(rawData), "	")
 
-	for _, region := range regionsList {
+	for region := range regionsList {
 		if strings.ToLower(input) == strings.TrimSpace(region) {
 			output = strings.TrimSpace(region)
 		}
