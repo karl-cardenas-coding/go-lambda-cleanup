@@ -30,12 +30,14 @@ var VersionCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		version := "go-lambda-cleanup " + VersionString
 		log.Info(version)
+
 		_, message, err := checkForNewRelease(GlobalHTTPClient, VersionString, UserAgent, url)
 		if err != nil {
 			log.Error(err)
 
 			return err
 		}
+
 		log.Info(message)
 
 		return err

@@ -19,6 +19,10 @@ import (
 	"github.com/testcontainers/testcontainers-go/network"
 )
 
+// localstackContainerName is the fixed name for the reusable LocalStack container.
+// WithReuseByName uses this so one container is shared across all integration tests.
+const localstackContainerName = "go-lambda-cleanup-localstack"
+
 func TestRoot(t *testing.T) {
 
 	err := rootCmd.RunE(rootCmd, []string{})
@@ -38,17 +42,13 @@ func TestRootCMD(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	provider, err := testcontainers.NewDockerProvider()
 	if err != nil {
@@ -74,6 +74,7 @@ func TestRootCMD(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	_, err = addFunctions(ctx, svc, bf)
 	if err != nil {
@@ -173,17 +174,13 @@ func TestRootExecute(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	provider, err := testcontainers.NewDockerProvider()
 	if err != nil {
@@ -209,6 +206,7 @@ func TestRootExecute(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	_, err = addFunctions(ctx, svc, bf)
 	if err != nil {
@@ -305,17 +303,13 @@ func TestNoLambdas(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	provider, err := testcontainers.NewDockerProvider()
 	if err != nil {
@@ -331,6 +325,12 @@ func TestNoLambdas(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+
+	svc, err := getAWSCredentials(ctx, localstackContainer)
+	if err != nil {
+		panic(err)
+	}
+	deleteTestFunctions(ctx, svc)
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),

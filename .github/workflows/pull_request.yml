@@ -10,7 +10,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: '1.24'
+  GO_VERSION: '1.26'
 
 jobs:
 
@@ -41,7 +41,8 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v6
-
+    - name: Install Task
+      uses: go-task/setup-task@v1
 
     - name: Generate AWS region file
       env:
@@ -56,7 +57,7 @@ jobs:
     #     args: -v
     
     - name: Execute Go tests
-      run: make tests-coverage
+      run: task tests-coverage
 
     - name: Codecov Upload
       uses: codecov/codecov-action@v5.5.1

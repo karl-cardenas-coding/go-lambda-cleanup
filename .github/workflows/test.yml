@@ -6,7 +6,7 @@ on:
 
 
 env:
-  GO_VERSION: '1.24'    
+  GO_VERSION: '1.26'    
 
 jobs:
   test:
@@ -24,6 +24,9 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v6
 
+    - name: Install Task
+      uses: go-task/setup-task@v1
+
     - name: Generate AWS region file
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -37,7 +40,7 @@ jobs:
     #     args: -v
 
     - name: Execute Go tests
-      run:  make tests-coverage
+      run: task tests-coverage
 
     - name: Test CLI
       env:

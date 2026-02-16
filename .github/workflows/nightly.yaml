@@ -33,11 +33,14 @@ jobs:
       run: |
         aws ec2 describe-regions --all-regions --region us-east-1 --query "Regions[].RegionName" --output text >> cmd/aws-regions.txt
 
+    - name: Install Task
+      uses: go-task/setup-task@v1
+
     - name: Update Dependencies
       run: go get -u ./...
 
     - name: Execute Go tests
-      run: make tests
+      run: task tests
       
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3.7.0

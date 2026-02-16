@@ -371,17 +371,13 @@ func TestDeleteLambdaVersionError(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	lambdaClient, err := lambdaClient(ctx, localstackContainer)
 	if err != nil {
@@ -441,22 +437,19 @@ func TestDeleteLambdaVersion(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	svc, err := getAWSCredentials(ctx, localstackContainer)
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
@@ -538,22 +531,19 @@ func TestGetAllLambdas(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	svc, err := getAWSCredentials(ctx, localstackContainer)
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
@@ -645,22 +635,19 @@ func TestGetAllLambdasAlias(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	svc, err := getAWSCredentials(ctx, localstackContainer)
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
@@ -757,22 +744,19 @@ func TestGetAllLambdaVersion(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	svc, err := getAWSCredentials(ctx, localstackContainer)
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
@@ -846,22 +830,19 @@ func TestGetAllLambdaVersionWithAliasError(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	svc, err := getAWSCredentials(ctx, localstackContainer)
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
@@ -950,22 +931,19 @@ func TestGetAllLambdaVersionWithAlias(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	svc, err := getAWSCredentials(ctx, localstackContainer)
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String("us-east-1"),
@@ -1053,22 +1031,19 @@ func TestExecuteClean(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	svc, err := getAWSCredentials(ctx, localstackContainer)
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	GlobalCliConfig = cliConfig{
 		RegionFlag:        aws.String(""),
@@ -1125,17 +1100,13 @@ func TestCleanCMDDryRun(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	provider, err := testcontainers.NewDockerProvider()
 	if err != nil {
@@ -1161,6 +1132,7 @@ func TestCleanCMDDryRun(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	_, err = addFunctions(ctx, svc, bf)
 	if err != nil {
@@ -1272,17 +1244,13 @@ func TestCleanCMD(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	provider, err := testcontainers.NewDockerProvider()
 	if err != nil {
@@ -1308,6 +1276,7 @@ func TestCleanCMD(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	_, err = addFunctions(ctx, svc, bf)
 	if err != nil {
@@ -1419,17 +1388,13 @@ func TestCleanCMDWithCustomList(t *testing.T) {
 		"localstack/localstack:3.6",
 		testcontainers.WithEnv(map[string]string{
 			"SERVICES": "lambda"}),
+		testcontainers.WithReuseByName(localstackContainerName),
 		network.WithNetwork([]string{"localstack-network-v2"}, newNetwork),
 	)
 	if err != nil {
 		t.Errorf("failed to start localstack container: %s", err)
 	}
-
-	defer func() {
-		if err := localstackContainer.Terminate(ctx); err != nil {
-			t.Error(err)
-		}
-	}()
+	// Do not Terminate when using WithReuseByName so the container is reused by later tests.
 
 	provider, err := testcontainers.NewDockerProvider()
 	if err != nil {
@@ -1455,6 +1420,7 @@ func TestCleanCMDWithCustomList(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	deleteTestFunctions(ctx, svc)
 
 	_, err = addFunctions(ctx, svc, bf)
 	if err != nil {
@@ -1780,6 +1746,13 @@ func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lamb
 	return client, nil
 }
 
+// deleteTestFunctions removes func1, func2, func3 from LocalStack so tests can start from a clean state when reusing the container.
+func deleteTestFunctions(ctx context.Context, svc *lambda.Client) {
+	for _, name := range []string{"func1", "func2", "func3"} {
+		_, _ = svc.DeleteFunction(ctx, &lambda.DeleteFunctionInput{FunctionName: aws.String(name)})
+	}
+}
+
 func addFunctions(ctx context.Context, svc *lambda.Client, zipPackage *bytes.Buffer) (string, error) {
 
 	list := []lambda.CreateFunctionInput{
@@ -1827,23 +1800,25 @@ func addFunctions(ctx context.Context, svc *lambda.Client, zipPackage *bytes.Buf
 		if err != nil {
 			var resConflict *types.ResourceConflictException
 			if errors.As(err, &resConflict) {
-				log.Printf("Function %v already exists.\n", "test")
+				log.Printf("Function %v already exists.\n", *input.FunctionName)
 				state = types.StateActive
 			} else {
-				log.Panicf("Couldn't create function %v. Here's why: %v\n", "test", err)
+				log.Panicf("Couldn't create function %v. Here's why: %v\n", *input.FunctionName, err)
 			}
 		} else {
 			waiter := lambda.NewFunctionActiveV2Waiter(svc)
 			funcOutput, err := waiter.WaitForOutput(context.TODO(), &lambda.GetFunctionInput{
 				FunctionName: aws.String(*input.FunctionName)}, 2*time.Minute)
 			if err != nil {
-				log.Panicf("Couldn't wait for function %v to be active. Here's why: %v\n", "test", err)
+				log.Panicf("Couldn't wait for function %v to be active. Here's why: %v\n", *input.FunctionName, err)
 			} else {
 				state = funcOutput.Configuration.State
 			}
 		}
 
-		fmt.Println("Function ARN: ", *output.FunctionArn)
+		if output != nil {
+			fmt.Println("Function ARN: ", *output.FunctionArn)
+		}
 
 		result += fmt.Sprintf("Function %v is %v\n", *input.FunctionName, state)
 	}
