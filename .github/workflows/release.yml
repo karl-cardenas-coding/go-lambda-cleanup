@@ -42,29 +42,29 @@ jobs:
 
      - id: tag
        run: |
-           VERSION=$(svu next --tag-mode all-branches)
-           PREV_VERSION=$(svu current --tag-mode all-branches)
- 
-           if [ "$VERSION" = "$PREV_VERSION" ]; then
-             echo "no new version detected"
-             SAME_VERSION=true
-             echo "SAME_VERSION=true" >> $GITHUB_OUTPUT
-           else
-             echo "new version detected"
-             SAME_VERSION=false
-             echo "SAME_VERSION=false" >> $GITHUB_OUTPUT
- 
-             # Check if the tag already exists before creating it
-             if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-               echo "Tag v$VERSION already exists, skipping tag creation."
-             else
-               git tag "$VERSION"
-               git push --tags
-             fi
-           fi
- 
-           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-           echo "PREV_VERSION=$PREV_VERSION" >> $GITHUB_OUTPUT
+        VERSION=$(svu next --tag.mode all)
+        PREV_VERSION=$(svu current --tag.mode all)
+
+        if [ "$VERSION" = "$PREV_VERSION" ]; then
+          echo "no new version detected"
+          SAME_VERSION=true
+          echo "SAME_VERSION=true" >> $GITHUB_OUTPUT
+        else
+          echo "new version detected"
+          SAME_VERSION=false
+          echo "SAME_VERSION=false" >> $GITHUB_OUTPUT
+
+          # Check if the tag already exists before creating it
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists, skipping tag creation."
+          else
+            git tag "$VERSION"
+            git push --tags
+          fi
+        fi
+
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "PREV_VERSION=$PREV_VERSION" >> $GITHUB_OUTPUT
 
   goreleaser:
     name: Release
