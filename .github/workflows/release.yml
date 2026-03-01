@@ -99,7 +99,7 @@ jobs:
             rm -rf upx.tar.xz upx-${UPX_VERSION}-amd64_linux
             upx --version
       
-      - uses: goreleaser/goreleaser-action@v6
+      - uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
           args: release --clean
