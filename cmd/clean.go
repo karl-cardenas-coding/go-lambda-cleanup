@@ -26,12 +26,16 @@ import (
 	internal "github.com/karl-cardenas-coding/go-lambda-cleanup/v2/internal"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/time/rate"
 )
 
 const (
 	// Per AWS API Valid Range: Minimum value of 1. Maximum value of 10000.
 	maxItems   int32  = 10000
 	regionFile string = "aws-regions.txt"
+	// AWS Lambda API rate limit is ~15 requests/second per account per region.
+	// Default to 10 rps to leave headroom for other callers in the same account.
+	defaultAPIRPS rate.Limit = 10
 )
 
 var (
@@ -143,7 +147,10 @@ var cleanCmd = &cobra.Command{
 			o.APIOptions = append(o.APIOptions, middleware.AddUserAgentKeyValue("go-lambda-cleanup", VersionString))
 		})
 
-		err = executeClean(ctx, &config, initSvc, customeDeleteList)
+		limiter := rate.NewLimiter(defaultAPIRPS, 1)
+		log.Debugf("API rate limiting: %.0f requests/second", float64(defaultAPIRPS))
+
+		err = executeClean(ctx, &config, initSvc, customeDeleteList, limiter)
 		if err != nil {
 			return err
 		}
@@ -157,7 +164,7 @@ executeClean is the main function that executes the clean-up process
 It takes a context, a pointer to a cliConfig struct, a pointer to a lambda client, and a list of custom lambdas to delete
 An error is returned if the function fails to execute.
 */
-func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, customList []string) error {
+func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, customList []string, limiter *rate.Limiter) error {
 	startTime := time.Now()
 
 	var (
@@ -170,7 +177,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 
 	log.Info("Scanning AWS environment in " + *config.RegionFlag)
 
-	lambdaList, err := getAllLambdas(ctx, svc, customList)
+	lambdaList, err := getAllLambdas(ctx, svc, customList, limiter)
 	if err != nil {
 		log.Error("ERROR: ", err)
 		log.Fatal("ERROR: Failed to retrieve Lambda list.")
@@ -184,7 +191,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		for _, lambda := range lambdaList {
 			lambdaItem := lambda
 
-			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem, *config)
+			lambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambdaItem, *config, limiter)
 			if err != nil {
 				log.Error("ERROR: ", err)
 				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
@@ -241,14 +248,14 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 			return returnError
 		}
 
-		err = deleteLambdaVersion(ctx, svc, globalLambdaDeleteInputStructs...)
+		err = deleteLambdaVersion(ctx, svc, limiter, globalLambdaDeleteInputStructs...)
 		if err != nil {
 			log.Error("ERROR: ", err)
 			log.Fatal("ERROR: Failed to delete Lambda versions.")
 		}
 
 		// Recalculate storage size
-		updatedLambdaList, err := getAllLambdas(ctx, svc, customList)
+		updatedLambdaList, err := getAllLambdas(ctx, svc, customList, limiter)
 		if err != nil {
 			log.Error("ERROR: ", err)
 			log.Fatal("ERROR: Failed to retrieve Lambda list.")
@@ -257,7 +264,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		log.Info("............")
 
 		for _, lambda := range updatedLambdaList {
-			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda, *config)
+			updatededlambdaVersionsList, err := getAllLambdaVersion(ctx, svc, lambda, *config, limiter)
 			if err != nil {
 				log.Error("ERROR: ", err)
 				log.Fatal("ERROR: Failed to retrieve Lambda version list.")
@@ -388,7 +395,7 @@ func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
 // deleteLambdaVersion takes a list of lambda.DeleteFunctionInput and deletes all the versions in the list
 // The function takes a context, a pointer to a lambda client, and a list of lambda.DeleteFunctionInput. A variadic operator is used to allow the user to pass in multiple lists of lambda.DeleteFunctionInput
 // Use this function with caution as it will delete all the versions in the list.
-func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, deleteList ...[]lambda.DeleteFunctionInput) error {
+func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, limiter *rate.Limiter, deleteList ...[]lambda.DeleteFunctionInput) error {
 	var (
 		returnError error
 		wg          sync.WaitGroup
@@ -399,6 +406,11 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, deleteList ...
 			wg.Add(1)
 			func() {
 				defer wg.Done()
+
+				if err := limiter.Wait(ctx); err != nil {
+					returnError = fmt.Errorf("rate limiter interrupted: %w", err)
+					return
+				}
 
 				_, err := svc.DeleteFunction(ctx, &version)
 				if err != nil {
@@ -436,7 +448,7 @@ func getLambdasToDeleteList(list []types.FunctionConfiguration, retainCount int8
 }
 
 // getAllLambdas returns a list of all available lambdas in the AWS environment. The function takes a context, a pointer to a lambda client, and a list of custom lambdas function names to delete.
-func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string) ([]types.FunctionConfiguration, error) {
+func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string, limiter *rate.Limiter) ([]types.FunctionConfiguration, error) {
 	var (
 		lambdasListOutput []types.FunctionConfiguration
 		returnError       error
@@ -463,6 +475,10 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string)
 
 	if len(customList) > 0 {
 		for _, item := range customList {
+			if err := limiter.Wait(ctx); err != nil {
+				return lambdasListOutput, fmt.Errorf("rate limiter interrupted: %w", err)
+			}
+
 			input := &lambda.GetFunctionInput{
 				FunctionName: aws.String(item),
 			}
@@ -495,6 +511,7 @@ func getAllLambdaVersion(
 	svc *lambda.Client,
 	item types.FunctionConfiguration,
 	flags cliConfig,
+	limiter *rate.Limiter,
 ) ([]types.FunctionConfiguration, error) {
 	var (
 		lambdasLisOutput []types.FunctionConfiguration
@@ -509,6 +526,10 @@ func getAllLambdaVersion(
 
 	p := lambda.NewListVersionsByFunctionPaginator(svc, input)
 	for p.HasMorePages() {
+		if err := limiter.Wait(ctx); err != nil {
+			return lambdasLisOutput, fmt.Errorf("rate limiter interrupted: %w", err)
+		}
+
 		page, err := p.NextPage(ctx)
 		if err != nil {
 			log.Error(err)
@@ -529,6 +550,10 @@ func getAllLambdaVersion(
 		var aliasesOut []types.AliasConfiguration
 
 		for pg.HasMorePages() {
+			if err := limiter.Wait(ctx); err != nil {
+				return lambdasLisOutput, fmt.Errorf("rate limiter interrupted: %w", err)
+			}
+
 			page, err := pg.NextPage(ctx)
 			if err != nil {
 				log.Error(err)

@@ -17,6 +17,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/localstack"
 	"github.com/testcontainers/testcontainers-go/network"
+	"golang.org/x/time/rate"
 )
 
 // localstackContainerName is the fixed name for the reusable LocalStack container.
@@ -107,7 +108,7 @@ func TestRootCMD(t *testing.T) {
 	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, rate.NewLimiter(rate.Inf, 1))
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -131,7 +132,7 @@ func TestRootCMD(t *testing.T) {
 	actual, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, rate.NewLimiter(rate.Inf, 1))
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -239,7 +240,7 @@ func TestRootExecute(t *testing.T) {
 	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, rate.NewLimiter(rate.Inf, 1))
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -260,7 +261,7 @@ func TestRootExecute(t *testing.T) {
 	actual, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, rate.NewLimiter(rate.Inf, 1))
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}

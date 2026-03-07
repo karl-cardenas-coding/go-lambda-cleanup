@@ -27,11 +27,14 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/localstack"
 	"github.com/testcontainers/testcontainers-go/network"
+	"golang.org/x/time/rate"
 )
 
 var (
 	//go:embed aws-regions.txt
 	rr embed.FS
+
+	unlimitedLimiter = rate.NewLimiter(rate.Inf, 1)
 )
 
 func TestGetLambdaStorage(t *testing.T) {
@@ -359,6 +362,61 @@ func TestDisplayDuration(t *testing.T) {
 	buf.Reset()
 }
 
+func TestRateLimiterPacesRequests(t *testing.T) {
+	limiter := rate.NewLimiter(rate.Limit(100), 1) // 100 rps = ~10ms between requests
+	ctx := context.Background()
+
+	iterations := 5
+	start := time.Now()
+
+	for range iterations {
+		if err := limiter.Wait(ctx); err != nil {
+			t.Fatalf("limiter.Wait returned error: %v", err)
+		}
+	}
+
+	elapsed := time.Since(start)
+	// 5 requests at 100 rps: first is immediate, remaining 4 need ~40ms total
+	if elapsed < 30*time.Millisecond {
+		t.Errorf("expected rate limiter to pace requests, but %d iterations completed in %v", iterations, elapsed)
+	}
+}
+
+func TestRateLimiterUnlimited(t *testing.T) {
+	limiter := rate.NewLimiter(rate.Inf, 1)
+	ctx := context.Background()
+
+	start := time.Now()
+
+	for range 100 {
+		if err := limiter.Wait(ctx); err != nil {
+			t.Fatalf("limiter.Wait returned error: %v", err)
+		}
+	}
+
+	elapsed := time.Since(start)
+	if elapsed > 50*time.Millisecond {
+		t.Errorf("unlimited limiter should not pace requests, but 100 iterations took %v", elapsed)
+	}
+}
+
+func TestRateLimiterContextCancellation(t *testing.T) {
+	limiter := rate.NewLimiter(rate.Limit(1), 1) // 1 rps
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Consume the initial token
+	if err := limiter.Wait(ctx); err != nil {
+		t.Fatalf("first Wait returned error: %v", err)
+	}
+
+	cancel()
+
+	err := limiter.Wait(ctx)
+	if err == nil {
+		t.Error("expected error from cancelled context, got nil")
+	}
+}
+
 func TestDeleteLambdaVersionError(t *testing.T) {
 
 	ctx := context.Background()
@@ -403,7 +461,7 @@ func TestDeleteLambdaVersionError(t *testing.T) {
 		},
 	}
 
-	err = deleteLambdaVersion(ctx, lambdaClient, deleteList)
+	err = deleteLambdaVersion(ctx, lambdaClient, unlimitedLimiter, deleteList)
 	if err == nil {
 		t.Errorf("expected an error to be returned but received %v", err)
 	}
@@ -491,7 +549,7 @@ func TestDeleteLambdaVersion(t *testing.T) {
 		},
 	}
 
-	err = deleteLambdaVersion(ctx, svc, deleteList)
+	err = deleteLambdaVersion(ctx, svc, unlimitedLimiter, deleteList)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -578,7 +636,7 @@ func TestGetAllLambdas(t *testing.T) {
 		t.Logf("expected no error to be returned but received %v", err)
 	}
 
-	lambdaListResult, err := getAllLambdas(ctx, svc, []string{})
+	lambdaListResult, err := getAllLambdas(ctx, svc, []string{}, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -592,7 +650,7 @@ func TestGetAllLambdas(t *testing.T) {
 		t.Errorf("expected 3 functions to be returned but received %v", result)
 	}
 
-	lambdaListResult2, err := getAllLambdas(ctx, svc, []string{"func1"})
+	lambdaListResult2, err := getAllLambdas(ctx, svc, []string{"func1"}, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -601,7 +659,7 @@ func TestGetAllLambdas(t *testing.T) {
 		t.Errorf("Scenario 2: expected 1 functions to be returned but received %v", len(lambdaListResult2))
 	}
 
-	_, err = getAllLambdas(ctx, svc, []string{"func22"})
+	_, err = getAllLambdas(ctx, svc, []string{"func22"}, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected an error to be returned but received %v", err)
 	}
@@ -702,7 +760,7 @@ func TestGetAllLambdasAlias(t *testing.T) {
 	lambdaListResult, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -793,7 +851,7 @@ func TestGetAllLambdaVersion(t *testing.T) {
 
 	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -885,7 +943,7 @@ func TestGetAllLambdaVersionWithAliasError(t *testing.T) {
 	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -897,7 +955,7 @@ func TestGetAllLambdaVersionWithAliasError(t *testing.T) {
 	_, err = getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func22"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func22"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err == nil {
 		t.Errorf("expected an error to be returned but received %v", err)
 	}
@@ -986,7 +1044,7 @@ func TestGetAllLambdaVersionWithAlias(t *testing.T) {
 	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -998,7 +1056,7 @@ func TestGetAllLambdaVersionWithAlias(t *testing.T) {
 	_, err = getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func22"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func22"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err == nil {
 		t.Errorf("expected an error to be returned but received %v", err)
 	}
@@ -1083,7 +1141,7 @@ func TestExecuteClean(t *testing.T) {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
 
-	err = executeClean(ctx, &GlobalCliConfig, svc, []string{})
+	err = executeClean(ctx, &GlobalCliConfig, svc, []string{}, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -1175,7 +1233,7 @@ func TestCleanCMDDryRun(t *testing.T) {
 	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -1199,7 +1257,7 @@ func TestCleanCMDDryRun(t *testing.T) {
 	actual, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -1319,7 +1377,7 @@ func TestCleanCMD(t *testing.T) {
 	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -1343,7 +1401,7 @@ func TestCleanCMD(t *testing.T) {
 	actual, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -1463,7 +1521,7 @@ func TestCleanCMDWithCustomList(t *testing.T) {
 	versions, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func1"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -1487,7 +1545,7 @@ func TestCleanCMDWithCustomList(t *testing.T) {
 	actual, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func3"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
@@ -1519,7 +1577,7 @@ func TestCleanCMDWithCustomList(t *testing.T) {
 	actual2, err := getAllLambdaVersion(ctx, svc, types.FunctionConfiguration{
 		FunctionName: aws.String("func3"),
 		FunctionArn:  aws.String("arn:aws:lambda:us-east-1:000000000000:function:func1"),
-	}, GlobalCliConfig)
+	}, GlobalCliConfig, unlimitedLimiter)
 	if err != nil {
 		t.Errorf("expected no error to be returned but received %v", err)
 	}
