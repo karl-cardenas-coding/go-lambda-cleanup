@@ -42,7 +42,7 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v6
     - name: Install Task
-      uses: go-task/setup-task@v1
+      uses: go-task/setup-task@v2
 
     - name: Generate AWS region file
       env:
