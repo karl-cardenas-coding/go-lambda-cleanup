@@ -300,7 +300,7 @@ on:
     # At 04:00 on every day
     - cron: '0 04 * * *'
 env:
-  VERSION: 'v2.0.19'
+  VERSION: 'v2.0.20'
 
 jobs:
   build:
