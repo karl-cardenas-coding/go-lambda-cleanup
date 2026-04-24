@@ -70,7 +70,8 @@ func readConfigFileYAML(file string) (CustomDeleteListYAML, error) {
 	dc := yaml.NewDecoder(strings.NewReader(string(fileContent)))
 	dc.KnownFields(true)
 
-	if err := dc.Decode(&list); err != nil {
+	err = dc.Decode(&list)
+	if err != nil {
 		return list, fmt.Errorf("%w. Ensure the file is in the correct format and that all fields are correct: %w", errDecodeYAMLFile, err)
 	}
 

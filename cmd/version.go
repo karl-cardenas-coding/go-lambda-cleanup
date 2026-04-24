@@ -96,7 +96,8 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 
 	if resp != nil && resp.Body != nil {
 		defer func() {
-			if closeErr := resp.Body.Close(); closeErr != nil {
+			closeErr := resp.Body.Close()
+			if closeErr != nil {
 				log.WithFields(log.Fields{
 					"package":         "cmd",
 					"file":            "version.go",
@@ -121,7 +122,8 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 			return output, message, fmt.Errorf("%w: %s", errConnectReleaseEndpoint, url)
 		}
 		// Unmarshal the JSON to the Github Release strcut
-		if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		err = json.NewDecoder(resp.Body).Decode(&release)
+		if err != nil {
 			log.WithFields(log.Fields{
 				"package":         "cmd",
 				"file":            "version.go",

@@ -236,7 +236,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		log.Info(tempCounter, " Lambdas identified")
 
 		for _, v := range globalLambdaStorage {
-			counter = counter + v
+			counter += v
 		}
 
 		log.Info("Current storage size: ", calculateFileSize(uint64(counter), config))
@@ -307,7 +307,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 
 		var updatedCounter int64
 		for _, v := range updatedGlobalLambdaStorage {
-			updatedCounter = updatedCounter + v
+			updatedCounter += v
 		}
 
 		if len(lambdaList) == 0 {
@@ -410,7 +410,7 @@ func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
 	)
 
 	for _, lambda := range deleteList {
-		versionsCount = versionsCount + len(lambda)
+		versionsCount += len(lambda)
 	}
 
 	return versionsCount
@@ -431,12 +431,13 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, limiter *rate.
 			func() {
 				defer wg.Done()
 
-				if err := limiter.Wait(ctx); err != nil {
+				err := limiter.Wait(ctx)
+				if err != nil {
 					returnError = fmt.Errorf("rate limiter interrupted: %w", err)
 					return
 				}
 
-				_, err := svc.DeleteFunction(ctx, &version)
+				_, err = svc.DeleteFunction(ctx, &version)
 				if err != nil {
 					returnError = fmt.Errorf(
 						"%w: version %s of %s: %w",
@@ -506,7 +507,8 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string,
 
 	if len(customList) > 0 {
 		for _, item := range customList {
-			if err := limiter.Wait(ctx); err != nil {
+			err := limiter.Wait(ctx)
+			if err != nil {
 				return lambdasListOutput, fmt.Errorf("rate limiter interrupted: %w", err)
 			}
 
@@ -559,7 +561,8 @@ func getAllLambdaVersion(
 
 	p := lambda.NewListVersionsByFunctionPaginator(svc, input)
 	for p.HasMorePages() {
-		if err := limiter.Wait(ctx); err != nil {
+		err := limiter.Wait(ctx)
+		if err != nil {
 			return lambdasLisOutput, fmt.Errorf("rate limiter interrupted: %w", err)
 		}
 
@@ -583,7 +586,8 @@ func getAllLambdaVersion(
 		var aliasesOut []types.AliasConfiguration
 
 		for pg.HasMorePages() {
-			if err := limiter.Wait(ctx); err != nil {
+			err := limiter.Wait(ctx)
+			if err != nil {
 				return lambdasLisOutput, fmt.Errorf("rate limiter interrupted: %w", err)
 			}
 
@@ -649,7 +653,7 @@ func getLambdaStorage(list []types.FunctionConfiguration) (int64, error) {
 	)
 
 	for _, item := range list {
-		sizeCounter = sizeCounter + item.CodeSize
+		sizeCounter += item.CodeSize
 	}
 
 	return sizeCounter, returnError

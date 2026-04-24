@@ -16,6 +16,8 @@ linters:
     - noctx
     - prealloc
     - revive
+    - noinlineerr
+    - gocritic
   exclusions:
     paths:
     - "_test.go"
