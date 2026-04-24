@@ -4,6 +4,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,11 +31,12 @@ var (
 	errCompareVersions        = errors.New("error comparing versions")
 )
 
+// VersionCmd prints the current version and checks for newer releases.
 var VersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the current version number of go-lambda-cleanup",
 	Long:  `Prints the current version number of go-lambda-cleanup`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		version := "go-lambda-cleanup " + VersionString
 		log.Info(version)
 
@@ -47,10 +49,11 @@ var VersionCmd = &cobra.Command{
 
 		log.Info(message)
 
-		return err
+		return nil
 	},
 }
 
+//nolint:cyclop // Network and version-comparison branching is explicit to preserve current behavior.
 func checkForNewRelease(client *http.Client, currentVersion, useragent, url string) (bool, string, error) {
 	var (
 		output  bool
@@ -60,7 +63,7 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 
 	log.Info("Checking for new releases")
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"package":         "cmd",

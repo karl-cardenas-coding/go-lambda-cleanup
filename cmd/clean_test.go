@@ -314,7 +314,7 @@ func TestCalculateSpaceRemoval(t *testing.T) {
 
 	got := calculateSpaceRemoval(lambdaList)
 
-	want := 11400
+	var want uint64 = 11400
 
 	if got != want {
 		t.Fatalf("Expected the size of all versions to be %d but received %d instead", want, got)

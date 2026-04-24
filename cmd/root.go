@@ -16,7 +16,7 @@ import (
 
 var (
 	// VersionString is the version of the CLI.
-	VersionString string = "0.0.0"
+	VersionString = "0.0.0"
 	// ProfileFlag is the AWS crendentials profile passed in.
 	ProfileFlag string
 	// CredentialsFile is a boolean for the credentials provider logic.
@@ -35,9 +35,9 @@ var (
 	MoreLambdaDetails bool
 	// SizeIEC is used to display the size in IEC units.
 	SizeIEC bool
-	// CliConfig is the struct that holds the CLI configuration.
+	// GlobalCliConfig is the struct that holds the CLI configuration.
 	GlobalCliConfig cliConfig
-	// HTTPClient is the HTTP client to use for the AWS API calls.
+	// GlobalHTTPClient is the HTTP client to use for the AWS API calls.
 	GlobalHTTPClient *http.Client
 	// UserAgent is the value to use for the User-Agent header.
 	UserAgent string
@@ -54,7 +54,7 @@ var rootCmd = &cobra.Command{
 	Use:   "glc",
 	Short: "A CLI tool for cleaning up AWS Lambda versions",
 	Long:  `A CLI tool for cleaning up AWS Lambda versions`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		err := cmd.Help()
 		if err != nil {
 			log.Info("Error executing the CLI!")

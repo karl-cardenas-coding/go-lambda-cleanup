@@ -1,6 +1,7 @@
 // Copyright (c) karl-cardenas-coding
 // SPDX-License-Identifier: MIT
 
+// Package internal contains input file parsing helpers.
 package internal
 
 import (
@@ -23,8 +24,8 @@ var (
 // GenerateLambdaDeleteList is a function that takes a file path as input and returns a list of Lambdas to be deleted.
 func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 	var (
-		deleteListYaml CustomDeleteListYaml
-		deleteListJson CustomDeleteListJson
+		deleteListYAML CustomDeleteListYAML
+		deleteListJSON CustomDeleteListJSON
 		output         []string
 	)
 
@@ -34,32 +35,33 @@ func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 	}
 
 	if fileType == "json" {
-		deleteListJson, err = readConfigFileJson(filePath)
+		deleteListJSON, err = readConfigFileJSON(filePath)
 		if err != nil {
-			return deleteListJson.Lambdas, err
+			return deleteListJSON.Lambdas, err
 		}
 
-		output = deleteListJson.Lambdas
+		output = deleteListJSON.Lambdas
 	}
 
 	if fileType == "yaml" {
-		deleteListYaml, err = readConfigFileYaml(filePath)
+		deleteListYAML, err = readConfigFileYAML(filePath)
 		if err != nil {
-			return deleteListYaml.Lambdas, err
+			return deleteListYAML.Lambdas, err
 		}
 
-		output = deleteListYaml.Lambdas
+		output = deleteListYAML.Lambdas
 	}
 
 	return output, err
 }
 
 // readConfigFileYaml is a function that takes a file path as input and returns a list of Lambdas to be deleted. A YAML file is expected.
-func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
+func readConfigFileYAML(file string) (CustomDeleteListYAML, error) {
 	var (
-		list CustomDeleteListYaml
+		list CustomDeleteListYAML
 	)
 
+	// #nosec G304 -- this CLI intentionally accepts user-provided file paths.
 	fileContent, err := os.ReadFile(file)
 	if err != nil {
 		return list, fmt.Errorf("%w: %w", errReadInputFile, err)
@@ -76,11 +78,12 @@ func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 }
 
 // readConfigFileJson is a function that takes a file path as input and returns a list of Lambdas to be deleted. A JSON file is expected.
-func readConfigFileJson(file string) (CustomDeleteListJson, error) {
+func readConfigFileJSON(file string) (CustomDeleteListJSON, error) {
 	var (
-		list CustomDeleteListJson
+		list CustomDeleteListJSON
 	)
 
+	// #nosec G304 -- this CLI intentionally accepts user-provided file paths.
 	fileContent, err := os.ReadFile(file)
 	if err != nil {
 		return list, fmt.Errorf("%w: %w", errReadInputFile, err)

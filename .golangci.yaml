@@ -11,6 +11,11 @@ linters:
     - unconvert
     - unused
     - wrapcheck
+    - cyclop
+    - gosec
+    - noctx
+    - prealloc
+    - revive
   exclusions:
     paths:
     - "_test.go"
