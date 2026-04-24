@@ -12,6 +12,10 @@ permissions:
 env:
   GO_VERSION: '1.26.2'
 
+concurrency:
+  group: "pull_request_${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
+
 jobs:
 
   run-ci:
