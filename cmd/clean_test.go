@@ -22,7 +22,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
-	"github.com/docker/go-connections/nat"
 	log "github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/localstack"
@@ -1176,7 +1175,7 @@ func TestCleanCMDDryRun(t *testing.T) {
 		panic(err)
 	}
 
-	mappedPort, err := localstackContainer.MappedPort(ctx, nat.Port("4566/tcp"))
+	mappedPort, err := localstackContainer.MappedPort(ctx, "4566/tcp")
 	if err != nil {
 		panic(err)
 	}
@@ -1244,7 +1243,7 @@ func TestCleanCMDDryRun(t *testing.T) {
 
 	t.Logf("Pre-Clean # of versions: %v", len(versions))
 
-	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%s", host, mappedPort.Port()))
 	os.Setenv("AWS_EC2_METADATA_DISABLED", "true")
 	os.Setenv("AWS_ACCESS_KEY_ID", "test")
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
@@ -1320,7 +1319,7 @@ func TestCleanCMD(t *testing.T) {
 		panic(err)
 	}
 
-	mappedPort, err := localstackContainer.MappedPort(ctx, nat.Port("4566/tcp"))
+	mappedPort, err := localstackContainer.MappedPort(ctx, "4566/tcp")
 	if err != nil {
 		panic(err)
 	}
@@ -1388,7 +1387,7 @@ func TestCleanCMD(t *testing.T) {
 
 	t.Logf("Pre-Clean # of versions: %v", len(versions))
 
-	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%s", host, mappedPort.Port()))
 	os.Setenv("AWS_EC2_METADATA_DISABLED", "true")
 	os.Setenv("AWS_ACCESS_KEY_ID", "test")
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
@@ -1464,7 +1463,7 @@ func TestCleanCMDWithCustomList(t *testing.T) {
 		panic(err)
 	}
 
-	mappedPort, err := localstackContainer.MappedPort(ctx, nat.Port("4566/tcp"))
+	mappedPort, err := localstackContainer.MappedPort(ctx, "4566/tcp")
 	if err != nil {
 		panic(err)
 	}
@@ -1532,7 +1531,7 @@ func TestCleanCMDWithCustomList(t *testing.T) {
 
 	t.Logf("Pre-Clean # of versions: %v", len(versions))
 
-	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%s", host, mappedPort.Port()))
 	os.Setenv("AWS_EC2_METADATA_DISABLED", "true")
 	os.Setenv("AWS_ACCESS_KEY_ID", "test")
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
@@ -1772,7 +1771,7 @@ THE CODE BELOW IS FOR TESTING PURPOSES ONLY
 
 // lambdaClient returns a lambda client configured to use the localstack containers
 func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lambda.Client, error) {
-	mappedPort, err := l.MappedPort(ctx, nat.Port("4566/tcp"))
+	mappedPort, err := l.MappedPort(ctx, "4566/tcp")
 	if err != nil {
 		return nil, err
 	}
@@ -1798,7 +1797,7 @@ func lambdaClient(ctx context.Context, l *localstack.LocalStackContainer) (*lamb
 	}
 
 	client := lambda.NewFromConfig(awsCfg, func(o *lambda.Options) {
-		o.BaseEndpoint = aws.String(fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+		o.BaseEndpoint = aws.String(fmt.Sprintf("http://%s:%s", host, mappedPort.Port()))
 	})
 
 	return client, nil
@@ -1907,7 +1906,7 @@ func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (
 		return nil, err
 	}
 
-	mappedPort, err := l.MappedPort(ctx, nat.Port("4566/tcp"))
+	mappedPort, err := l.MappedPort(ctx, "4566/tcp")
 	if err != nil {
 		return nil, err
 	}
@@ -1922,7 +1921,7 @@ func getAWSCredentials(ctx context.Context, l *localstack.LocalStackContainer) (
 	}
 
 	return lambda.NewFromConfig(awsCfg, func(o *lambda.Options) {
-		o.BaseEndpoint = aws.String(fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+		o.BaseEndpoint = aws.String(fmt.Sprintf("http://%s:%s", host, mappedPort.Port()))
 	}), nil
 
 }

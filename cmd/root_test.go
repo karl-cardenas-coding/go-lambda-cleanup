@@ -13,7 +13,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
-	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/localstack"
 	"github.com/testcontainers/testcontainers-go/network"
@@ -61,7 +60,7 @@ func TestRootCMD(t *testing.T) {
 		panic(err)
 	}
 
-	mappedPort, err := localstackContainer.MappedPort(ctx, nat.Port("4566/tcp"))
+	mappedPort, err := localstackContainer.MappedPort(ctx, "4566/tcp")
 	if err != nil {
 		panic(err)
 	}
@@ -119,7 +118,7 @@ func TestRootCMD(t *testing.T) {
 
 	t.Logf("Pre-Clean # of versions: %v", len(versions))
 
-	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%s", host, mappedPort.Port()))
 	os.Setenv("AWS_EC2_METADATA_DISABLED", "true")
 	os.Setenv("AWS_ACCESS_KEY_ID", "test")
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
@@ -193,7 +192,7 @@ func TestRootExecute(t *testing.T) {
 		panic(err)
 	}
 
-	mappedPort, err := localstackContainer.MappedPort(ctx, nat.Port("4566/tcp"))
+	mappedPort, err := localstackContainer.MappedPort(ctx, "4566/tcp")
 	if err != nil {
 		panic(err)
 	}
@@ -251,7 +250,7 @@ func TestRootExecute(t *testing.T) {
 
 	t.Logf("Pre-Clean # of versions: %v", len(versions))
 
-	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%s", host, mappedPort.Port()))
 	os.Setenv("AWS_EC2_METADATA_DISABLED", "true")
 	os.Setenv("AWS_ACCESS_KEY_ID", "test")
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
@@ -322,7 +321,7 @@ func TestNoLambdas(t *testing.T) {
 		panic(err)
 	}
 
-	mappedPort, err := localstackContainer.MappedPort(ctx, nat.Port("4566/tcp"))
+	mappedPort, err := localstackContainer.MappedPort(ctx, "4566/tcp")
 	if err != nil {
 		panic(err)
 	}
@@ -346,7 +345,7 @@ func TestNoLambdas(t *testing.T) {
 		Retain:            aws.Int8(0),
 	}
 
-	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%d", host, mappedPort.Int()))
+	os.Setenv("AWS_ENDPOINT_URL", fmt.Sprintf("http://%s:%s", host, mappedPort.Port()))
 	os.Setenv("AWS_EC2_METADATA_DISABLED", "true")
 	os.Setenv("AWS_ACCESS_KEY_ID", "test")
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
