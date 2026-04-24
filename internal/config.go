@@ -13,6 +13,13 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
+var (
+	errReadInputFile     = errors.New("unable to read the input file")
+	errDecodeYAMLFile    = errors.New("unable to decode the YAML file")
+	errUnmarshalJSONFile = errors.New("unable to unmarshall the json file")
+	errInvalidFileType   = errors.New("invalid file type provided. Must be of type json, yaml or yml")
+)
+
 // GenerateLambdaDeleteList is a function that takes a file path as input and returns a list of Lambdas to be deleted.
 func GenerateLambdaDeleteList(filePath string) ([]string, error) {
 	var (
@@ -55,17 +62,17 @@ func readConfigFileYaml(file string) (CustomDeleteListYaml, error) {
 
 	fileContent, err := os.ReadFile(file)
 	if err != nil {
-		return list, errors.New("unable to read the input file")
+		return list, fmt.Errorf("%w: %w", errReadInputFile, err)
 	}
 
 	dc := yaml.NewDecoder(strings.NewReader(string(fileContent)))
 	dc.KnownFields(true)
 
 	if err := dc.Decode(&list); err != nil {
-		return list, fmt.Errorf("unable to decode the YAML file. Ensure the file is in the correct format and that all fields are correct. %s", err.Error())
+		return list, fmt.Errorf("%w. Ensure the file is in the correct format and that all fields are correct: %w", errDecodeYAMLFile, err)
 	}
 
-	return list, err
+	return list, nil
 }
 
 // readConfigFileJson is a function that takes a file path as input and returns a list of Lambdas to be deleted. A JSON file is expected.
@@ -76,22 +83,22 @@ func readConfigFileJson(file string) (CustomDeleteListJson, error) {
 
 	fileContent, err := os.ReadFile(file)
 	if err != nil {
-		return list, errors.New("unable to read the input file")
+		return list, fmt.Errorf("%w: %w", errReadInputFile, err)
 	}
 
 	err = json.Unmarshal(fileContent, &list)
 	if err != nil {
-		return list, errors.New("unable to unmarshall the json file")
+		return list, fmt.Errorf("%w: %w", errUnmarshalJSONFile, err)
 	}
 
-	return list, err
+	return list, nil
 }
 
 // determineFileType validates the existence of an input file and ensures its prefix is json | yaml | yml.
 func determineFileType(file string) (string, error) {
 	f, err := os.Stat(file)
 	if err != nil {
-		return "none", errors.New("unable to read the input file")
+		return "none", fmt.Errorf("%w: %w", errReadInputFile, err)
 	}
 
 	var fileType string
@@ -108,7 +115,7 @@ func determineFileType(file string) (string, error) {
 
 	default:
 		fileType = "none"
-		err = errors.New("invalid file type provided. Must be of type json, yaml or yml")
+		err = errInvalidFileType
 	}
 
 	return fileType, err

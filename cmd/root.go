@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -58,10 +59,10 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Info("Error executing the CLI!")
 
-			return err
+			return fmt.Errorf("failed to render help output: %w", err)
 		}
 
-		return err
+		return nil
 	},
 }
 

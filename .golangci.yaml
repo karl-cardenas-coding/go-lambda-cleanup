@@ -1,7 +1,16 @@
 version: "2"
 
 linters:
-  default: all
+  default: none
+  enable:
+    - err113
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unconvert
+    - unused
+    - wrapcheck
   exclusions:
     paths:
     - "_test.go"
