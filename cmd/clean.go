@@ -1,6 +1,7 @@
 // Copyright (c) karl-cardenas-coding
 // SPDX-License-Identifier: MIT
 
+// Package cmd implements the CLI commands.
 package cmd
 
 import (
@@ -41,7 +42,29 @@ const (
 var (
 	//go:embed aws-regions.txt
 	f embed.FS
+
+	errMissingRegion                = errors.New("missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region")
+	errEstablishingAWSSession       = errors.New("ERROR ESTABLISHING AWS SESSION")
+	errRetrievingAWSCredentials     = errors.New("ERROR RETRIEVING AWS CREDENTIALS")
+	errAWSCredentialsExpired        = errors.New("AWS CREDENTIALS EXPIRED")
+	errDeleteLambdaVersionFailed    = errors.New("failed to delete lambda version")
+	errInvalidAWSRegion             = errors.New("invalid AWS region")
+	errListFunctionsPageFetchFailed = errors.New("failed to fetch lambda functions page")
+	errListVersionsPageFetchFailed  = errors.New("failed to fetch lambda versions page")
+	errListAliasesPageFetchFailed   = errors.New("failed to fetch lambda aliases page")
 )
+
+type invalidAWSRegionError struct {
+	region string
+}
+
+func (e invalidAWSRegionError) Error() string {
+	return fmt.Sprintf("%s is an invalid AWS region. If this is an error please report it", e.region)
+}
+
+func (e invalidAWSRegionError) Unwrap() error {
+	return errInvalidAWSRegion
+}
 
 func init() {
 	rootCmd.AddCommand(cleanCmd)
@@ -51,7 +74,7 @@ var cleanCmd = &cobra.Command{
 	Use:   "clean",
 	Short: "Removes all former versions of AWS lambdas except for the $LATEST version",
 	Long:  `Removes all former versions of AWS lambdas except for the $LATEST version. The user also has the ability specify n-? version to retain.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		ctx := context.Background()
 
 		var (
@@ -73,7 +96,7 @@ var cleanCmd = &cobra.Command{
 					return err
 				}
 			} else {
-				return errors.New("missing region flag and AWS_DEFAULT_REGION env variable. Please use -r and provide a valid AWS region")
+				return errMissingRegion
 			}
 		} else {
 			*config.RegionFlag, err = validateRegion(f, *config.RegionFlag)
@@ -129,16 +152,16 @@ var cleanCmd = &cobra.Command{
 
 		cfg, err := awsConfig.LoadDefaultConfig(ctx, awsConfigOptions...)
 		if err != nil {
-			return errors.New("ERROR ESTABLISHING AWS SESSION")
+			return fmt.Errorf("%w: %w", errEstablishingAWSSession, err)
 		}
 
 		creds, err := cfg.Credentials.Retrieve(ctx)
 		if err != nil {
-			return errors.New("ERROR RETRIEVING AWS CREDENTIALS")
+			return fmt.Errorf("%w: %w", errRetrievingAWSCredentials, err)
 		}
 
 		if creds.Expired() {
-			return errors.New("AWS CREDENTIALS EXPIRED")
+			return errAWSCredentialsExpired
 		}
 
 		// svc = lambda.NewFromConfig(cfg)
@@ -164,6 +187,7 @@ executeClean is the main function that executes the clean-up process
 It takes a context, a pointer to a cliConfig struct, a pointer to a lambda client, and a list of custom lambdas to delete
 An error is returned if the function fails to execute.
 */
+//nolint:cyclop // Existing command flow has multiple guarded branches; keep behavior unchanged.
 func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, customList []string, limiter *rate.Limiter) error {
 	startTime := time.Now()
 
@@ -172,7 +196,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		globalLambdaStorage        []int64
 		updatedGlobalLambdaStorage []int64
 		globalLambdaVersionsList   [][]types.FunctionConfiguration
-		counter                    int64 = 0
+		counter                    int64
 	)
 
 	log.Info("Scanning AWS environment in " + *config.RegionFlag)
@@ -212,14 +236,14 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 		log.Info(tempCounter, " Lambdas identified")
 
 		for _, v := range globalLambdaStorage {
-			counter = counter + v
+			counter += v
 		}
 
 		log.Info("Current storage size: ", calculateFileSize(uint64(counter), config))
 		log.Info("**************************")
 		log.Info("Initiating clean-up process. This may take a few minutes....")
 		// Begin delete process
-		globalLambdaDeleteList := [][]types.FunctionConfiguration{}
+		globalLambdaDeleteList := make([][]types.FunctionConfiguration, 0, len(globalLambdaVersionsList))
 
 		for _, lambda := range globalLambdaVersionsList {
 			lambdasDeleteList := getLambdasToDeleteList(lambda, *config.Retain)
@@ -241,7 +265,7 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 			log.Info(fmt.Sprintf("%d unique versions will be removed in an actual execution.", numVerDeleted))
 
 			spaceRemovedPreview := calculateSpaceRemoval(globalLambdaDeleteList)
-			log.Info(calculateFileSize(uint64(spaceRemovedPreview), config) + " of storage space will be removed in an actual execution.")
+			log.Info(calculateFileSize(spaceRemovedPreview, config) + " of storage space will be removed in an actual execution.")
 
 			displayDuration(startTime)
 
@@ -281,9 +305,9 @@ func executeClean(ctx context.Context, config *cliConfig, svc *lambda.Client, cu
 
 		log.Info("............")
 
-		var updatedCounter int64 = 0
+		var updatedCounter int64
 		for _, v := range updatedGlobalLambdaStorage {
-			updatedCounter = updatedCounter + v
+			updatedCounter += v
 		}
 
 		if len(lambdaList) == 0 {
@@ -327,7 +351,7 @@ func displayDuration(startTime time.Time) {
 func generateDeleteInputStructs(versionsList [][]types.FunctionConfiguration, details bool) ([][]lambda.DeleteFunctionInput, error) {
 	var (
 		returnError error
-		output      [][]lambda.DeleteFunctionInput
+		output      = make([][]lambda.DeleteFunctionInput, 0, len(versionsList))
 	)
 
 	for _, version := range versionsList {
@@ -362,15 +386,15 @@ func generateDeleteInputStructs(versionsList [][]types.FunctionConfiguration, de
 
 // calculateSpaceRemoval returns the total size of all the versions to be deleted.
 // The function takes a list of lambda.DeleteFunctionInput and returns an int.
-func calculateSpaceRemoval(deleteList [][]types.FunctionConfiguration) int {
-	var (
-		size int
-	)
+func calculateSpaceRemoval(deleteList [][]types.FunctionConfiguration) uint64 {
+	var size uint64
 
 	for _, lambda := range deleteList {
 		for _, version := range lambda {
 			if *version.Version != "$LATEST" {
-				size = size + int(version.CodeSize)
+				if version.CodeSize > 0 {
+					size += uint64(version.CodeSize)
+				}
 			}
 		}
 	}
@@ -386,7 +410,7 @@ func countDeleteVersions(deleteList [][]lambda.DeleteFunctionInput) int {
 	)
 
 	for _, lambda := range deleteList {
-		versionsCount = versionsCount + len(lambda)
+		versionsCount += len(lambda)
 	}
 
 	return versionsCount
@@ -407,15 +431,21 @@ func deleteLambdaVersion(ctx context.Context, svc *lambda.Client, limiter *rate.
 			func() {
 				defer wg.Done()
 
-				if err := limiter.Wait(ctx); err != nil {
+				err := limiter.Wait(ctx)
+				if err != nil {
 					returnError = fmt.Errorf("rate limiter interrupted: %w", err)
 					return
 				}
 
-				_, err := svc.DeleteFunction(ctx, &version)
+				_, err = svc.DeleteFunction(ctx, &version)
 				if err != nil {
-					err = errors.New("Failed to delete version " + *version.Qualifier + " of " + *version.FunctionName + ". \n Additional details: " + err.Error())
-					returnError = err
+					returnError = fmt.Errorf(
+						"%w: version %s of %s: %w",
+						errDeleteLambdaVersionFailed,
+						aws.ToString(version.Qualifier),
+						aws.ToString(version.FunctionName),
+						err,
+					)
 				}
 			}()
 		}
@@ -440,14 +470,16 @@ func getLambdasToDeleteList(list []types.FunctionConfiguration, retainCount int8
 	}
 
 	// This checks to ensure that we are not deleting a list that only contains $LATEST
-	if (len(list)) > 1 && (int(retainNumber) < len(list)) {
+	if len(list) > 1 && retainNumber < len(list) {
 		return list[retainNumber:]
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 // getAllLambdas returns a list of all available lambdas in the AWS environment. The function takes a context, a pointer to a lambda client, and a list of custom lambdas function names to delete.
+//
+//nolint:cyclop // Existing AWS pagination/error handling branches are kept explicit for clarity.
 func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string, limiter *rate.Limiter) ([]types.FunctionConfiguration, error) {
 	var (
 		lambdasListOutput []types.FunctionConfiguration
@@ -466,7 +498,7 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string,
 			if err != nil {
 				log.Error(err)
 
-				return lambdasListOutput, err
+				return lambdasListOutput, fmt.Errorf("%w: %w", errListFunctionsPageFetchFailed, err)
 			}
 
 			lambdasListOutput = append(lambdasListOutput, page.Functions...)
@@ -475,7 +507,8 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string,
 
 	if len(customList) > 0 {
 		for _, item := range customList {
-			if err := limiter.Wait(ctx); err != nil {
+			err := limiter.Wait(ctx)
+			if err != nil {
 				return lambdasListOutput, fmt.Errorf("rate limiter interrupted: %w", err)
 			}
 
@@ -506,6 +539,8 @@ func getAllLambdas(ctx context.Context, svc *lambda.Client, customList []string,
 }
 
 // getAllLambdaVersion returns a list of all available versions for a given lambda. The function takes a context, a pointer to a lambda client, and a lambda.FunctionConfiguration.
+//
+//nolint:cyclop // Existing alias filtering and pagination branching is intentional and behavior-preserving.
 func getAllLambdaVersion(
 	ctx context.Context,
 	svc *lambda.Client,
@@ -526,7 +561,8 @@ func getAllLambdaVersion(
 
 	p := lambda.NewListVersionsByFunctionPaginator(svc, input)
 	for p.HasMorePages() {
-		if err := limiter.Wait(ctx); err != nil {
+		err := limiter.Wait(ctx)
+		if err != nil {
 			return lambdasLisOutput, fmt.Errorf("rate limiter interrupted: %w", err)
 		}
 
@@ -534,7 +570,7 @@ func getAllLambdaVersion(
 		if err != nil {
 			log.Error(err)
 
-			return lambdasLisOutput, err
+			return lambdasLisOutput, fmt.Errorf("%w: %w", errListVersionsPageFetchFailed, err)
 		}
 
 		lambdasLisOutput = append(lambdasLisOutput, page.Versions...)
@@ -550,7 +586,8 @@ func getAllLambdaVersion(
 		var aliasesOut []types.AliasConfiguration
 
 		for pg.HasMorePages() {
-			if err := limiter.Wait(ctx); err != nil {
+			err := limiter.Wait(ctx)
+			if err != nil {
 				return lambdasLisOutput, fmt.Errorf("rate limiter interrupted: %w", err)
 			}
 
@@ -558,7 +595,7 @@ func getAllLambdaVersion(
 			if err != nil {
 				log.Error(err)
 
-				return lambdasLisOutput, err
+				return lambdasLisOutput, fmt.Errorf("%w: %w", errListAliasesPageFetchFailed, err)
 			}
 
 			aliasesOut = append(aliasesOut, page.Aliases...)
@@ -616,7 +653,7 @@ func getLambdaStorage(list []types.FunctionConfiguration) (int64, error) {
 	)
 
 	for _, item := range list {
-		sizeCounter = sizeCounter + item.CodeSize
+		sizeCounter += item.CodeSize
 	}
 
 	return sizeCounter, returnError
@@ -640,7 +677,7 @@ func validateRegion(f embed.FS, input string) (string, error) {
 	}
 
 	if output == "" {
-		err = errors.New(input + " is an invalid AWS region. If this is an error please report it")
+		err = invalidAWSRegionError{region: input}
 
 		return "", err
 	}

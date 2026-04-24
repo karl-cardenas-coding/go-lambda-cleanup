@@ -1,6 +1,7 @@
 // Copyright (c) karl-cardenas-coding
 // SPDX-License-Identifier: MIT
 
+// Package main is the entrypoint for the go-lambda-cleanup CLI.
 package main
 
 import (

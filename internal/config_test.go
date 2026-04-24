@@ -9,7 +9,7 @@ import (
 
 func TestFileNotFound(t *testing.T) {
 
-	_, err := readConfigFileYaml("invalid.yaml")
+	_, err := readConfigFileYAML("invalid.yaml")
 	if err == nil {
 		t.Fatalf("Failed to read the Yaml file. Expected error but received %d", err)
 	}
@@ -18,12 +18,12 @@ func TestFileNotFound(t *testing.T) {
 func TestReadConfigFileYaml(t *testing.T) {
 
 	want := 2
-	got, err := readConfigFileYaml("../tests/test.yaml")
+	got, err := readConfigFileYAML("../tests/test.yaml")
 	if len(got.Lambdas) != want || err != nil {
 		t.Fatalf("Failed to read the Yaml file. Expected %d but received %d", want, len(got.Lambdas))
 	}
 
-	_, err = readConfigFileYaml("test.json")
+	_, err = readConfigFileYAML("test.json")
 	if err == nil {
 		t.Fatalf("Failed to read the Yaml file. Expected error but received %d", err)
 	}
@@ -32,7 +32,7 @@ func TestReadConfigFileYaml(t *testing.T) {
 func TestReadConfigFileYml(t *testing.T) {
 
 	want := 2
-	got, err := readConfigFileYaml("../tests/test.yml")
+	got, err := readConfigFileYAML("../tests/test.yml")
 	if len(got.Lambdas) != want || err != nil {
 		t.Fatalf("Failed to read the Yaml file. Expected %d but received %d", want, len(got.Lambdas))
 	}
@@ -41,12 +41,12 @@ func TestReadConfigFileYml(t *testing.T) {
 func TestReadConfigFileJson(t *testing.T) {
 
 	want := 2
-	got, err := readConfigFileJson("../tests/test.json")
+	got, err := readConfigFileJSON("../tests/test.json")
 	if len(got.Lambdas) != want || err != nil {
 		t.Fatalf("Failed to read the json file. Expected %d but received %d", want, len(got.Lambdas))
 	}
 
-	_, err = readConfigFileJson("test.yaml")
+	_, err = readConfigFileJSON("test.yaml")
 	if err == nil {
 		t.Fatalf("Failed to read the json file. Expected error but received %d", err)
 	}
@@ -91,7 +91,7 @@ func TestDetermineFileTypeJson(t *testing.T) {
 
 func TestInvalidJSON(t *testing.T) {
 
-	_, err := readConfigFileJson("../tests/invalid.json")
+	_, err := readConfigFileJSON("../tests/invalid.json")
 	if err == nil {
 		t.Fatalf("An error was expected but received %s", err)
 	}
@@ -139,7 +139,7 @@ func TestGenerateLambdaDeleteListInvalid(t *testing.T) {
 
 func TestInvalidYaml(t *testing.T) {
 
-	_, err := readConfigFileYaml("../tests/invalid.yaml")
+	_, err := readConfigFileYAML("../tests/invalid.yaml")
 	if err == nil {
 		t.Fatalf("An error was expected but received %s", err)
 	}

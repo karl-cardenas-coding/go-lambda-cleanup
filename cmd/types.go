@@ -18,7 +18,7 @@ type cliConfig struct {
 	SkipAliases       *bool
 }
 
-// Github Release Structure (v3).
+// Release is the GitHub release payload structure (v3).
 type Release struct {
 	URL             string    `json:"url"`
 	AssetsURL       string    `json:"assets_url"`
@@ -40,6 +40,7 @@ type Release struct {
 	Body            string    `json:"body"`
 }
 
+// Author is the author payload nested in a GitHub release.
 type Author struct {
 	Login             string `json:"login"`
 	ID                int    `json:"id"`
@@ -60,6 +61,8 @@ type Author struct {
 	Type              string `json:"type"`
 	SiteAdmin         bool   `json:"site_admin"`
 }
+
+// Uploader is the uploader payload nested in GitHub release assets.
 type Uploader struct {
 	Login             string `json:"login"`
 	ID                int    `json:"id"`
@@ -80,6 +83,8 @@ type Uploader struct {
 	Type              string `json:"type"`
 	SiteAdmin         bool   `json:"site_admin"`
 }
+
+// Assets is the release asset payload from the GitHub API.
 type Assets struct {
 	URL                string    `json:"url"`
 	ID                 int       `json:"id"`

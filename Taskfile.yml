@@ -46,3 +46,13 @@ tasks:
     desc: Check for nil errors
     cmds:
       - ~/go/bin/nilaway ./...
+
+  docker-build:
+    desc: Build the Docker image
+    cmds:
+      - docker build -t go-lambda-cleanup:latest .
+
+  fmt:
+    desc: Format the code
+    cmds:
+      - go fmt ./...

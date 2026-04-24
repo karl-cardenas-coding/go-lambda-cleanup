@@ -6,7 +6,11 @@ on:
 
 
 env:
-  GO_VERSION: '1.26'    
+  GO_VERSION: '1.26'   
+  
+concurrency:
+  group: "branch_tests_${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
   test:

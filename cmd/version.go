@@ -4,11 +4,11 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-
-	"errors"
 
 	"github.com/hashicorp/go-version"
 	log "github.com/sirupsen/logrus"
@@ -23,11 +23,20 @@ const (
 	url = "https://api.github.com/repos/karl-cardenas-coding/go-lambda-cleanup/releases/latest"
 )
 
+var (
+	errCreateRequest          = errors.New("failed to create release request")
+	errConnectReleaseEndpoint = errors.New("error connecting to release endpoint")
+	errDecodeReleasePayload   = errors.New("failed to decode release payload")
+	errCreateVersionValue     = errors.New("failed to parse version value")
+	errCompareVersions        = errors.New("error comparing versions")
+)
+
+// VersionCmd prints the current version and checks for newer releases.
 var VersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the current version number of go-lambda-cleanup",
 	Long:  `Prints the current version number of go-lambda-cleanup`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		version := "go-lambda-cleanup " + VersionString
 		log.Info(version)
 
@@ -40,10 +49,11 @@ var VersionCmd = &cobra.Command{
 
 		log.Info(message)
 
-		return err
+		return nil
 	},
 }
 
+//nolint:cyclop // Network and version-comparison branching is explicit to preserve current behavior.
 func checkForNewRelease(client *http.Client, currentVersion, useragent, url string) (bool, string, error) {
 	var (
 		output  bool
@@ -53,7 +63,7 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 
 	log.Info("Checking for new releases")
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"package":         "cmd",
@@ -64,7 +74,7 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 			"data":            nil,
 		}).Debug("Error creating the HTTP request", IssueMSG)
 
-		return output, message, err
+		return output, message, fmt.Errorf("%w: %w", errCreateRequest, err)
 	}
 
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
@@ -81,11 +91,23 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 			"data":            nil,
 		}).Debug("Error initaiting connection to, ", url, IssueMSG)
 
-		return output, message, err
+		return output, message, fmt.Errorf("%w: %w", errConnectReleaseEndpoint, err)
 	}
 
 	if resp != nil && resp.Body != nil {
-		defer resp.Body.Close()
+		defer func() {
+			closeErr := resp.Body.Close()
+			if closeErr != nil {
+				log.WithFields(log.Fields{
+					"package":         "cmd",
+					"file":            "version.go",
+					"parent_function": "checkForNewRelease",
+					"function":        "resp.Body.Close",
+					"error":           closeErr,
+					"data":            nil,
+				}).Debug("Error closing response body", IssueMSG)
+			}
+		}()
 
 		if resp.StatusCode != http.StatusOK {
 			log.WithFields(log.Fields{
@@ -97,10 +119,11 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 				"data":            nil,
 			}).Debug("Error initaiting connection to, ", url, IssueMSG)
 
-			return output, message, fmt.Errorf("error connecting to %s", url)
+			return output, message, fmt.Errorf("%w: %s", errConnectReleaseEndpoint, url)
 		}
 		// Unmarshal the JSON to the Github Release strcut
-		if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		err = json.NewDecoder(resp.Body).Decode(&release)
+		if err != nil {
 			log.WithFields(log.Fields{
 				"package":         "cmd",
 				"file":            "version.go",
@@ -110,7 +133,7 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 				"data":            nil,
 			}).Debug("Error unmarshalling Github response", IssueMSG)
 
-			return output, message, err
+			return output, message, fmt.Errorf("%w: %w", errDecodeReleasePayload, err)
 		}
 
 		cVersion, err := version.NewVersion(currentVersion)
@@ -124,7 +147,7 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 				"data":            nil,
 			}).Debug("Error creating new version", IssueMSG)
 
-			return output, message, err
+			return output, message, fmt.Errorf("%w: %w", errCreateVersionValue, err)
 		}
 
 		latestVersion, err := version.NewVersion(release.TagName[1:])
@@ -138,7 +161,7 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 				"data":            nil,
 			}).Debug("Error creating new version", IssueMSG)
 
-			return output, message, err
+			return output, message, fmt.Errorf("%w: %w", errCreateVersionValue, err)
 		}
 
 		switch cVersion.Compare(latestVersion) {
@@ -152,11 +175,11 @@ func checkForNewRelease(client *http.Client, currentVersion, useragent, url stri
 			message = "You are running a pre-release version"
 			output = true
 		default:
-			return output, message, errors.New("error comparing versions")
+			return output, message, errCompareVersions
 		}
 	} else {
-		return output, message, fmt.Errorf("error connecting to %s", url)
+		return output, message, fmt.Errorf("%w: %s", errConnectReleaseEndpoint, url)
 	}
 
-	return output, message, err
+	return output, message, nil
 }
